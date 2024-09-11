@@ -1,0 +1,156 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: harness-central-build-farm-setup
+  title: Harness Central Build Farm Setup
+  description: Configures the Connectors for a Centralized Build Farm configuration
+  tags:
+    - account-management
+    - solutions-factory
+    - harness
+    - hidden
+spec:
+  owner: group:default/HSF_Admins
+  type: harness_factory
+  parameters:
+    - title: Setup Build Farm Connectors
+      required:
+        - container_registry_type
+        - container_registry_url
+        - source_code_manager_type
+        - source_code_manager_url
+        - source_code_manager_validation_repo
+      properties:
+        use_self_hosted:
+          title: Configure a Kubernetes Connector for use as a Centralized Build Farm
+          type: boolean
+        container_registry_type:
+          title: Choose your Container Registry Type
+          type: string
+          description: What type of Container Registry Connector type will be used as the default Build Farm Registry
+          ui:widget: RadioWidget
+          enum:
+            - docker
+            - artifactory
+        container_registry_url:
+          title: Container Registry URL
+          type: string
+          description: Provide the URL to which the Container Registry connector will connect - e.g. https://index.docker.io/v2/
+        source_code_manager_type:
+          title: Choose your Source Code Manager Type
+          type: string
+          description: What type of Source Code Manager Connector type will be used as the default Build Farm SC
+          ui:widget: RadioWidget
+          enum:
+            - github
+            - bitbucket
+        source_code_manager_url:
+          title: Source Code Manager URL
+          type: string
+          description: Please provide the default URL for the Connector - e.g. https://github.com
+        source_code_manager_validation_repo:
+          title: Validation Repository
+          type: string
+          description: Please provide the validation URL for the Connector - e.g. harness/terraform-provider-harness
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+<+variable.account.solutions_factory_endpoint>.replaceFirst("/*$","")>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+<+variable.account.solutions_factory_endpoint>.replaceFirst("/*$","")>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+  steps:
+    - id: trigger
+      name: Creating your Harness Resources
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_PATH: template_library/central-build-farm-setup
+          GIT_REPOSITORY_BRANCH: main
+          RESOURCE_NAME: harness-central-build-farm-setup
+          RESOURCE_OWNER: group:default/Account_Admins
+          RESOURCE_VARS:
+            use_self_hosted: ${{ true if parameters.use_self_hosted else false }}
+            container_registry_type: ${{ parameters.container_registry_type }}
+            container_registry_url: ${{ parameters.container_registry_url }}
+            source_code_manager_type: ${{ parameters.source_code_manager_type }}
+            source_code_manager_url: ${{ parameters.source_code_manager_url }}
+            source_code_manager_validation_repo: ${{ parameters.source_code_manager_validation_repo }}
+          RESOURCE_VARS_ENVS: {}
+          RESOURCE_VARS_ENVS_SECRET: {}
+          RESOURCE_VARS_SECRETS: {}
+          INCLUDE_HARNESS_ENVS: "true"
+        apikey: ${{ parameters.token }}
+    - id: provision_workspace
+      name: Provisioning your Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          workspace: harness-central-build-farm-setup
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Harness Workspace Configured - Execution Link
+        url: ${{ steps.configure_workspace.output.PipelineUrl }}
+      - title: Harness Workspace Provisioned - Execution Link
+        url: ${{ steps.provision_workspace.output.PipelineUrl }}
+    text:
+      - title: Next-Steps
+        content: |
+          Upon successful execution of this Terraform template, the following items will need to be finalized.
+
+          Step 1) Update the following Account Secrets with their correct values:
+          ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/settings/secrets
+
+            - BuildFarm Container Registry Username
+            - BuildFarm Container Registry Password
+            - BuildFarm SourceCode Manager Username
+            - BuildFarm SourceCode Manager Password
+          {% if parameters.use_self_hosted %}
+          Step 2) Deploy an Account Level delegate. Be sure to include the following tag(s) in the configuration:
+          ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/settings/delegates/list
+          - build-farm
+          {% endif %}
+      - title: Outputs
+        content: |
+          Harness Repository Details
+          {% if parameters.use_self_hosted %}
+          build_farm_connector: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.build_farm_connector']}}
+          {% endif %}
+
+          build_farm_container_registry: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.build_farm_container_registry']}}
+
+          build_farm_source_code_manager: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.build_farm_source_code_manager']}}
+

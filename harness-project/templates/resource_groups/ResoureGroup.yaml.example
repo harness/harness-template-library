@@ -1,0 +1,9 @@
+---
+# resource_filters:
+#   - type: CONNECTOR
+#     filters:
+#       - name: category
+#         values:
+#           - CLOUD_COST
+#           - SECRETS_MANAGERS
+

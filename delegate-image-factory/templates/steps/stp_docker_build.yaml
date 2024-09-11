@@ -1,0 +1,35 @@
+- step:
+          type: BuildAndPushDockerRegistry
+          name: Build Docker Image
+          identifier: Build_Docker_Image
+          spec:
+            connectorRef: <+stage.variables.REGISTRY_CONNECTOR_ID>
+            repo: <+stepGroup.variables.BUILD_TARGET_IMAGE>
+            tags:
+              - ${BUILD_TAG}
+            dockerfile: ${BUILD_DOCKERFILE}
+            %{~ if USE_BUILD_CACHING ~}
+            caching: true
+            %{~ endif ~}
+            %{~ if BUILD_CONTEXT != null ~}
+            context: ${BUILD_CONTEXT}
+            %{~ endif ~}
+            %{~ if BUILD_ARGS != null ~}
+            buildArgs: ${BUILD_ARGS}
+            %{~ endif ~}
+            %{~ if BUILD_OPTIMIZE != null ~}
+            optimize: ${BUILD_OPTIMIZE}
+            %{~ endif ~}
+            %{~ if USE_REMOTE_CACHE_REPO ~}
+            remoteCacheRepo: <+stepGroup.variables.BUILD_TARGET_IMAGE>-cache
+            %{~ endif ~}
+            %{~ if BUILD_MEM != null ~}
+            resources:
+              limits:
+                memory: ${BUILD_MEM}
+            %{~ endif ~}
+            %{~ if USE_KANIKO_VARS ~}
+            envVariables:
+              PLUGIN_NO_PUSH: "true"
+              PLUGIN_TAR_PATH: /opt/docker_cache/image.tar
+            %{~ endif ~}

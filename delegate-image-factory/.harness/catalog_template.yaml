@@ -1,0 +1,324 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: harness-delegate-image-factory
+  title: Harness Delegate Image Factory
+  description: |
+    The Harness Delegate Images Factory is a robust Harness pipeline designed to create and manage the lifecycle of customized Harness Delegate Images.
+
+    Learn More in the TechDocs
+  tags:
+    - account-management
+    - solutions-factory
+    - harness
+    - hidden
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+spec:
+  owner: group:default/HSF_Admins
+  type: harness_factory
+  parameters:
+    - title: Deploy the Harness Delegate Image Factory
+      description: |
+        ---
+        The Delegate Image Factory requires an existing Build Infrastructure configuration to be in place. This solution will support
+        deployments via Kubernetes or Harness Cloud deployments.
+      properties:
+        use_build_farm_infrastructure:
+          title: Configure this solution to use the Centralized Build Farm Infrastructure?
+          type: boolean
+          default: true
+        infra_defaults:
+          title: infra_defaults
+          type: object
+          ui:widget: hidden
+          properties:
+            harness_k8s_connector:
+              type: string
+              default: account.buildfarm_infrastructure
+            harness_k8s_namespace:
+              type: string
+              default: default
+            harness_override_image_connector:
+              type: string
+              default: ""
+            harness_k8s_node_selectors:
+              type: string
+              default: ""
+            container_registry_connector_id:
+              type: string
+              default: account.buildfarm_container_registry
+            git_repository_name:
+              type: string
+              default: harness-delegate-setup
+            git_connector_ref:
+              type: string
+              default: account.buildfarm_source_code_manager
+            existing_harness_platform_key_ref:
+              type: string
+              default: org.HARNESS_PLATFORM_KEY
+      dependencies:
+        use_build_farm_infrastructure:
+          allOf:
+            - if:
+                properties:
+                  use_build_farm_infrastructure:
+                    const: false
+              then:
+                properties:
+                  use_harness_cloud:
+                    title: Configure this solution to use the Harness Cloud Build Infrastructure?
+                    type: boolean
+                    default: true
+        use_harness_cloud:
+          allOf:
+            - if:
+                properties:
+                  use_harness_cloud:
+                    const: false
+              then:
+                required:
+                  - harness_k8s_connector
+                  - harness_k8s_namespace
+                properties:
+                  harness_k8s_connector:
+                    title: Existing Kubernetes Infrastructure Connector Reference
+                    type: string
+                    description: Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline.  Must exist before execution.
+                  harness_k8s_namespace:
+                    title: Existing Kubernetes Infrastructure Namespace
+                    type: string
+                    description: Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
+                  harness_override_image_connector:
+                    title: Existing Override Image Container Connector Reference
+                    type: string
+                    description: Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution
+                  harness_k8s_node_selectors:
+                    title: Map of Kubernetes Node Selectors (Must be in key:value JSON)
+                    type: object
+                    description: Optional Kubernetes Node Selectors
+
+    - title: Container Registry Configuration
+      required:
+        - container_registry_name
+        - container_registry_type
+      properties:
+        use_build_farm_registry:
+          title: Configure this solution to use the Centralized Build Farm Container Registry?
+          type: boolean
+          default: true
+        container_registry_name:
+          title: Existing Container Registry Name
+          type: string
+          description: Docker Registry Name to which the container will be published
+        container_registry_type:
+          title: Choose your Container Registry Type
+          type: string
+          ui:widget: RadioWidget
+          enum:
+            - docker
+          default: docker
+      dependencies:
+        use_build_farm_registry:
+          allOf:
+            - if:
+                properties:
+                  use_build_farm_registry:
+                    const: false
+              then:
+                required:
+                  - container_registry_connector_id
+                properties:
+                  container_registry_connector_id:
+                    title: Existing Container Registry Connector Reference
+                    type: string
+                    description: Existing Docker Registry Connector Id.  Must exist before execution
+
+    - title: Source Code Manager Configuration
+      properties:
+        create_harness_code_repository:
+          title: Setup a new Harness Code Repository?
+          type: boolean
+          default: true
+
+      dependencies:
+        create_harness_code_repository:
+          allOf:
+            - if:
+                properties:
+                  create_harness_code_repository:
+                    const: false
+              then:
+                required:
+                  - git_repository_name
+                properties:
+                  use_build_farm_scm:
+                    title: Configure this solution to use the Centralized Build Farm SCM?
+                    type: boolean
+                    default: true
+                  git_repository_name:
+                    title: GIT Repository Name
+                    type: string
+                    description: The source CodeBase Repository Name
+                    default: harness-delegate-setup
+        use_build_farm_scm:
+          allOf:
+            - if:
+                properties:
+                  use_build_farm_scm:
+                    const: false
+              then:
+                required:
+                  - git_connector_ref
+                properties:
+                  git_connector_ref:
+                    title: Existing GIT Connector Reference
+                    type: string
+                    description: Provide an existing Source Code Manager Connector Reference
+                    default: account.buildfarm_source_code_manager
+
+    - title: Delegate Image Factory Configuration
+      properties:
+        use_solution_factory_secret:
+          title: Should this factory use the default Harness Platform Management Token?
+          type: boolean
+          default: true
+        include_image_test_scan:
+          title: Include image Security Scanning steps?
+          type: boolean
+          description: "Note: Requires Harness Security Test Orchestration Module"
+          default: true
+        include_image_sbom:
+          title: Include Harness Software Bill of Materials?
+          description: "Note: Requires Harness Software Supply Chain Assurance Module"
+          type: boolean
+          default: true
+
+      dependencies:
+        use_solution_factory_secret:
+          allOf:
+            - if:
+                properties:
+                  use_solution_factory_secret:
+                    const: false
+              then:
+                required:
+                  - existing_harness_platform_key_ref
+                properties:
+                  existing_harness_platform_key_ref:
+                    title: "Harness API Secret Reference"
+                    type: string
+                    description: Provide an existing Harness Platform key secret reference.  Must exist before execution
+        include_image_test_scan:
+          allOf:
+            - if:
+                properties:
+                  include_image_test_scan:
+                    const: true
+              then:
+                required:
+                  - sto_scanner_type
+                properties:
+                  sto_scanner_type:
+                    title: Choose your Container Scanner Type
+                    type: string
+                    description: Harness STO Scanner Type
+                    ui:widget: RadioWidget
+                    enum:
+                      - aqua_trivy
+                    default: aqua_trivy
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+<+variable.account.solutions_factory_endpoint>.replaceFirst("/*$","")>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+<+variable.account.solutions_factory_endpoint>.replaceFirst("/*$","")>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+  steps:
+    - id: configure_workspace
+      name: Configuring Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_PATH: template_library/delegate-image-factory
+          GIT_REPOSITORY_BRANCH: chore/update-delegate-image-factory
+          RESOURCE_NAME: harness-delegate-image-factory
+          RESOURCE_OWNER: group:default/Account_Admins
+          RESOURCE_VARS:
+            organization_id: "${{ parameters.solutions_factory_details.harness_org_id }}"
+            project_id: "Delegate_Management"
+            harness_k8s_connector: ${{ "skipped" if use_harness_cloud else ( parameters.infra_defaults.harness_k8s_connector if parameters.use_build_farm_infrastructure else parameters.harness_k8s_connector ) }}
+            harness_k8s_namespace: ${{ parameters.infra_defaults.harness_k8s_namespace if parameters.use_build_farm_infrastructure else parameters.harness_k8s_namespace }}
+            harness_override_image_connector: ${{ parameters.harness_override_image_connector if parameters.harness_override_image_connector else parameters.infra_defaults.harness_override_image_connector }}
+            harness_k8s_node_selectors: ${{ parameters.harness_k8s_node_selectors if parameters.harness_k8s_node_selectors else parameters.infra_defaults.harness_k8s_node_selectors }}
+            container_registry_name: ${{ parameters.container_registry_name}}
+            container_registry_type: ${{ parameters.container_registry_type }}
+            container_registry_connector_id: ${{ parameters.infra_defaults.container_registry_connector_id if parameters.use_build_farm_registry else parameters.container_registry_connector_id }}
+            git_repository_name: ${{ parameters.infra_defaults.git_repository_name if parameters.create_harness_code_repository else parameters.git_repository_name }}
+            git_connector_ref: ${{ null if parameters.create_harness_code_repository else ( parameters.git_connector_ref if parameters.git_connector_ref else parameters.infra_defaults.git_connector_ref ) }}
+            existing_harness_platform_key_ref: ${{ parameters.infra_defaults.existing_harness_platform_key_ref if parameters.use_solution_factory_secret else parameters.existing_harness_platform_key_ref }}
+            include_image_test_scan: ${{ parameters.include_image_test_scan }}
+            sto_scanner_type: ${{ parameters.sto_scanner_type if parameters.sto_scanner_type else null }}
+            include_image_sbom: ${{ parameters.include_image_sbom }}
+          RESOURCE_VARS_ENVS: {}
+          RESOURCE_VARS_ENVS_SECRET: {}
+          RESOURCE_VARS_SECRETS: {}
+          INCLUDE_HARNESS_ENVS: "true"
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: provision_workspace
+      name: Provisioning your Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          workspace: harness-delegate-image-factory
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Harness Delegate Image Factory Pipeline
+        url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.pipeline']}}
+    text:
+      - title: Next Steps
+        content: |
+          Harness Repository Details
+
+          Repository: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.repository_url']}}
+
+          ---
+          Branch: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.repository_branch']}}
+
+          ---
+          Pipeline: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.pipeline']}}
+

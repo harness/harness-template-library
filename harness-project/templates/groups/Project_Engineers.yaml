@@ -1,0 +1,12 @@
+---
+# SSO Configuration
+# linked_sso_type: "SAML" # Required for SSO link
+# linked_sso_id: # Required
+# sso_group_id: # Should be the SSO Group ID to map
+tags:
+  purpose: Standard-Developers
+role_bindings:
+  - role: _project_viewer
+    resource_group: _all_project_level_resources
+  - role: Developer
+    resource_group: _all_project_level_resources

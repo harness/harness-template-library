@@ -1,0 +1,27 @@
+- step:
+          type: AquaTrivy
+          name: AquaTrivy
+          identifier: AquaTrivy
+          spec:
+            mode: orchestration
+            config: default
+            target:
+              type: container
+              detection: manual
+              name: <+stepGroup.variables.BUILD_TARGET_IMAGE>
+              variant: <+stepGroup.variables.BUILD_TARGET_TAG>
+            advanced:
+              log:
+                level: info
+            resources:
+              limits:
+                memory: 4Gi
+                cpu: "2"
+            privileged: true
+            imagePullPolicy: Always
+            image:
+              type: local_image
+              name: <+stepGroup.variables.BUILD_TARGET_IMAGE>
+              tag: <+stepGroup.variables.CACHE_TARGET_TAG>
+            sbom:
+              format: spdx-json

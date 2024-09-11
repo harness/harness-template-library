@@ -1,0 +1,28 @@
+# Terraform TFVARS Sample
+# ---------
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = null # If Not passed, then the ENV HARNESS_ACCOUNT_ID will be used
+
+# [Required] Enter the Harness Platform API Key for your account
+harness_platform_key = null # If Not passed, then the ENV HARNESS_PLATFORM_API_KEY will be used
+
+# Configure a Kubernetes Connector for use as a Centralized Build Farm
+use_self_hosted = true
+
+# What type of Container Registry Connector type will be used as the default Build Farm Registry
+container_registry_type = "docker"
+
+# What type of Container Registry Connector type will be used as the default Build Farm Registry
+container_registry_url = "https://registry.hub.docker.com/v2/"
+
+# What type of Source Code Manager Connector type will be used as the default Build Farm SCM
+source_code_manager_type = "github"
+
+# Please provide the default URL for the Connector - e.g. https://github.com
+source_code_manager_url = # Required
+
+# Please provide the validation URL for the Connector - e.g. harness/terraform-provider-harness
+source_code_manager_validation_repo = # Required

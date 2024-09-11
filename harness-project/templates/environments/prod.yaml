@@ -1,0 +1,9 @@
+---
+# description: Harness Environment managed by Solutions Factory
+type : Production
+tags:
+  env: prod
+# yaml:
+#   environment:
+#     name: prod
+#     identifier: prod

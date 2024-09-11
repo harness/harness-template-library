@@ -1,0 +1,264 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: The Harness Delegate Images Factory is robust Harness pipeline designed to create and manage the lifecycle of custom Harness Delegate Images.
+  tags:
+    ${indent(4, TAGS)}
+  properties:
+    ci:
+      codebase:
+        %{~ if CI_CODEBASE_CONNECTOR != null ~}
+        connectorRef: ${CI_CODEBASE_CONNECTOR}
+        %{~ endif ~}
+        repoName: ${CI_CODEBASE_REPO}
+        build: <+input>
+  stages:
+    - stage:
+        name: Build and Test Harness Delegate Image
+        identifier: Build_and_Test_Harness_Delegate_Image
+        description: Build and Scan the Image without pushing to ensure compliance is met for the release.
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Get Latest Delegate Image
+                  identifier: Get_Latest_Delegate_Image
+                  spec:
+                    %{~ if HARNESS_K8s_CONNECTOR != "skipped" ~}
+                    connectorRef: ${HARNESS_K8s_CONNECTOR}
+                    image: bash
+                    %{~ endif ~}
+                    shell: Bash
+                    command: |-
+                      set -eo pipefail
+                      %{~ if HARNESS_K8s_CONNECTOR != "skipped" ~}
+                      apk add --no-cache --no-progress --quiet jq curl
+                      %{~ endif ~}
+                      data=$(curl -s\
+                        -H "x-api-key: $${HARNESS_PLATFORM_API_KEY}" \
+                        "$${HARNESS_URI}/ng/api/delegate-setup/latest-supported-version?accountIdentifier=$${HARNESS_ACCT}")
+                      output_latest_version=$(echo $${data} | jq -r '.resource.latestSupportedVersion')
+                      output_latest_minimal=$(echo $${data} | jq -r '.resource.latestSupportedMinimalVersion')
+                    envVariables:
+                      HARNESS_URI: <+stage.variables.HARNESS_ENDPOINT>
+                      HARNESS_ACCT: <+stage.variables.HARNESS_ACCOUNT_ID>
+                      HARNESS_PLATFORM_API_KEY: <+stage.variables.HARNESS_PLATFORM_KEY>
+                    outputVariables:
+                      - name: LATEST_VERSION
+                        type: String
+                        value: output_latest_version
+                      - name: LATEST_MINIMAL
+                        type: String
+                        value: output_latest_minimal
+              %{~ if INCLUDE_IMAGE_TEST_SCAN ~}
+              - stepGroup:
+                  name: Build and Scan Container Image
+                  identifier: Build_and_Scan_Container_Image
+                  template:
+                    templateRef: ${Build_and_Scan_Container_Image_TEMPLATE}
+                    versionLabel: ${Build_and_Scan_Container_Image_VERSION}
+                    templateInputs:
+                      variables:
+                        - name: BUILD_TARGET_IMAGE
+                          type: String
+                          value: <+stage.variables.REGISTRY_NAME>/<+stage.variables.IMAGE_NAME>
+                        - name: BUILD_TARGET_TAG
+                          type: String
+                          value: <+<+pipeline.variables.delegate_base_version>!=""?<+pipeline.variables.delegate_base_version>:<+execution.steps.Get_Latest_Delegate_Image.output.outputVariables.LATEST_MINIMAL>>
+                        - name: CACHE_TARGET_TAG
+                          type: String
+                          value: <+stage.variables.CACHE_TARGET_TAG>
+                        - name: BUILD_TARGET_ARGS
+                          type: String
+                          value: "{\"TAG\": \"<+stepGroup.variables.BUILD_TARGET_TAG>\",\"ADDITIONAL_PACKAGES\": \"<+pipeline.variables.additional_packages>\"}"
+                        - name: BUILD_DOCKERFILE
+                          type: String
+                          value: docker/Dockerfile
+                        - name: BUILD_CONTEXT
+                          type: String
+                          value: docker
+              - stepGroup:
+                  name: Publish Scanned and Cached Container Image
+                  identifier: Publish_Scanned_and_Cached_Container_Image
+                  template:
+                    templateRef: ${Publish_Scanned_and_Cached_Container_Image_TEMPLATE}
+                    versionLabel: ${Publish_Scanned_and_Cached_Container_Image_VERSION}
+                    templateInputs:
+                      variables:
+                        - name: BUILD_TARGET_IMAGE
+                          type: String
+                          value: <+stage.variables.REGISTRY_NAME>/<+stage.variables.IMAGE_NAME>
+                        - name: BUILD_TARGET_TAG
+                          type: String
+                          value: <+<+pipeline.variables.delegate_base_version>!=""?<+pipeline.variables.delegate_base_version>:<+execution.steps.Get_Latest_Delegate_Image.output.outputVariables.LATEST_MINIMAL>>
+                        - name: CACHE_TARGET_TAG
+                          type: String
+                          value: <+stage.variables.CACHE_TARGET_TAG>
+              %{~ else ~}
+              - stepGroup:
+                  name: Publish Container Image
+                  identifier: Publish_Container_Image
+                  template:
+                    templateRef: ${Publish_Container_Image_TEMPLATE}
+                    versionLabel: ${Publish_Container_Image_VERSION}
+                    templateInputs:
+                      variables:
+                        - name: BUILD_TARGET_IMAGE
+                          type: String
+                          value: <+stage.variables.REGISTRY_NAME>/<+stage.variables.IMAGE_NAME>
+                        - name: BUILD_TARGET_TAG
+                          type: String
+                          value: <+<+pipeline.variables.delegate_base_version>!=""?<+pipeline.variables.delegate_base_version>:<+execution.steps.Get_Latest_Delegate_Image.output.outputVariables.LATEST_MINIMAL>>
+                        - name: BUILD_TARGET_ARGS
+                          type: String
+                          value: "{\"TAG\": \"<+stepGroup.variables.BUILD_TARGET_TAG>\",\"ADDITIONAL_PACKAGES\": \"<+pipeline.variables.additional_packages>\"}"
+                        - name: BUILD_DOCKERFILE
+                          type: String
+                          value: docker/Dockerfile
+                        - name: BUILD_CONTEXT
+                          type: String
+                          value: docker
+              %{~ endif ~}
+              %{~ if INCLUDE_IMAGE_SBOM ~}
+              - step:
+                  type: SscaOrchestration
+                  name: SBOM Generation
+                  identifier: SBOM_Generation
+                  spec:
+                    mode: generation
+                    tool:
+                      type: Syft
+                      spec:
+                        format: spdx-json
+                    source:
+                      type: docker
+                      spec:
+                        connector: <+stage.variables.REGISTRY_CONNECTOR_ID>
+                        image: <+stage.variables.REGISTRY_NAME>/<+stage.variables.IMAGE_NAME>:<+<+pipeline.variables.delegate_base_version>!=""?<+pipeline.variables.delegate_base_version>:<+execution.steps.Get_Latest_Delegate_Image.output.outputVariables.LATEST_MINIMAL>>
+                    sbom_drift:
+                      base: last_generated_sbom
+                    resources:
+                      limits:
+                        memory: 4Gi
+                        cpu: "2"
+              %{~ endif ~}
+          %{~ if HARNESS_K8s_CONNECTOR != "skipped" ~}
+          sharedPaths:
+            - /var/run
+            - /opt/docker_cache
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: ${HARNESS_K8s_CONNECTOR}
+              namespace: ${HARNESS_K8s_NAMESPACE}
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+              %{~ if HARNESS_IMAGE_CONNECTOR != null ~}
+              harnessImageConnectorRef: ${HARNESS_IMAGE_CONNECTOR}
+              %{~ endif ~}
+          %{~ else ~}
+          caching:
+            enabled: false
+            paths: []
+          slsa_provenance:
+            enabled: false
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          %{~ endif ~}
+        when:
+          pipelineStatus: Success
+        variables:
+          - name: HARNESS_ENDPOINT
+            type: String
+            description: Enter the Harness Platform URL. Defaults to Harness SaaS URL
+            required: true
+            value: <+pipeline.variables.HARNESS_ENDPOINT>
+          - name: HARNESS_ACCOUNT_ID
+            type: String
+            description: Enter the Harness Platform Account Number
+            required: true
+            value: <+pipeline.variables.HARNESS_ACCOUNT_ID>
+          - name: HARNESS_PLATFORM_KEY
+            type: String
+            description: When checking for the latest delegate version, this pipeline will need to authenticate to the account to verify the current versions. Provide an existing Harness Secret with a valid API Token.
+            required: true
+            value: <+pipeline.variables.HARNESS_PLATFORM_KEY>
+          - name: REGISTRY_CONNECTOR_ID
+            type: String
+            description: Docker Image Registry Connector
+            required: true
+            value: <+pipeline.variables.DOCKER_REGISTRY_CONNECTOR>
+          - name: REGISTRY_NAME
+            type: String
+            description: Docker Image Registry Name
+            required: true
+            value: <+pipeline.variables.DOCKER_REGISTRY_NAME>
+          - name: IMAGE_NAME
+            type: String
+            description: Docker Image Name
+            required: true
+            value: harness-delegate
+          - name: CACHE_TARGET_TAG
+            type: String
+            description: When building the local cache target, provide the name of the tag to use as the target name.
+            required: true
+            value: repo-cache
+          - name: DELEGATE_VERSION
+            type: String
+            description: Delegate Tag to use as the base for the new image
+            required: true
+            value: <+<+pipeline.variables.delegate_base_version>!=""?<+pipeline.variables.delegate_base_version>:<+pipeline.stages.Get_Latest_Delegate_Version.spec.execution.steps.Delegate_Version.output.outputVariables.LATEST_MINIMAL>>
+          - name: PLUGIN_CACHE_FROM
+            type: String
+            description: ""
+            required: false
+            value: <+stage.variables.REGISTRY_NAME>/<+stage.variables.IMAGE_NAME>:<+stage.variables.CACHE_TARGET_TAG>
+  variables:
+    - name: additional_packages
+      type: String
+      description: |-
+        Enter the additional packages for the delegate.  Expects an installer script included in the 'scripts' section of the repository.
+
+        Each entry should be space delimited
+      required: true
+      value: <+input>.default(python tfenv helm kubelogin azurecli yq kubectl go-template)
+    - name: delegate_base_version
+      type: String
+      description: Provide a specific official Harness Delegate tag to build. This overrides the use of the platform specified default value
+      required: false
+      value: <+input>
+    - name: HARNESS_ACCOUNT_ID
+      type: String
+      description: When checking for the latest delegate version, this pipeline will connect to the account id provided. Defaults to this account
+      required: true
+      value: <+account.identifier>
+    - name: HARNESS_ENDPOINT
+      type: String
+      description: When checking for the latest delegate version, this pipeline will connect to the endpoint provided. If using a vanity url, then the value should match.
+      required: true
+      value: <+variable.org.HARNESS_ENDPOINT>
+    - name: HARNESS_PLATFORM_KEY
+      type: Secret
+      description: When checking for the latest delegate version, this pipeline will need to authenticate to the account to verify the current versions. Provide an existing Harness Secret with a valid API Token.
+      required: true
+      value: ${HARNESS_PLATFORM_API_KEY}
+    - name: DOCKER_REGISTRY_CONNECTOR
+      type: String
+      description: Existing Registry Connector used to push container images.
+      required: true
+      value: ${DOCKER_REGISTRY_ID}
+    - name: DOCKER_REGISTRY_NAME
+      type: String
+      description: Existing Container Registry name used when creating new images.
+      required: true
+      value: <+input>.default(${DOCKER_REGISTRY_NAME})

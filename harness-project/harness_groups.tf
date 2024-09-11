@@ -1,0 +1,78 @@
+locals {
+  groups_files_path = "${local.source_directory}/groups"
+
+  group_files = fileset("${local.groups_files_path}/", "*.yaml")
+
+
+  groups = flatten([
+    for group_file in local.group_files : [
+      merge(
+        yamldecode(file("${local.groups_files_path}/${group_file}")),
+        {
+          identifier = replace(replace(replace(group_file, ".yaml", ""), " ", "_"), "-", "_")
+          name       = replace(group_file, ".yaml", "")
+        }
+      )
+    ]
+  ])
+
+  groups_bindings = flatten([
+    for group in local.groups : [
+      for binding in lookup(group, "role_bindings", []) : {
+        identifier       = "${group.identifier}_${lookup(binding, "role", "MISSING-ROLE-ID")}"
+        group_identifier = group.identifier
+        role             = lookup(binding, "role", "MISSING-ROLE")
+        resource_group   = lookup(binding, "resource_group", "MISSING-ROLE")
+      }
+    ]
+
+  ])
+}
+
+resource "harness_platform_usergroup" "usergroup" {
+  depends_on = [harness_platform_roles.role, harness_platform_resource_group.resource_group]
+  for_each = {
+    for group in local.groups : group.name => group
+  }
+
+  identifier = replace(replace(each.value.name, " ", "_"), "-", "_")
+
+  name        = each.value.name
+  org_id      = data.harness_platform_organization.selected.id
+  project_id  = data.harness_platform_project.selected.id
+  description = lookup(each.value, "description", "Harness UserGroup managed by Solutions Factory")
+  user_emails = []
+
+  externally_managed      = false
+  linked_sso_id           = lookup(each.value, "linked_sso_id", null)
+  linked_sso_display_name = lookup(each.value, "linked_sso_id", null)
+  linked_sso_type         = lookup(each.value, "linked_sso_type", null)
+  sso_linked              = lookup(each.value, "sso_group_id", null) != null ? true : false
+  sso_group_id            = lookup(each.value, "sso_group_id", null)
+  sso_group_name          = lookup(each.value, "sso_group_id", null)
+
+  tags = flatten([
+    [for k, v in lookup(each.value, "tags", {}) : "${k}:${v}"],
+    local.common_tags_tuple
+  ])
+}
+
+resource "harness_platform_role_assignments" "usergroup_bindings" {
+  depends_on = [harness_platform_usergroup.usergroup]
+  for_each = {
+    for group in local.groups_bindings : group.identifier => group
+  }
+
+  identifier = each.value.identifier
+
+  org_id                    = data.harness_platform_organization.selected.id
+  project_id                = data.harness_platform_project.selected.id
+  resource_group_identifier = each.value.resource_group
+  role_identifier           = each.value.role
+  principal {
+    identifier = harness_platform_usergroup.usergroup[each.value.group_identifier].id
+    type       = "USER_GROUP"
+  }
+  disabled = false
+  managed  = false
+}

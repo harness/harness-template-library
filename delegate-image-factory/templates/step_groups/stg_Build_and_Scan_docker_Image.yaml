@@ -1,0 +1,82 @@
+template:
+  identifier: ${TEMPLATE_IDENTIFIER}
+  name: ${TEMPLATE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  versionLabel: v1
+  type: StepGroup
+  tags:
+    ${indent(4, TAGS)}
+  spec:
+    stageType: CI
+    steps:
+      %{~ if HARNESS_K8s_CONNECTOR != "skipped" ~}
+      - step:
+          type: Background
+          name: background_dind
+          identifier: background_dind
+          spec:
+            connectorRef: <+stage.variables.REGISTRY_CONNECTOR_ID>
+            image: docker:dind
+            shell: Sh
+            entrypoint:
+              - dockerd
+            resources:
+              limits:
+                memory: 4Gi
+      %{~ endif ~}
+      ${HARNESS_CONTAINER_REGISTRY}
+      %{~ if HARNESS_K8s_CONNECTOR != "skipped" ~}
+      - step:
+          type: Run
+          name: Load Local Image
+          identifier: Load_Local_Image
+          spec:
+            connectorRef: <+stage.variables.REGISTRY_CONNECTOR_ID>
+            image: docker:dind
+            shell: Sh
+            command: |-
+              echo "Loading Docker Image"
+              docker images
+              echo "-----"
+              docker load --input /opt/docker_cache/image.tar
+              echo ""
+              echo ""
+              docker images
+              echo "-----"
+            resources:
+              limits:
+                memory: 4Gi
+      %{~ endif ~}
+      ${HARNESS_STO_SCANNER}
+    variables:
+      - name: BUILD_TARGET_IMAGE
+        type: String
+        value: <+input>.default(<+stage.variables.REGISTRY_NAME>/<+stage.variables.IMAGE_NAME>)
+        description: "Combined Repo and Image name to be used as the build target"
+        required: true
+      - name: BUILD_TARGET_TAG
+        type: String
+        value: <+input>
+        description: "Build Target Tag"
+        required: true
+      - name: CACHE_TARGET_TAG
+        type: String
+        value: <+input>.default(<+stage.variables.CACHE_TARGET_TAG>)
+        description: "Build Target Repository caching tag"
+        required: true
+      - name: BUILD_TARGET_ARGS
+        type: String
+        value: <+input>
+        description: "Stringified JSON object of Build Arguments"
+        required: true
+      - name: BUILD_DOCKERFILE
+        type: String
+        value: <+input>
+        description: "Local path to Dockerfile"
+        required: true
+      - name: BUILD_CONTEXT
+        type: String
+        value: <+input>.default(".")
+        description: "Docker Context"
+        required: true

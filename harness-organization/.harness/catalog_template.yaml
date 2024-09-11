@@ -1,0 +1,108 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: harness-organization-setup
+  title: Harness Organization Setup
+  description: A template to request a new Harness Organization to be created or managed
+  tags:
+    - account-management
+    - solutions-factory
+    - harness
+spec:
+  owner: group:default/HSF_Admins
+  type: harness_organization
+  parameters:
+    - title: Request Harness Organization
+      required:
+        - organization_name
+      properties:
+        organization_name:
+          title: "Enter your Harness Organization Name"
+          type: string
+          description: "Should not exceed 128 characters and must be unique within the Account"
+          maxLength: 128
+        organization_description:
+          title: "Provide Organization Description"
+          type: string
+          description: "Optional description to assign to your organization"
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+<+variable.account.solutions_factory_endpoint>.replaceFirst("/*$","")>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+<+variable.account.solutions_factory_endpoint>.replaceFirst("/*$","")>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+  steps:
+    - id: configure_workspace
+      name: Configuring Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_PATH: template_library/harness-organization
+          GIT_REPOSITORY_BRANCH: main
+          RESOURCE_NAME: ${{ parameters.organization_name|replace(" ","-") }}
+          RESOURCE_OWNER: group:default/Account_Admins
+          RESOURCE_VARS:
+            harness_platform_account: ${{ parameters.solutions_factory_details.harness_account_id }}
+            organization_id: ${{ parameters.organization_id }}
+            organization_name: ${{ parameters.organization_name }}
+            organization_description: ${{ parameters.organization_description }}
+          RESOURCE_VARS_ENVS: {}
+          RESOURCE_VARS_ENVS_SECRET: {}
+          RESOURCE_VARS_SECRETS: {}
+          INCLUDE_HARNESS_ENVS: "true"
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: provision_workspace
+      name: Provisioning your Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          workspace: ${{ parameters.organization_name|replace(" ","-") }}
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Harness Workspace Configured - Execution Link
+        url: ${{ steps.configure_workspace.output.PipelineUrl }}
+      - title: Harness Workspace Provisioned - Execution Link
+        url: ${{ steps.provision_workspace.output.PipelineUrl }}
+    text:
+      - title: Outputs
+        content: |
+          Harness Organization Details
+          organization_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.organization_identifier']}}
+
+          organization_url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.organization_url']}}
+

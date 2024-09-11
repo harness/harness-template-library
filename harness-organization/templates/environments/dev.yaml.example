@@ -1,0 +1,9 @@
+---
+type : PreProduction
+# description: Harness Environment managed by Solutions Factory
+tags:
+  env: dev
+# yaml:
+#   environment:
+#     name: dev
+#     identifier: dev
