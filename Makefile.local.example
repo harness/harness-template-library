@@ -1,0 +1,26 @@
+####################
+# Note: This file can be used to override any parameter or argument used by the Makefiles
+# included in this repository.
+# - Save a COPY of the file as `Makefile.local`
+# - Modify any of the commands or details in the new file.
+#
+# Do not edit the Makefile.local.example directly.
+# Any changes made to a Makefile.local only affect the local development environment
+#
+# TODO: Remove this section after saving as a new file.
+#
+####################
+
+####################
+#
+# Local Makefile overrides
+#
+# -> Required if using Rancher instead of Docker Desktop
+# DOCKER_COMMAND=nerdctl
+# -> Helpful example of additional mounts to load into your test environments
+# DOCKER_MOUNTS=-v /Users:/Users -v ~/.gitconfig:/root/.gitconfig -v ~/.ssh:/root/.ssh -v ~/.kube:/root/.kube
+# -> Override any DOCKER_ENV. This example will turn on Terraform debugging
+# DOCKER_ENV=-e TF_LOG=DEBUG
+
+
+####################

@@ -1,0 +1,106 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: # Lowercase unique identifier using [a-zA-Z0-9-] format - e.g. harness-project-setup
+  title: # Enter a clear title
+  description: # Provide a good description
+  tags:
+    - solutions-factory
+    - harness
+    - # Use the `hidden` tag to restrict access for only the Owners of this template
+    - # Add additional tags e.g. project or pipeline
+spec:
+  owner: group:default/_account_all_users # Defaults to all users
+  type: # Refer to Solutions Factory documentation on various type categories
+  parameters:
+    - title: # Name the Input Page title
+      required:
+        - # List of required properties by ID
+      # TODO: Enter your Harness Properties
+      properties:
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+  steps:
+    - id: configure_workspace
+      name: Configuring Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_PATH: # Provide directory path to the Terraform code in this repository e.g. template_library/harness-project
+          GIT_REPOSITORY_BRANCH: main
+          RESOURCE_NAME: ${{ parameters.organization_id }}_${{ parameters.project_name|replace(" ","-") }}
+          RESOURCE_OWNER: group:default/Account_Admins
+          # YAML of Terraform variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS:
+            # harness_platform_account: ${{ parameters.solutions_factory_details.harness_account_id }}
+          # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_SECRETS: {}
+          # YAML of Environment variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS_ENVS: {}
+          # YAML of Environment variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_ENVS_SECRET: {}
+          # Should the workspace automatically include the default Harness Connector environment variables
+          INCLUDE_HARNESS_ENVS: "true"
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: provision_workspace
+      name: Provisioning your Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          workspace: # Required value should match the `RESOURCE_NAME` in the `Configuring Harness Workspace` step
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Harness Workspace Configured - Execution Link
+        url: ${{ steps.configure_workspace.output.PipelineUrl }}
+      - title: Harness Workspace Provisioned - Execution Link
+        url: ${{ steps.provision_workspace.output.PipelineUrl }}
+    text:
+      - title: Outputs
+        content: |
+          # TODO : Return outputs from Harness pipeline execution via Terraform
+          # ---
+          # organization_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.organization_identifier']}}
+
+          # project_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.project_identifier']}}
+
+          # project_url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.project_url']}}
+

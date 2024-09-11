@@ -1,6 +1,11 @@
 # Contributing to this Project
 Harness values the input and feedback from our community of users.  This repository is open to fork and update via Pull Requests
 
+## Developer's Guides
+We have included step-by-step guides to adding new templates to the repository including a full scaffold for each new template.
+
+[Adding new Templates to the Library](../scaffolds/README.md)
+
 ## Style Guidelines
 This project includes support for the auto-formatting tool known as [EditorConfig](https://EditorConfig.org) (File://.editorconfig).  This is a plugin for most modern IDE platforms such as Visual Studio Code (preferred by the maintainers) among others.  It is highly suggested to leverage this tool as part of your contributions as it will help to ensure proper and clear spacing and formatting of files for consistency.
 
