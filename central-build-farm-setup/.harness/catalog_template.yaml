@@ -95,7 +95,8 @@ spec:
       input:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
         inputset:
-          GIT_REPOSITORY_PATH: template_library/central-build-farm-setup
+          GIT_REPOSITORY_CONNECTOR: org.Harness_Template_Library_Repo
+          GIT_REPOSITORY_PATH: central-build-farm-setup
           GIT_REPOSITORY_BRANCH: main
           RESOURCE_NAME: harness-central-build-farm-setup
           RESOURCE_OWNER: group:default/Account_Admins
