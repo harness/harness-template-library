@@ -1,30 +1,21 @@
 # Variable Management Details
-
-## Harness Account Provider Connection Details
-variable "harness_platform_url" {
+variable "build_infrastructure_type" {
   type        = string
-  description = "[Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL"
-  default     = "https://app.harness.io/gateway"
-}
+  description = "Select the Build infrastructure types to support - internal, cloud, or both"
+  default     = "internal"
 
-variable "harness_platform_account" {
-  type        = string
-  description = "[Required] Enter the Harness Platform Account Number"
-  default     = null # If Not passed, then the ENV HARNESS_ACCOUNT_ID will be used
-  sensitive   = true
-}
-
-variable "harness_platform_key" {
-  type        = string
-  description = "[Required] Enter the Harness Platform API Key for your account"
-  default     = null # If Not passed, then the ENV HARNESS_PLATFORM_API_KEY will be used
-  sensitive   = true
-}
-
-variable "use_self_hosted" {
-  type        = bool
-  description = "Configure a Kubernetes Connector for use as a Centralized Build Farm"
-  default     = true
+  validation {
+    condition = (
+      contains(["internal", "cloud", "both"], lower(var.build_infrastructure_type))
+    )
+    error_message = <<EOF
+        Validation of Build Infrastructure Type Failed.
+            * Must be one of the following:
+            - internal
+            - cloud
+            - both
+        EOF
+  }
 }
 
 variable "container_registry_type" {

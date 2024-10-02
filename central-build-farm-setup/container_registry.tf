@@ -26,40 +26,26 @@ resource "harness_platform_secret_text" "container_registry_password" {
   value                     = "changeme"
 }
 
-resource "harness_platform_connector_docker" "container_registry" {
-  count       = local.container_registry_type == "docker" ? 1 : 0
-  identifier  = "buildfarm_container_registry"
-  name        = "BuildFarm Container Registry"
-  description = "BuildFarm Container Rgistry Connector"
-  tags = flatten([
-    ["required_for:buildfarm_container_registry"],
-    local.common_tags_tuple
-  ])
+module "cr_docker" {
+  count  = local.container_registry_type == "docker" ? 1 : 0
+  source = "./modules/container_registry/docker"
 
-  type                = "DockerHub"
-  url                 = var.container_registry_url
-  delegate_selectors  = local.delegate_selectors
-  execute_on_delegate = var.use_self_hosted
-  credentials {
-    username_ref = "account.${harness_platform_secret_text.container_registry_username.id}"
-    password_ref = "account.${harness_platform_secret_text.container_registry_password.id}"
-  }
+  container_registry_url      = var.container_registry_url
+  container_registry_username = "account.${harness_platform_secret_text.container_registry_username.id}"
+  container_registry_password = "account.${harness_platform_secret_text.container_registry_password.id}"
+  support_self_hosted         = local.support_self_hosted
+  support_harness_cloud       = local.support_harness_cloud
+  tags                        = local.common_tags
 }
 
-resource "harness_platform_connector_artifactory" "container_registry" {
-  count       = local.container_registry_type == "artifactory" ? 1 : 0
-  identifier  = "buildfarm_container_registry"
-  name        = "BuildFarm Container Registry"
-  description = "BuildFarm Container Rgistry Connector"
-  tags = flatten([
-    ["required_for:buildfarm_container_registry"],
-    local.common_tags_tuple
-  ])
+module "cr_artifactory" {
+  count  = local.container_registry_type == "artifactory" ? 1 : 0
+  source = "./modules/container_registry/artifactory"
 
-  url                = var.container_registry_url
-  delegate_selectors = local.delegate_selectors
-  credentials {
-    username_ref = "account.${harness_platform_secret_text.container_registry_username.id}"
-    password_ref = "account.${harness_platform_secret_text.container_registry_password.id}"
-  }
+  container_registry_url      = var.container_registry_url
+  container_registry_username = "account.${harness_platform_secret_text.container_registry_username.id}"
+  container_registry_password = "account.${harness_platform_secret_text.container_registry_password.id}"
+  support_self_hosted         = local.support_self_hosted
+  support_harness_cloud       = local.support_harness_cloud
+  tags                        = local.common_tags
 }

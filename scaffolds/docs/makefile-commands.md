@@ -16,6 +16,8 @@ _Note: a local list of available target commands can be printed by  running the 
 | --- | --- | --- |
 | init [migrate] | executes Terraform/Tofu `init` | If the command includes `migrate`, then any local `backed.tf` will be removed and a `-migrate-state` will be performed.|
 | plan | Executes a Terraform/Tofu `plan` ||
+| plan_output | Executes a Terraform/Tofu `plan` includes generating a tfplan file in the local directory ||
+| plan_show | Executes a Terraform/Tofu `show` on a previously generated terraform.tfplan file and stores the file in human-readable format as terraform.tfplan.out ||
 | apply | Automatically runs a Terraform/Tofu `apply` ||
 | destroy | Automatically runs a Terraform/Tofu `destroy` ||
 | refresh | Refreshes the statefile ||

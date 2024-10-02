@@ -11,6 +11,7 @@ endif
 # Turns this into a do-nothing target
 $(eval migrate:;@:)
 $(eval dryrun:;@:)
+$(eval out:;@:)
 
 ifeq ($(ROOT_DIR),)
 	ROOT_DIR=${PWD}
@@ -82,6 +83,21 @@ endif
 plan: fmt
 	${DOCKER_RUN} plan -var-file=${TERRAFORM_TFVARS}
 
+.PHONY: plan_output
+#: Executes a Terraform/Tofu `plan`
+plan_output: fmt
+	${DOCKER_RUN} plan -out=terraform.tfplan -var-file=${TERRAFORM_TFVARS}
+
+.PHONY: plan_show
+#: Executes a Terraform/Tofu `plan`
+plan_show: fmt
+ifeq (out, $(filter out,$(MAKECMDGOALS)))
+	$(eval ENTRYPOINT=--entrypoint sh)
+	${DOCKER_RUN} -c "tofu show terraform.tfplan > terraform.tfplan.out"
+else
+	${DOCKER_RUN} show terraform.tfplan
+endif
+
 .PHONY: apply
 #: Automatically runs a Terraform/Tofu `apply`
 apply:
@@ -133,7 +149,7 @@ teardown: destroy testing_cleanup
 .PHONY: deploy # Continuous Deployment
 #: Applies the Terraform template. Runs the commands - init, plan, and apply. Note: If the argument `dryrun` is passed then the `apply` step is skipped.
 ifeq (dryrun, $(filter dryrun,$(MAKECMDGOALS)))
-deploy: init plan
+deploy: init plan_output
 else
 deploy: init plan apply
 endif

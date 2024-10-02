@@ -9,14 +9,14 @@ harness_platform_account = null # If Not passed, then the ENV HARNESS_ACCOUNT_ID
 # [Required] Enter the Harness Platform API Key for your account
 harness_platform_key = null # If Not passed, then the ENV HARNESS_PLATFORM_API_KEY will be used
 
-# Configure a Kubernetes Connector for use as a Centralized Build Farm
-use_self_hosted = true
+# Select the Build infrastructure types to support - internal, cloud, or both
+build_infrastructure_type = "internal"
 
 # What type of Container Registry Connector type will be used as the default Build Farm Registry
 container_registry_type = "docker"
 
 # What type of Container Registry Connector type will be used as the default Build Farm Registry
-container_registry_url = "https://registry.hub.docker.com/v2/"
+container_registry_url = "https://index.docker.io/v2/"
 
 # What type of Source Code Manager Connector type will be used as the default Build Farm SCM
 source_code_manager_type = "github"

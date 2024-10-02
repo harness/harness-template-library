@@ -21,17 +21,27 @@ spec:
         - source_code_manager_url
         - source_code_manager_validation_repo
       properties:
-        use_self_hosted:
+        build_infrastructure_type:
           title: Configure a Kubernetes Connector for use as a Centralized Build Farm
-          type: boolean
+          type: string
+          enum:
+            - internal
+            - cloud
+            - both
+          enumNames:
+            - Self-Hosted Build Infrastructure Only
+            - Leverage Harness CI Cloud Infrastructure
+            - Support both Self-Hosted and Harness CI Cloud
         container_registry_type:
           title: Choose your Container Registry Type
           type: string
           description: What type of Container Registry Connector type will be used as the default Build Farm Registry
-          ui:widget: RadioWidget
           enum:
             - docker
             - artifactory
+          enumNames:
+            - DockerHub Registry
+            - Artifactory Container Registry
         container_registry_url:
           title: Container Registry URL
           type: string
@@ -40,10 +50,12 @@ spec:
           title: Choose your Source Code Manager Type
           type: string
           description: What type of Source Code Manager Connector type will be used as the default Build Farm SC
-          ui:widget: RadioWidget
           enum:
             - github
             - bitbucket
+          enumNames:
+            - GitHub (Cloud or Enterprise)
+            - Bitbucket (Cloud or Enterprise)
         source_code_manager_url:
           title: Source Code Manager URL
           type: string
@@ -66,6 +78,8 @@ spec:
             Solutions Factory Org : <+variable.account.solutions_factory_org>
 
             Solutions Factory Project : <+variable.account.solutions_factory_project>
+
+            Template Library Connector : <+variable.account.solutions_factory_template_library_connector>
           properties:
             harness_account_url:
               type: string
@@ -83,6 +97,10 @@ spec:
               type: string
               default: <+variable.account.solutions_factory_project>
               ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
         token:
           title: Harness Token
           type: string
@@ -95,13 +113,13 @@ spec:
       input:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
         inputset:
-          GIT_REPOSITORY_CONNECTOR: org.Harness_Template_Library_Repo
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
           GIT_REPOSITORY_PATH: central-build-farm-setup
           GIT_REPOSITORY_BRANCH: main
           RESOURCE_NAME: harness-central-build-farm-setup
           RESOURCE_OWNER: group:default/Account_Admins
           RESOURCE_VARS:
-            use_self_hosted: ${{ true if parameters.use_self_hosted else false }}
+            build_infrastructure_type: ${{ parameters.build_infrastructure_type }}
             container_registry_type: ${{ parameters.container_registry_type }}
             container_registry_url: ${{ parameters.container_registry_url }}
             source_code_manager_type: ${{ parameters.source_code_manager_type }}
@@ -139,19 +157,32 @@ spec:
             - BuildFarm Container Registry Password
             - BuildFarm SourceCode Manager Username
             - BuildFarm SourceCode Manager Password
-          {% if parameters.use_self_hosted %}
+          {% if parameters.build_infrastructure_type != "cloud" %}
           Step 2) Deploy an Account Level delegate. Be sure to include the following tag(s) in the configuration:
           ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/settings/delegates/list
           - build-farm
           {% endif %}
       - title: Outputs
         content: |
-          Harness Repository Details
-          {% if parameters.use_self_hosted %}
-          build_farm_connector: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.build_farm_connector']}}
+          ## Central Build Farm Connector Details
+          {% if parameters.build_infrastructure_type != "cloud" %}
+          ### Kubernetes Connector
+          - build_farm_connector: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_connector']}}
           {% endif %}
 
-          build_farm_container_registry: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.build_farm_container_registry']}}
+          ### Container Registry
+          {% if parameters.build_infrastructure_type != "cloud" %}
+          - build_farm_container_registry (Requires Delegate): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_container_registry']}}
+          {% endif %}
 
-          build_farm_source_code_manager: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.build_farm_source_code_manager']}}
+          {% if parameters.build_infrastructure_type != "internal" %}
+          - build_farm_container_registry (Used by Harness CI Cloud): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_container_registry_cloud']}}
+          {% endif %}
+          ### Source Code Manager
+          {% if parameters.build_infrastructure_type != "cloud" %}
+          - build_farm_source_code_manager (Requires Delegate): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_source_code_manager']}}
+          {% endif %}
 
+          {% if parameters.build_infrastructure_type != "internal" %}
+          - build_farm_source_code_manager (Used by Harness CI Cloud): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_source_code_manager_cloud']}}
+          {% endif %}
