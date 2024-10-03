@@ -10,13 +10,6 @@ variable "harness_platform_account" {
   description = "[Required] Enter the Harness Platform Account Number"
 }
 
-variable "harness_platform_key" {
-  type        = string
-  description = "[Required] Enter the Harness Platform API Key for your account"
-  default     = null # If Not passed, then the ENV HARNESS_PLATFORM_API_KEY will be used
-  sensitive   = true
-}
-
 variable "organization_id" {
   type        = string
   description = "[Required] Provide an organization reference ID.  Must exist before execution"

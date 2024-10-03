@@ -99,10 +99,8 @@ spec:
         showOutputVariables: true
   output:
     links:
-      - title: Harness Workspace Configured - Execution Link
-        url: ${{ steps.configure_workspace.output.PipelineUrl }}
-      - title: Harness Workspace Provisioned - Execution Link
-        url: ${{ steps.provision_workspace.output.PipelineUrl }}
+      - title: Access Harness Organization
+        url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.organization_url']}}
     text:
       - title: Outputs
         content: |

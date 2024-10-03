@@ -18,37 +18,15 @@ The Harness Project Onboarding template is designed to create and manage Harness
 
 
 ## Providers
+This template is designed to be used as a Terraform Module. To leverage this module, an Harness provider configuration must be added to the calling template as defined by the [Harness Provider - Docs](https://registry.terraform.io/providers/harness/harness/latest/docs).
 
-This template requires that the calling template has defined the [Harness Provider - Docs](https://registry.terraform.io/providers/harness/harness/latest/docs) authentication.
+To aid in the setup and use of this module, we have added a file to the root of this repository called `providers.tf.example`. This file can be used as the basis for configuring your own `providers.tf` file for the calling template
 
-### Example setup of the Harness Provider
+_**Note**: If using this as module as a template, be sure to copy the provider sample file from the root of the repository into this directory prior to execution._
+- Save a copy of the file as `providers.tf`
+- Either configure the variables as defined or use their corresponding variables.
 
-```
-# Provider Setup Details
-variable "harness_platform_url" {
-  type        = string
-  description = "Enter the Harness Platform URL.  Defaults to Harness SaaS URL"
-  default     = "https://app.harness.io/gateway"
-}
-
-variable "harness_platform_account" {
-  type        = string
-  description = "Enter the Harness Platform Account Number"
-}
-
-variable "harness_platform_key" {
-  type        = string
-  description = "Enter the Harness Platform API Key for your account"
-  sensitive   = true
-}
-
-provider "harness" {
-  endpoint         = var.harness_platform_url
-  account_id       = var.harness_platform_account
-  platform_api_key = var.harness_platform_key
-}
-
-```
+_**Note**: The gitignore file in this repository explicitly ignores any file called `providers.tf` from commits and changes._
 
 ### Terraform required providers declaration
 
@@ -82,7 +60,6 @@ _Note: When providing `_ref` values, please ensure that these are prefixed with 
 | --- | --- | --- | --- | --- |
 | harness_platform_url | | Enter the Harness Platform URL.  Defaults to Harness SaaS URL | string | null # If Not passed, then the ENV HARNESS_ENDPOINT will be used or the default value of https://app.harness.io/gateway |
 | harness_platform_account | X | Enter the Harness Platform Account Number | string ||
-| harness_platform_key | X | Enter the Harness Platform API Key for your account | string ||
 | organization_id | X | Provide an organization reference ID.  Must exist before execution | string | |
 | project_id || New Project Identifier. If not provided, then the project_name will be formatted to replace spaces and dashes with underscores | string |null|
 | project_name | X | New Project Name | string ||

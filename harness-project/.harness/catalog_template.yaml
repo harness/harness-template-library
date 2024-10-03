@@ -64,6 +64,10 @@ spec:
               type: string
               default: <+variable.account.solutions_factory_project>
               ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
         token:
           title: Harness Token
           type: string
@@ -76,7 +80,7 @@ spec:
       input:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
         inputset:
-          GIT_REPOSITORY_CONNECTOR: org.Harness_Template_Library_Repo
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
           GIT_REPOSITORY_PATH: harness-project
           GIT_REPOSITORY_BRANCH: main
           RESOURCE_NAME: ${{ parameters.organization_id }}_${{ parameters.project_name|replace(" ","-") }}
@@ -103,17 +107,15 @@ spec:
         showOutputVariables: true
   output:
     links:
-      - title: Harness Workspace Configured - Execution Link
-        url: ${{ steps.configure_workspace.output.PipelineUrl }}
-      - title: Harness Workspace Provisioned - Execution Link
-        url: ${{ steps.provision_workspace.output.PipelineUrl }}
+      - title: Access Harness Project
+        url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.project_url']}}
     text:
       - title: Outputs
         content: |
           Harness Project Details
-          organization_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.organization_identifier']}}
+          organization_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.organization_identifier']}}
 
-          project_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.project_identifier']}}
+          project_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.project_identifier']}}
 
-          project_url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.project_url']}}
+          project_url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.project_url']}}
 

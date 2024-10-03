@@ -54,6 +54,8 @@ _Note: When providing `_ref` values, please ensure that these are prefixed with 
 
 | Name | Mandatory | Description | Type | Default |
 | --- | --- | --- | --- | --- |
+| harness_platform_url | | Enter the Harness Platform URL.  Defaults to Harness SaaS URL | string | null # If Not passed, then the ENV HARNESS_ENDPOINT will be used or the default value of https://app.harness.io/gateway |
+| harness_platform_account | X | Enter the Harness Platform Account Number | string ||
 | organization_id || New Organization Identifier. If not provided, then the organization_name will be formatted to replace spaces and dashes with underscores | string | null |
 | organization_name | X | New Organization Name | string ||
 | organization_description || New Organnization Description | string | "Harness Organnization managed by Solutions Factory" |
