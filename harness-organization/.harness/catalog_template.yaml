@@ -56,6 +56,10 @@ spec:
               type: string
               default: <+variable.account.solutions_factory_project>
               ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
         token:
           title: Harness Token
           type: string
@@ -68,7 +72,7 @@ spec:
       input:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
         inputset:
-          GIT_REPOSITORY_CONNECTOR: org.Harness_Template_Library_Repo
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
           GIT_REPOSITORY_PATH: harness-organization
           GIT_REPOSITORY_BRANCH: main
           RESOURCE_NAME: ${{ parameters.organization_name|replace(" ","-") }}
@@ -103,7 +107,7 @@ spec:
       - title: Outputs
         content: |
           Harness Organization Details
-          organization_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.organization_identifier']}}
+          organization_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.organization_identifier']}}
 
-          organization_url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.organization_url']}}
+          organization_url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.organization_url']}}
 

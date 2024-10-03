@@ -9,7 +9,6 @@ variable "harness_platform_account" {
   type        = string
   description = "[Required] Enter the Harness Platform Account Number"
   default     = null # If Not passed, then the ENV HARNESS_ACCOUNT_ID will be used
-  sensitive   = true
 }
 
 variable "harness_platform_key" {
