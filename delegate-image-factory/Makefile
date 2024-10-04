@@ -8,7 +8,7 @@
 # If the file needs to be stored in a lower directory, then add a `../` to the
 # variable - REPO_DIR
 ####################
-REPO_DIR=../../
+REPO_DIR=../
 ROOT_DIR=${PWD}/${REPO_DIR}
 PROJECT_DIR=${PWD}
 

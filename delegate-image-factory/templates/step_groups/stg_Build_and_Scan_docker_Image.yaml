@@ -10,7 +10,7 @@ template:
   spec:
     stageType: CI
     steps:
-      %{~ if HARNESS_K8s_CONNECTOR != "skipped" ~}
+      %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
       - step:
           type: Background
           name: background_dind
@@ -23,10 +23,10 @@ template:
               - dockerd
             resources:
               limits:
-                memory: 4Gi
+                memory: <+stage.variables.BUILD_CONTEXT_MEM>Gi
       %{~ endif ~}
       ${HARNESS_CONTAINER_REGISTRY}
-      %{~ if HARNESS_K8s_CONNECTOR != "skipped" ~}
+      %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
       - step:
           type: Run
           name: Load Local Image
@@ -46,7 +46,7 @@ template:
               echo "-----"
             resources:
               limits:
-                memory: 4Gi
+                memory: <+stage.variables.BUILD_CONTEXT_MEM>Gi
       %{~ endif ~}
       ${HARNESS_STO_SCANNER}
     variables:

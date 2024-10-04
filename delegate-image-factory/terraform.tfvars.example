@@ -6,9 +6,6 @@ harness_platform_url = "https://app.harness.io/gateway"
 # [Required] Enter the Harness Platform Account Number
 harness_platform_account = null # If Not passed, then the ENV HARNESS_ACCOUNT_ID will be used
 
-# [Required] Enter the Harness Platform API Key for your account
-harness_platform_key = null # If Not passed, then the ENV HARNESS_PLATFORM_API_KEY will be used
-
 # [Required] Provide an existing Harness Platform key secret reference.  Must exist before execution
 existing_harness_platform_key_ref = # Required
 
@@ -25,16 +22,16 @@ git_repository_name = "harness-delegate-setup"
 git_connector_ref = null
 
 # [Required] Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
-harness_k8s_connector = # Required
+kubernetes_connector = # Required
 
 # [Optional] Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
-harness_k8s_namespace = "default"
-
-# [Optional] Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution
-harness_override_image_connector = null
+kubernetes_namespace = "default"
 
 # [Optional] Optional Kubernetes Node Selectors
-harness_k8s_node_selectors = {}
+kubernetes_node_selectors = {}
+
+# [Optional] Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution
+kubernetes_override_image_connector = null
 
 # [Required] Docker Registry Name to which the container will be published
 container_registry_name = # Required

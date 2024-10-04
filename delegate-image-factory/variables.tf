@@ -12,13 +12,6 @@ variable "harness_platform_account" {
   description = "[Required] Enter the Harness Platform Account Number"
 }
 
-variable "harness_platform_key" {
-  type        = string
-  description = "[Required] Enter the Harness Platform API Key for your account"
-  default     = null # If Not passed, then the ENV HARNESS_PLATFORM_API_KEY will be used
-  sensitive   = true
-}
-
 variable "existing_harness_platform_key_ref" {
   type        = string
   description = "[Required] Provide an existing Harness Platform key secret reference.  Must exist before execution"
@@ -45,33 +38,33 @@ variable "git_repository_name" {
 variable "git_connector_ref" {
   type        = string
   description = "[Optional] When provided, the existing Git connector will be used. When 'null' a custom Harness Code Repository will be added into the project."
-  default     = null
+  default     = "skipped"
 }
 
 
 ## CI Infrastructure Variables
-variable "harness_k8s_connector" {
+variable "kubernetes_connector" {
   type        = string
   description = "[Required] Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline.  Must exist before execution"
   default     = "skipped"
 }
 
-variable "harness_k8s_namespace" {
+variable "kubernetes_namespace" {
   type        = string
   description = "[Optional] Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline.  Must exist before execution"
   default     = "default"
 }
 
-variable "harness_override_image_connector" {
-  type        = string
-  description = "[Optional] Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution"
-  default     = null
-}
-
-variable "harness_k8s_node_selectors" {
+variable "kubernetes_node_selectors" {
   type        = map(any)
   description = "[Optional] Optional Kubernetes Node Selectors"
   default     = {}
+}
+
+variable "kubernetes_override_image_connector" {
+  type        = string
+  description = "[Optional] Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution"
+  default     = "skipped"
 }
 
 ## Docker Image Regisry Details

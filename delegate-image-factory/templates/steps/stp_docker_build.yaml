@@ -26,7 +26,7 @@
             %{~ if BUILD_MEM != null ~}
             resources:
               limits:
-                memory: ${BUILD_MEM}
+                memory: ${BUILD_MEM}Gi
             %{~ endif ~}
             %{~ if USE_KANIKO_VARS ~}
             envVariables:

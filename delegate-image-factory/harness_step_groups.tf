@@ -12,7 +12,7 @@ resource "harness_platform_template" "stg_Build_and_Scan_Container_Image" {
       TEMPLATE_NAME : "Build and Scan Container Image"
       ORGANIZATION_ID : data.harness_platform_organization.selected.id
       PROJECT_ID : data.harness_platform_project.selected.id
-      HARNESS_K8s_CONNECTOR : var.harness_k8s_connector
+      KUBERNETES_CONNECTOR : var.kubernetes_connector
       HARNESS_CONTAINER_REGISTRY : templatefile(
         "${path.module}/templates/steps/stp_${lower(var.container_registry_type)}_build.yaml",
         {
@@ -20,11 +20,11 @@ resource "harness_platform_template" "stg_Build_and_Scan_Container_Image" {
           BUILD_DOCKERFILE : "<+stepGroup.variables.BUILD_DOCKERFILE>"
           BUILD_CONTEXT : "<+stepGroup.variables.BUILD_CONTEXT>"
           BUILD_ARGS : "<+stepGroup.variables.BUILD_TARGET_ARGS>"
-          USE_BUILD_CACHING : var.harness_k8s_connector != "skipped" ? false : true
-          USE_REMOTE_CACHE_REPO : var.harness_k8s_connector != "skipped" ? true : false
-          USE_KANIKO_VARS : var.harness_k8s_connector != "skipped" ? true : false
+          USE_BUILD_CACHING : var.kubernetes_connector != "skipped" ? false : true
+          USE_REMOTE_CACHE_REPO : var.kubernetes_connector != "skipped" ? true : false
+          USE_KANIKO_VARS : var.kubernetes_connector != "skipped" ? true : false
           BUILD_OPTIMIZE : true
-          BUILD_MEM : "4Gi"
+          BUILD_MEM : "<+stage.variables.BUILD_CONTEXT_MEM>"
         }
       )
       HARNESS_STO_SCANNER : templatefile(
@@ -57,15 +57,15 @@ resource "harness_platform_template" "stg_Publish_Scanned_and_Cached_Container_I
       TEMPLATE_NAME : "Publish Scanned and Cached Container Image"
       ORGANIZATION_ID : data.harness_platform_organization.selected.id
       PROJECT_ID : data.harness_platform_project.selected.id
-      HARNESS_K8s_CONNECTOR : var.harness_k8s_connector
+      KUBERNETES_CONNECTOR : var.kubernetes_connector
       GENERATE_LOCAL_DOCKERFILE : true
       HARNESS_CONTAINER_REGISTRY : templatefile(
         "${path.module}/templates/steps/stp_${lower(var.container_registry_type)}_build.yaml",
         {
           BUILD_TAG : "<+stepGroup.variables.BUILD_TARGET_TAG>"
           BUILD_DOCKERFILE : "Dockerfile"
-          USE_BUILD_CACHING : var.harness_k8s_connector != "skipped" ? false : true
-          USE_REMOTE_CACHE_REPO : var.harness_k8s_connector != "skipped" ? true : false
+          USE_BUILD_CACHING : var.kubernetes_connector != "skipped" ? false : true
+          USE_REMOTE_CACHE_REPO : var.kubernetes_connector != "skipped" ? true : false
           BUILD_OPTIMIZE : true
           BUILD_CONTEXT : null
           BUILD_ARGS : null
@@ -103,7 +103,7 @@ resource "harness_platform_template" "stg_Publish_Container_Image" {
       TEMPLATE_NAME : "Publish Container Image"
       ORGANIZATION_ID : data.harness_platform_organization.selected.id
       PROJECT_ID : data.harness_platform_project.selected.id
-      HARNESS_K8s_CONNECTOR : var.harness_k8s_connector
+      KUBERNETES_CONNECTOR : var.kubernetes_connector
       GENERATE_LOCAL_DOCKERFILE : false
       HARNESS_CONTAINER_REGISTRY : templatefile(
         "${path.module}/templates/steps/stp_${lower(var.container_registry_type)}_build.yaml",
@@ -112,10 +112,10 @@ resource "harness_platform_template" "stg_Publish_Container_Image" {
           BUILD_DOCKERFILE : "<+stepGroup.variables.BUILD_DOCKERFILE>"
           BUILD_CONTEXT : "<+stepGroup.variables.BUILD_CONTEXT>"
           BUILD_ARGS : "<+stepGroup.variables.BUILD_TARGET_ARGS>"
-          USE_BUILD_CACHING : var.harness_k8s_connector != "skipped" ? false : true
-          USE_REMOTE_CACHE_REPO : var.harness_k8s_connector != "skipped" ? true : false
+          USE_BUILD_CACHING : var.kubernetes_connector != "skipped" ? false : true
+          USE_REMOTE_CACHE_REPO : var.kubernetes_connector != "skipped" ? true : false
           BUILD_OPTIMIZE : true
-          BUILD_MEM : "4Gi"
+          BUILD_MEM : "<+stage.variables.BUILD_CONTEXT_MEM>"
           USE_KANIKO_VARS : false
         }
       )

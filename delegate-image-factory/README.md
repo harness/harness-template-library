@@ -11,50 +11,18 @@ The Harness Delegate Images Factory is a robust Harness pipeline designed to cre
     - Optional integration with supported Harness Security Test Orchestration (STO) container image scans
     - Optional integration with Harness Software Supply Chain Assurance (SSCA) to generate a Software Bill of Materials (SBOM)
 - Optional Harness Code Repository to house the custom Harness Delegate image scripts and Dockerfile
+- Optional Pipeline used to synchronize and mirror code repository from Harness into Harness Code Repository
 
 ## Providers
+This template is designed to be used as a Terraform Module. To leverage this module, an Harness provider configuration must be added to the calling template as defined by the [Harness Provider - Docs](https://registry.terraform.io/providers/harness/harness/latest/docs).
 
-This template requires that the calling template has defined the [Harness Provider - Docs](https://registry.terraform.io/providers/harness/harness/latest/docs) authentication.
+To aid in the setup and use of this module, we have added a file to the root of this repository called `providers.tf.example`. This file can be used as the basis for configuring your own `providers.tf` file for the calling template
 
-### Example setup of the Harness Provider Authentication with environment variables
+_**Note**: If using this as module as a template, be sure to copy the provider sample file from the root of the repository into this directory prior to execution._
+- Save a copy of the file as `providers.tf`
+- Either configure the variables as defined or use their corresponding variables.
 
-You can also set up authentication with Harness through environment variables. To do this set the following items in your environment:
-- HARNESS_ACCOUNT_ID: Harness Platform Account Number
-- HARNESS_PLATFORM_API_KEY: Harness Platform API Key for your account
-
-_Note: The use of the HARNESS_ENDPOINT environment variable is not used as the variable `harness_platform_url` is a required input for some of the resource creation steps and cannot be read within the execution except by explicit declaration of the variables value_
-
-### Example setup of the Harness Provider
-
-```
-# Provider Setup Details
-variable "harness_platform_url" {
-  type        = string
-  description = "[Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL"
-  default     = "https://app.harness.io/gateway"
-}
-
-variable "harness_platform_account" {
-  type        = string
-  description = "[Required] Enter the Harness Platform Account Number"
-  default     = null # If Not passed, then the ENV HARNESS_ACCOUNT_ID will be used
-  sensitive   = true
-}
-
-variable "harness_platform_key" {
-  type        = string
-  description = "[Required] Enter the Harness Platform API Key for your account"
-  default     = null # If Not passed, then the ENV HARNESS_PLATFORM_API_KEY will be used
-  sensitive   = true
-}
-
-provider "harness" {
-  endpoint         = var.harness_platform_url
-  account_id       = var.harness_platform_account
-  platform_api_key = var.harness_platform_key
-}
-
-```
+_**Note**: The gitignore file in this repository explicitly ignores any file called `providers.tf` from commits and changes._
 
 ### Terraform required providers declaration
 
@@ -87,16 +55,15 @@ _Note: When providing `_ref` values, please ensure that these are prefixed with 
 | --- | --- | --- | --- | --- |
 | harness_platform_url | | Enter the Harness Platform URL.  Defaults to Harness SaaS URL | string | https://app.harness.io/gateway |
 | harness_platform_account | X | Enter the Harness Platform Account Number | string | null |
-| harness_platform_key | X | Enter the Harness Platform API Key for your account | string | null |
 | existing_harness_platform_key_ref | X | Provide an existing Harness Platform key secret reference.  Must exist before execution | string | |
 | organization_id | X | Provide an existing organization reference ID.  Must exist before execution | string | |
 | project_id | X | Provide an existing project reference ID.  Must exist before execution | string | |
 | git_repository_name | | The source CodeBase Repository Name | string | harness-delegate-setup |
 | git_connector_ref | | When provided, the existing Git connector will be used. When 'null' a custom Harness Code Repository will be added into the project. | string | null |
-| harness_k8s_connector | X | Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline.  Must exist before execution | string | |
-| harness_k8s_namespace | | Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline.  Must exist before execution | string | default |
-| harness_override_image_connector | | Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution | string | null |
-| harness_k8s_node_selectors |  | Kubernetes Node Selectors | map(any) | {} |
+| kubernetes_connector | X | Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline.  Must exist before execution | string | |
+| kubernetes_namespace | | Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline.  Must exist before execution | string | default |
+| kubernetes_node_selectors |  | Kubernetes Node Selectors | map(any) | {} |
+| kubernetes_override_image_connector | | Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution | string | null |
 | container_registry_name | X | Docker Registry Name to which the container will be published | string | |
 | container_registry_connector_id | X | Existing Docker Registry Connector Id.  Must exist before execution | string | |
 | include_image_test_scan | | Include the Image Test Scan | bool | false |
@@ -121,7 +88,7 @@ Included in this repository is a `terraform.tfvars.example` file with a sample f
 
 ## Contributing
 
-A complete [Contributors Guide](../CONTRIBUTING.md) can be found in this repository
+A complete [Contributors Guide](../../CONTRIBUTING.md) can be found in this repository
 
 ## Authors
 
@@ -129,4 +96,4 @@ Module is maintained by Harness, Inc
 
 ## License
 
-MIT License. See [LICENSE](../LICENSE) for full details.
+MIT License. See [LICENSE](../../LICENSE) for full details.

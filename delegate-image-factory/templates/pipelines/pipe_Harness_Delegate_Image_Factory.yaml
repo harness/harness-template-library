@@ -9,7 +9,7 @@ pipeline:
   properties:
     ci:
       codebase:
-        %{~ if CI_CODEBASE_CONNECTOR != null ~}
+        %{~ if CI_CODEBASE_CONNECTOR != null && CI_CODEBASE_CONNECTOR != "skipped" ~}
         connectorRef: ${CI_CODEBASE_CONNECTOR}
         %{~ endif ~}
         repoName: ${CI_CODEBASE_REPO}
@@ -29,14 +29,14 @@ pipeline:
                   name: Get Latest Delegate Image
                   identifier: Get_Latest_Delegate_Image
                   spec:
-                    %{~ if HARNESS_K8s_CONNECTOR != "skipped" ~}
-                    connectorRef: ${HARNESS_K8s_CONNECTOR}
+                    %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
+                    connectorRef: ${KUBERNETES_CONNECTOR}
                     image: bash
                     %{~ endif ~}
                     shell: Bash
                     command: |-
                       set -eo pipefail
-                      %{~ if HARNESS_K8s_CONNECTOR != "skipped" ~}
+                      %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
                       apk add --no-cache --no-progress --quiet jq curl
                       %{~ endif ~}
                       data=$(curl -s\
@@ -69,13 +69,13 @@ pipeline:
                           value: <+stage.variables.REGISTRY_NAME>/<+stage.variables.IMAGE_NAME>
                         - name: BUILD_TARGET_TAG
                           type: String
-                          value: <+<+pipeline.variables.delegate_base_version>!=""?<+pipeline.variables.delegate_base_version>:<+execution.steps.Get_Latest_Delegate_Image.output.outputVariables.LATEST_MINIMAL>>
+                          value: <+<+pipeline.variables.DELEGATE_BASE_VERSION>!=""?<+pipeline.variables.DELEGATE_BASE_VERSION>:<+execution.steps.Get_Latest_Delegate_Image.output.outputVariables.LATEST_MINIMAL>>
                         - name: CACHE_TARGET_TAG
                           type: String
                           value: <+stage.variables.CACHE_TARGET_TAG>
                         - name: BUILD_TARGET_ARGS
                           type: String
-                          value: "{\"TAG\": \"<+stepGroup.variables.BUILD_TARGET_TAG>\",\"ADDITIONAL_PACKAGES\": \"<+pipeline.variables.additional_packages>\"}"
+                          value: "{\"TAG\": \"<+stepGroup.variables.BUILD_TARGET_TAG>\",\"ADDITIONAL_PACKAGES\": \"<+pipeline.variables.ADDITIONAL_PACKAGES>\"}"
                         - name: BUILD_DOCKERFILE
                           type: String
                           value: docker/Dockerfile
@@ -95,7 +95,7 @@ pipeline:
                           value: <+stage.variables.REGISTRY_NAME>/<+stage.variables.IMAGE_NAME>
                         - name: BUILD_TARGET_TAG
                           type: String
-                          value: <+<+pipeline.variables.delegate_base_version>!=""?<+pipeline.variables.delegate_base_version>:<+execution.steps.Get_Latest_Delegate_Image.output.outputVariables.LATEST_MINIMAL>>
+                          value: <+<+pipeline.variables.DELEGATE_BASE_VERSION>!=""?<+pipeline.variables.DELEGATE_BASE_VERSION>:<+execution.steps.Get_Latest_Delegate_Image.output.outputVariables.LATEST_MINIMAL>>
                         - name: CACHE_TARGET_TAG
                           type: String
                           value: <+stage.variables.CACHE_TARGET_TAG>
@@ -113,10 +113,10 @@ pipeline:
                           value: <+stage.variables.REGISTRY_NAME>/<+stage.variables.IMAGE_NAME>
                         - name: BUILD_TARGET_TAG
                           type: String
-                          value: <+<+pipeline.variables.delegate_base_version>!=""?<+pipeline.variables.delegate_base_version>:<+execution.steps.Get_Latest_Delegate_Image.output.outputVariables.LATEST_MINIMAL>>
+                          value: <+<+pipeline.variables.DELEGATE_BASE_VERSION>!=""?<+pipeline.variables.DELEGATE_BASE_VERSION>:<+execution.steps.Get_Latest_Delegate_Image.output.outputVariables.LATEST_MINIMAL>>
                         - name: BUILD_TARGET_ARGS
                           type: String
-                          value: "{\"TAG\": \"<+stepGroup.variables.BUILD_TARGET_TAG>\",\"ADDITIONAL_PACKAGES\": \"<+pipeline.variables.additional_packages>\"}"
+                          value: "{\"TAG\": \"<+stepGroup.variables.BUILD_TARGET_TAG>\",\"ADDITIONAL_PACKAGES\": \"<+pipeline.variables.ADDITIONAL_PACKAGES>\"}"
                         - name: BUILD_DOCKERFILE
                           type: String
                           value: docker/Dockerfile
@@ -139,7 +139,7 @@ pipeline:
                       type: docker
                       spec:
                         connector: <+stage.variables.REGISTRY_CONNECTOR_ID>
-                        image: <+stage.variables.REGISTRY_NAME>/<+stage.variables.IMAGE_NAME>:<+<+pipeline.variables.delegate_base_version>!=""?<+pipeline.variables.delegate_base_version>:<+execution.steps.Get_Latest_Delegate_Image.output.outputVariables.LATEST_MINIMAL>>
+                        image: <+stage.variables.REGISTRY_NAME>/<+stage.variables.IMAGE_NAME>:<+<+pipeline.variables.DELEGATE_BASE_VERSION>!=""?<+pipeline.variables.DELEGATE_BASE_VERSION>:<+execution.steps.Get_Latest_Delegate_Image.output.outputVariables.LATEST_MINIMAL>>
                     sbom_drift:
                       base: last_generated_sbom
                     resources:
@@ -147,34 +147,7 @@ pipeline:
                         memory: 4Gi
                         cpu: "2"
               %{~ endif ~}
-          %{~ if HARNESS_K8s_CONNECTOR != "skipped" ~}
-          sharedPaths:
-            - /var/run
-            - /opt/docker_cache
-          infrastructure:
-            type: KubernetesDirect
-            spec:
-              connectorRef: ${HARNESS_K8s_CONNECTOR}
-              namespace: ${HARNESS_K8s_NAMESPACE}
-              automountServiceAccountToken: true
-              nodeSelector: {}
-              os: Linux
-              %{~ if HARNESS_IMAGE_CONNECTOR != null ~}
-              harnessImageConnectorRef: ${HARNESS_IMAGE_CONNECTOR}
-              %{~ endif ~}
-          %{~ else ~}
-          caching:
-            enabled: false
-            paths: []
-          slsa_provenance:
-            enabled: false
-          platform:
-            os: Linux
-            arch: Amd64
-          runtime:
-            type: Cloud
-            spec: {}
-          %{~ endif ~}
+${STAGE_INFRASTRUCTURE}
         when:
           pipelineStatus: Success
         variables:
@@ -207,7 +180,7 @@ pipeline:
             type: String
             description: Docker Image Name
             required: true
-            value: harness-delegate
+            value: <+pipeline.variables.CONTAINER_IMAGE_NAME>
           - name: CACHE_TARGET_TAG
             type: String
             description: When building the local cache target, provide the name of the tag to use as the target name.
@@ -217,26 +190,46 @@ pipeline:
             type: String
             description: Delegate Tag to use as the base for the new image
             required: true
-            value: <+<+pipeline.variables.delegate_base_version>!=""?<+pipeline.variables.delegate_base_version>:<+pipeline.stages.Get_Latest_Delegate_Version.spec.execution.steps.Delegate_Version.output.outputVariables.LATEST_MINIMAL>>
+            value: <+<+pipeline.variables.DELEGATE_BASE_VERSION>!=""?<+pipeline.variables.DELEGATE_BASE_VERSION>:<+pipeline.stages.Get_Latest_Delegate_Version.spec.execution.steps.Delegate_Version.output.outputVariables.LATEST_MINIMAL>>
           - name: PLUGIN_CACHE_FROM
             type: String
             description: ""
             required: false
             value: <+stage.variables.REGISTRY_NAME>/<+stage.variables.IMAGE_NAME>:<+stage.variables.CACHE_TARGET_TAG>
+          - name: BUILD_CONTEXT_MEM
+            type: Number
+            description: ""
+            required: false
+            value: <+pipeline.variables.BUILD_CONTEXT_MEM>
   variables:
-    - name: additional_packages
+    - name: ADDITIONAL_PACKAGES
       type: String
       description: |-
         Enter the additional packages for the delegate.  Expects an installer script included in the 'scripts' section of the repository.
 
-        Each entry should be space delimited
+        Each entry should be space delimited. To install every package in the repository, use the keyword 'all'
       required: true
-      value: <+input>.default(python tfenv helm kubelogin azurecli yq kubectl go-template)
-    - name: delegate_base_version
+      value: <+input>.default(all)
+    - name: CONTAINER_IMAGE_NAME
       type: String
-      description: Provide a specific official Harness Delegate tag to build. This overrides the use of the platform specified default value
+      description: Choose the name of the image to create
+      required: true
+      value: <+input>.default(harness-delegate)
+    - name: DELEGATE_BASE_VERSION
+      type: String
+      description: Provide a specific official Harness Delegate tag from which to build. This overrides the use of the platform specified default value
       required: false
       value: <+input>
+    - name: DOCKER_REGISTRY_CONNECTOR
+      type: String
+      description: Existing Registry Connector used to push container images.
+      required: true
+      value: ${DOCKER_REGISTRY_ID}
+    - name: DOCKER_REGISTRY_NAME
+      type: String
+      description: Existing Container Registry name used when creating new images.
+      required: true
+      value: <+input>.default(${DOCKER_REGISTRY_NAME})
     - name: HARNESS_ACCOUNT_ID
       type: String
       description: When checking for the latest delegate version, this pipeline will connect to the account id provided. Defaults to this account
@@ -252,13 +245,8 @@ pipeline:
       description: When checking for the latest delegate version, this pipeline will need to authenticate to the account to verify the current versions. Provide an existing Harness Secret with a valid API Token.
       required: true
       value: ${HARNESS_PLATFORM_API_KEY}
-    - name: DOCKER_REGISTRY_CONNECTOR
-      type: String
-      description: Existing Registry Connector used to push container images.
+    - name: BUILD_CONTEXT_MEM
+      type: Number
+      value: <+input>.default(6)
+      description: When running in Kubernetes, tuning the Kaniko and Scanner process is important. This input allows you to customize the amount of memory to configure for the Docker build process.
       required: true
-      value: ${DOCKER_REGISTRY_ID}
-    - name: DOCKER_REGISTRY_NAME
-      type: String
-      description: Existing Container Registry name used when creating new images.
-      required: true
-      value: <+input>.default(${DOCKER_REGISTRY_NAME})

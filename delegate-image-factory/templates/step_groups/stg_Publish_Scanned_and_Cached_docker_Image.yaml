@@ -16,8 +16,8 @@ template:
           name: Generate Local Dockerfile
           identifier: Generate_Local_Dockerfile
           spec:
-            %{~ if HARNESS_K8s_CONNECTOR != "skipped" ~}
-            connectorRef: ${HARNESS_K8s_CONNECTOR}
+            %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
+            connectorRef: ${KUBERNETES_CONNECTOR}
             image: bash
             %{~ endif ~}
             shell: Bash

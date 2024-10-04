@@ -1,0 +1,119 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: This repository will pull and mirror the public Harness Delegate Setup repository
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: Fork and Clone Repository
+        identifier: Fork_and_Clone_Repository
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: false
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Mirror Delegate Image Factory
+                  identifier: Mirror_Delegate_Image_Factory
+                  spec:
+                    %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
+                    connectorRef: <+pipeline.variables.REGISTRY_CONNECTOR_ID>
+                    image: harness/drone-git
+                    %{~ endif ~}
+                    shell: Bash
+                    command: |-
+                      set -eo pipefail
+                      SOURCE_URL=<+pipeline.variables.SOURCE_REPO_URL>
+                      TARGET_TOKEN=<+pipeline.variables.TARGET_REPO_TOKEN>
+                      TARGET_URL=<+pipeline.variables.TARGET_REPO_URL>
+                      REFERENCE=<+pipeline.variables.SOURCE_REFERENCE>
+                      REFERENCE_SHA_OLD=<+pipeline.variables.referenceShaOld>
+                      SYNC_DELETE=<+pipeline.variables.syncDelete>
+
+                      # generate clone urls with creds
+                      TARGET_URL_WITH_AUTH=$(echo "$TARGET_URL" | sed -e "s^//^//git:$TARGET_TOKEN@^")
+
+                      echo "setup repo with source '$SOURCE_URL' and target '$TARGET_URL'"
+                      git init --bare repo
+                      cd repo
+                      git remote add source $SOURCE_URL
+                      git remote add target $TARGET_URL_WITH_AUTH
+
+                      echo "checking reference '$REFERENCE' existence on source"
+                      set +e
+                      git ls-remote --exit-code source $REFERENCE
+                      STATUS=$?
+                      set -e
+
+                      # Handle reference deletion
+                      if [ $STATUS -eq 2 ]; then
+                        if [ -z "$SYNC_DELETE" ] || [ "$SYNC_DELETE" != "true" ]; then
+                          echo "skip sync of deleted reference"
+                        fi
+
+                        if [ -z "$REFERENCE_SHA_OLD" ]  || [ "$REFERENCE_SHA_OLD" = "null" ]; then
+                          echo "delete reference '$REFERENCE' from target"
+                          git push target ":$REFERENCE"
+                        else
+                          echo "delete reference '$REFERENCE' from target if on sha '$REFERENCE_SHA_OLD'"
+                          git push target ":$REFERENCE" --force-with-lease="$REFERENCE:$REFERENCE_SHA_OLD"
+                        fi
+
+                        echo "sync successful"
+                      elif [ $STATUS -ne 0 ]; then
+                        echo "failed to check reference existence"
+                        exit 1
+                      fi
+
+                      # handle reference update / creation
+                      echo "pulling reference '$REFERENCE' from source"
+                      git fetch source "$REFERENCE:refs/sync/source"
+                      SOURCE_SHA=$(git rev-parse "refs/sync/source^{commit}")
+                      echo "source is on sha '$SOURCE_SHA'"
+
+                      echo "pushing reference '$REFERENCE' on commit '$SOURCE_SHA' to target"
+                      set +e
+                      git push target "refs/sync/source:$REFERENCE"
+
+                      # did the push succeed? return success
+                      if [ $? -eq 0 ]; then
+                        echo "sync successful"
+                      else
+                        err=$?
+                        echo "sync unsuccessful"
+                        exit $err
+                      fi
+${STAGE_INFRASTRUCTURE}
+  variables:
+    - name: SOURCE_REPO_URL
+      type: String
+      description: The https-format clone URL for the source repo.
+      required: true
+      value: ${SOURCE_REPO_URL}
+    - name: TARGET_REPO_URL
+      type: String
+      description: The https-format clone URL for the target repo.
+      required: true
+      value: ${TARGET_REPO_URL}
+    - name: TARGET_REPO_TOKEN
+      type: Secret
+      description: Access token for the target repo.
+      required: true
+      value: ${TARGET_REPO_TOKEN}
+    - name: SOURCE_REFERENCE
+      type: String
+      description: The full reference path to sync from source to target, such as 'refs/heads/main' for branches and 'refs/tags/v.1.2.3' for tags.
+      required: true
+      value: refs/heads/${SOURCE_BRANCH}
+    %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
+    - name: REGISTRY_CONNECTOR_ID
+      type: String
+      description: Existing Registry Connector used to retrieve container images.
+      required: true
+      value: ${DOCKER_REGISTRY_ID}
+    %{~ endif ~}
