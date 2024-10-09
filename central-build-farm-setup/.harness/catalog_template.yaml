@@ -21,6 +21,12 @@ spec:
         - source_code_manager_url
         - source_code_manager_validation_repo
       properties:
+        # The token property needs to be in the first page of the workflow
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
         build_infrastructure_type:
           title: Configure a Kubernetes Connector for use as a Centralized Build Farm
           type: string
@@ -101,11 +107,6 @@ spec:
               type: string
               default: <+variable.account.solutions_factory_template_library_connector>
               ui:widget: hidden
-        token:
-          title: Harness Token
-          type: string
-          ui:widget: password
-          ui:field: HarnessAuthToken
   steps:
     - id: trigger
       name: Creating your Harness Resources

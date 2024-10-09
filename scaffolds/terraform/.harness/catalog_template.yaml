@@ -18,6 +18,12 @@ spec:
         - # List of required properties by ID
       # TODO: Enter your Harness Properties
       properties:
+        # The token property needs to be in the first page of the workflow
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
     - title: Solutions Factory Connection
       properties:
         solutions_factory_details:
@@ -49,11 +55,6 @@ spec:
               type: string
               default: <+variable.account.solutions_factory_project>
               ui:widget: hidden
-        token:
-          title: Harness Token
-          type: string
-          ui:widget: password
-          ui:field: HarnessAuthToken
   steps:
     - id: configure_workspace
       name: Configuring Harness Workspace

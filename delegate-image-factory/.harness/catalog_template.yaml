@@ -24,6 +24,12 @@ spec:
         The Delegate Image Factory requires an existing Build Infrastructure configuration to be in place. This solution will support
         deployments via Kubernetes or Harness Cloud deployments.
       properties:
+        # The token property needs to be in the first page of the workflow
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
         build_infrastructure_type:
           title: Choose your Build Farm Infrastructure configuration
           type: string
@@ -274,11 +280,6 @@ spec:
               type: string
               default: <+variable.account.solutions_factory_template_library_connector>
               ui:widget: hidden
-        token:
-          title: Harness Token
-          type: string
-          ui:widget: password
-          ui:field: HarnessAuthToken
   steps:
     - id: configure_workspace
       name: Configuring Harness Workspace

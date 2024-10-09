@@ -17,6 +17,12 @@ spec:
         - organization_id
         - project_name
       properties:
+        # The token property needs to be in the first page of the workflow
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
         organization_id:
           title: Name of your existing Harness organization
           type: string
@@ -68,11 +74,6 @@ spec:
               type: string
               default: <+variable.account.solutions_factory_template_library_connector>
               ui:widget: hidden
-        token:
-          title: Harness Token
-          type: string
-          ui:widget: password
-          ui:field: HarnessAuthToken
   steps:
     - id: configure_workspace
       name: Configuring Harness Workspace
