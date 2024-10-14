@@ -10,7 +10,7 @@ metadata:
     - # Use the `hidden` tag to restrict access for only the Owners of this template
     - # Add additional tags e.g. project or pipeline
 spec:
-  owner: group:default/_account_all_users # Defaults to all users
+  owner: group:default/harness_account_all_users # Defaults to all users
   type: # Refer to Solutions Factory documentation on various type categories https://harness.atlassian.net/wiki/spaces/IE1/pages/21922547021/Naming+Convention+Standards
   parameters:
     - title: # Name the Input Page title
@@ -55,6 +55,10 @@ spec:
               type: string
               default: <+variable.account.solutions_factory_project>
               ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
   steps:
     - id: configure_workspace
       name: Configuring Harness Workspace
@@ -62,11 +66,12 @@ spec:
       input:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
         inputset:
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
           GIT_REPOSITORY_NAME: harness-template-library
           GIT_REPOSITORY_PATH: # Provide directory path to the Terraform code in this repository e.g. harness-project
           GIT_REPOSITORY_BRANCH: main
           RESOURCE_NAME: ${{ parameters.organization_id }}_${{ parameters.project_name|replace(" ","-") }}
-          RESOURCE_OWNER: group:default/Account_Admins
+          RESOURCE_OWNER: group:default/harness_account_all_users
           # YAML of Terraform variables of type 'String' mapped to their IDP parameters
           RESOURCE_VARS:
             # harness_platform_account: ${{ parameters.solutions_factory_details.harness_account_id }}
@@ -100,9 +105,8 @@ spec:
         content: |
           # TODO : Return outputs from Harness pipeline execution via Terraform
           # ---
-          # organization_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.organization_identifier']}}
+          # organization_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.organization_identifier']}}
 
-          # project_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.project_identifier']}}
+          # project_identifier: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.project_identifier']}}
 
-          # project_url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.apply.output.outputVariables.project_url']}}
-
+          # project_url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.project_url']}}
