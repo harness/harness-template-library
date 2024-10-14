@@ -11,7 +11,7 @@ metadata:
     - # Add additional tags e.g. project or pipeline
 spec:
   owner: group:default/_account_all_users # Defaults to all users
-  type: # Refer to Solutions Factory documentation on various type categories
+  type: # Refer to Solutions Factory documentation on various type categories https://harness.atlassian.net/wiki/spaces/IE1/pages/21922547021/Naming+Convention+Standards
   parameters:
     - title: # Name the Input Page title
       required:
@@ -62,7 +62,8 @@ spec:
       input:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
         inputset:
-          GIT_REPOSITORY_PATH: # Provide directory path to the Terraform code in this repository e.g. template_library/harness-project
+          GIT_REPOSITORY_NAME: harness-template-library
+          GIT_REPOSITORY_PATH: # Provide directory path to the Terraform code in this repository e.g. harness-project
           GIT_REPOSITORY_BRANCH: main
           RESOURCE_NAME: ${{ parameters.organization_id }}_${{ parameters.project_name|replace(" ","-") }}
           RESOURCE_OWNER: group:default/Account_Admins
