@@ -4,9 +4,6 @@ harness_platform_url = "https://app.harness.io/gateway"
 # [Required] Enter the Harness Platform Account Number
 harness_platform_account = # Required
 
-# [Required] Enter the Harness Platform API Key for your account
-harness_platform_key = # Required
-
 # [Optional] Provide a Map of Tags to associate with the resources
 tags = {}
 

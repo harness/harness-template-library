@@ -1,6 +1,7 @@
 locals {
   required_tags = {
     created_by : "Terraform"
+    harnessSolutionsFactory : "true"
   }
 
   ####################
