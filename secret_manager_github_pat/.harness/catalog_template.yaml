@@ -1,0 +1,109 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: secret-manager-github-pat
+  title: Secret Manager for GitHub PATs
+  description: A custom secrets manager that generate GitHub PATs from a GitHub app
+  tags:
+    - solutions-factory
+    - harness
+    - secret-manager
+    - github
+spec:
+  owner: group:default/_account_all_users
+  type: Secrets Manager
+  parameters:
+    - title: Secret Manager Inputs
+      required:
+        - github_api_url
+        - token
+      properties:
+        github_api_url:
+          type: string
+          default: api.github.com
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
+  steps:
+    - id: configure_workspace
+      name: Configuring Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
+          GIT_REPOSITORY_NAME: harness-template-library
+          GIT_REPOSITORY_PATH: secret_manager_github_pat
+          GIT_REPOSITORY_BRANCH: feature/secret_manager_github_pat
+          RESOURCE_NAME: github_app_pat_dispenser
+          RESOURCE_OWNER: group:default/harness_account_all_users
+          # YAML of Terraform variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS:
+            github_api_url: ${{ parameters.github_api_url }}
+          # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_SECRETS: {}
+          # YAML of Environment variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS_ENVS: {}
+          # YAML of Environment variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_ENVS_SECRET: {}
+          # Should the workspace automatically include the default Harness Connector environment variables
+          INCLUDE_HARNESS_ENVS: "true"
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: provision_workspace
+      name: Provisioning your Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          workspace: github_app_pat_dispenser
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Harness Workspace Configured - Execution Link
+        url: ${{ steps.configure_workspace.output.PipelineUrl }}
+      - title: Harness Workspace Provisioned - Execution Link
+        url: ${{ steps.provision_workspace.output.PipelineUrl }}
+    text:
+      - title: Outputs
+        content: |
+          The GitHub PAT Secrets Manager template has been provisioned: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/settings/templates
+

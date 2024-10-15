@@ -1,0 +1,14 @@
+# [Optional] Provide a Map of Tags to associate with the resources
+tags = {}
+
+# [Optional] Provide the organization id to place the template under
+organization_id = null
+
+# [Optional] Provide the project id to place the template under
+project_id = null
+
+# [Optional] Enter the api url for your github instance
+github_url = "api.github.com"
+
+# [Optional] Version of the template
+template_version = 1
