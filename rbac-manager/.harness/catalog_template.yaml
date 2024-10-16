@@ -69,7 +69,7 @@ spec:
           GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
           GIT_REPOSITORY_NAME: harness-template-library
           GIT_REPOSITORY_PATH: rbac-manager
-          GIT_REPOSITORY_BRANCH: feature/project-rbac-management
+          GIT_REPOSITORY_BRANCH: main
           RESOURCE_NAME: rbac-manager
           RESOURCE_OWNER: group:default/HSF_Admins
           # YAML of Terraform variables of type 'String' mapped to their IDP parameters
