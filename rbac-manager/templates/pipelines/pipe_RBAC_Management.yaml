@@ -1,0 +1,437 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: ${DESCRIPTION}
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: GroupMembership
+        identifier: GroupMembership
+        description: "Manage Harness Group Membership"
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: ShellScript
+                  name: Build Querystring
+                  identifier: Build_Querystring
+                  spec:
+                    shell: Bash
+                    executionTarget: {}
+                    source:
+                      type: Inline
+                      spec:
+                        script: |
+                          set -eo pipefail
+                          echo "Preparing Query String"
+                          output_string="?accountIdentifier=$${ACCOUNT_ID}"
+                          if [[ $${PROJECT_ID} ]]; then
+                            if [[ -z $${ORG_ID} ]]; then
+                              echo "Organization must be provided if selecting a Project Identifier"
+                              exit 255
+                            fi
+                          fi
+                          if [[ $${ORG_ID} ]]; then
+                            output_string="$${output_string}&orgIdentifier=$${ORG_ID}"
+                            if [[ $${PROJECT_ID} ]]; then
+                              output_string="$${output_string}&projectIdentifier=$${PROJECT_ID}"
+                            fi
+                          fi
+
+                          echo "$${output_string}"
+                    environmentVariables:
+                      - name: ACCOUNT_ID
+                        value: <+stage.variables.harness_platform_account>
+                        type: String
+                      - name: ORG_ID
+                        value: <+stage.variables.organization_id>
+                        type: String
+                      - name: PROJECT_ID
+                        value: <+stage.variables.project_id>
+                        type: String
+                    outputVariables:
+                      - name: QUERYSTRING
+                        type: String
+                        value: output_string
+                  timeout: 10m
+              - stepGroup:
+                  name: User Management
+                  identifier: User_Management
+                  steps:
+                    - step:
+                        type: Http
+                        name: GetUserInScope
+                        identifier: GetUserInScope
+                        spec:
+                          url: <+spec.inputVariables.HARNESS_ENDPOINT>/ng/api/user/batch<+spec.inputVariables.QUERYSTRING>
+                          method: POST
+                          headers:
+                            - key: x-api-key
+                              value: <+stepGroup.variables.harness_platform_key>
+                            - key: Content-Type
+                              value: application/json
+                          inputVariables:
+                            - name: HARNESS_ENDPOINT
+                              value: <+stepGroup.variables.harness_account_url>
+                              type: String
+                            - name: QUERYSTRING
+                              value: <+stepGroup.variables.querystring>
+                              type: String
+                            - name: USER_EMAIL
+                              value: <+stepGroup.variables.user_email_address>
+                              type: String
+                          outputVariables:
+                            - name: user_id
+                              value: <+json.object(httpResponseBody).data.content.get(0).uuid>
+                              type: String
+                            - name: content
+                              value: <+json.object(httpResponseBody).data.content>
+                              type: String
+                          requestBody: |-
+                            {
+                              "emails": [
+                                "<+spec.inputVariables.USER_EMAIL>"
+                              ]
+                            }
+                          assertion: <+httpResponseCode> == 200
+                        timeout: 60s
+                        when:
+                          stageStatus: Success
+                    - parallel:
+                        - step:
+                            type: Http
+                            name: AddUserToScope
+                            identifier: AddUserToScope
+                            spec:
+                              url: <+spec.inputVariables.HARNESS_ENDPOINT>/ng/api/user/users<+spec.inputVariables.QUERYSTRING>
+                              method: POST
+                              headers:
+                                - key: x-api-key
+                                  value: <+stepGroup.variables.harness_platform_key>
+                                - key: Content-Type
+                                  value: application/json
+                              inputVariables:
+                                - name: HARNESS_ENDPOINT
+                                  value: <+stepGroup.variables.harness_account_url>
+                                  type: String
+                                - name: QUERYSTRING
+                                  value: <+stepGroup.variables.querystring>
+                                  type: String
+                                - name: USER_EMAIL
+                                  value: <+stepGroup.variables.user_email_address>
+                                  type: String
+                              outputVariables: []
+                              requestBody: |-
+                                {
+                                  "emails": [
+                                    "<+spec.inputVariables.USER_EMAIL>"
+                                  ]
+                                }
+                              assertion: <+httpResponseCode> == 200
+                            timeout: 60s
+                            when:
+                              stageStatus: Success
+                              condition: <+pipeline.variables.group_action> != "purge" && <+execution.steps.User_Management.steps.GetUserInScope.output.outputVariables.content> == "[]"
+                        - step:
+                            type: Http
+                            name: RemoveUserFromScope
+                            identifier: RemoveUserFromScope
+                            spec:
+                              url: <+spec.inputVariables.HARNESS_ENDPOINT>/ng/api/user/<+spec.inputVariables.USER_ID><+spec.inputVariables.QUERYSTRING>
+                              method: DELETE
+                              headers:
+                                - key: x-api-key
+                                  value: <+stepGroup.variables.harness_platform_key>
+                                - key: Content-Type
+                                  value: application/json
+                              inputVariables:
+                                - name: HARNESS_ENDPOINT
+                                  value: <+stepGroup.variables.harness_account_url>
+                                  type: String
+                                - name: QUERYSTRING
+                                  value: <+stepGroup.variables.querystring>
+                                  type: String
+                                - name: USER_ID
+                                  value: <+execution.steps.User_Management.steps.GetUserInScope.output.outputVariables.user_id>
+                                  type: String
+                              outputVariables: []
+                              assertion: <+httpResponseCode> == 200
+                            timeout: 60s
+                            when:
+                              stageStatus: Success
+                              condition: <+pipeline.variables.group_action> == "purge" && <+execution.steps.User_Management.steps.GetUserInScope.output.outputVariables.content> != "[]"
+                  variables:
+                    - name: harness_account_url
+                      type: String
+                      value: <+stage.variables.harness_account_url>
+                      description: ""
+                      required: true
+                    - name: harness_platform_key
+                      type: String
+                      value: <+stage.variables.harness_platform_key>
+                      description: ""
+                      required: true
+                    - name: querystring
+                      type: String
+                      value: <+execution.steps.Build_Querystring.output.outputVariables.QUERYSTRING>
+                      description: ""
+                      required: true
+                    - name: user_email_address
+                      type: String
+                      value: <+stage.variables.user_email_address>
+                      description: ""
+                      required: true
+                    - name: group_identifier
+                      type: String
+                      value: <+stage.variables.group_identifier>
+                      description: ""
+                      required: true
+              - stepGroup:
+                  name: Group Management
+                  identifier: Group_Management
+                  steps:
+                    - step:
+                        type: Http
+                        name: GetUserInScope
+                        identifier: GetUserInScope
+                        spec:
+                          url: <+spec.inputVariables.HARNESS_ENDPOINT>/ng/api/user/batch<+spec.inputVariables.QUERYSTRING>
+                          method: POST
+                          headers:
+                            - key: x-api-key
+                              value: <+stepGroup.variables.harness_platform_key>
+                            - key: Content-Type
+                              value: application/json
+                          inputVariables:
+                            - name: HARNESS_ENDPOINT
+                              value: <+stepGroup.variables.harness_account_url>
+                              type: String
+                            - name: QUERYSTRING
+                              value: <+stepGroup.variables.querystring>
+                              type: String
+                            - name: USER_EMAIL
+                              value: <+stepGroup.variables.user_email_address>
+                              type: String
+                          outputVariables:
+                            - name: user_id
+                              value: <+json.object(httpResponseBody).data.content.get(0).uuid>
+                              type: String
+                          requestBody: |-
+                            {
+                              "emails": [
+                                "<+spec.inputVariables.USER_EMAIL>"
+                              ]
+                            }
+                          assertion: <+httpResponseCode> == 200
+                        timeout: 60s
+                    - step:
+                        type: Http
+                        name: Check Group Membership
+                        identifier: Check_Group_Membership
+                        spec:
+                          url: <+spec.inputVariables.HARNESS_ENDPOINT>/ng/api/user-groups/<+spec.inputVariables.GROUP_ID>/member/<+spec.inputVariables.USER_ID><+spec.inputVariables.QUERYSTRING>
+                          method: GET
+                          headers:
+                            - key: x-api-key
+                              value: <+stepGroup.variables.harness_platform_key>
+                            - key: Content-Type
+                              value: application/json
+                          inputVariables:
+                            - name: HARNESS_ENDPOINT
+                              value: <+stepGroup.variables.harness_account_url>
+                              type: String
+                            - name: QUERYSTRING
+                              value: <+stepGroup.variables.querystring>
+                              type: String
+                            - name: USER_ID
+                              value: <+execution.steps.Group_Management<+stepGroup.identifierPostFix>.steps.GetUserInScope.output.outputVariables.user_id>
+                              type: String
+                            - name: GROUP_ID
+                              value: <+stepGroup.variables.group_identifier>
+                              type: String
+                          outputVariables:
+                            - name: user_exists
+                              value: <+json.object(httpResponseBody).data>
+                              type: String
+                          assertion: <+httpResponseCode> == 200
+                        timeout: 10s
+                    - parallel:
+                        - step:
+                            type: Http
+                            name: AddUserToGroup
+                            identifier: AddUserToGroup
+                            spec:
+                              url: <+spec.inputVariables.HARNESS_ENDPOINT>/ng/api/user-groups/<+spec.inputVariables.GROUP_ID>/member/<+spec.inputVariables.USER_ID><+spec.inputVariables.QUERYSTRING>
+                              method: PUT
+                              headers:
+                                - key: x-api-key
+                                  value: <+stepGroup.variables.harness_platform_key>
+                                - key: Content-Type
+                                  value: application/json
+                              inputVariables:
+                                - name: HARNESS_ENDPOINT
+                                  value: <+stepGroup.variables.harness_account_url>
+                                  type: String
+                                - name: QUERYSTRING
+                                  value: <+stepGroup.variables.querystring>
+                                  type: String
+                                - name: USER_ID
+                                  value: <+execution.steps.Group_Management<+stepGroup.identifierPostFix>.steps.GetUserInScope.output.outputVariables.user_id>
+                                  type: String
+                                - name: GROUP_ID
+                                  value: <+stepGroup.variables.group_identifier>
+                                  type: String
+                              outputVariables: []
+                              assertion: <+httpResponseCode> == 200
+                            timeout: 60s
+                            when:
+                              stageStatus: Success
+                              condition: <+pipeline.variables.group_action> == "add" && !<+execution.steps.Group_Management<+stepGroup.identifierPostFix>.steps.Check_Group_Membership.output.outputVariables.user_exists>
+                        - step:
+                            type: Http
+                            name: RemoveUserFromGroup
+                            identifier: RemoveUserFromGroup
+                            spec:
+                              url: <+spec.inputVariables.HARNESS_ENDPOINT>/ng/api/user-groups/<+spec.inputVariables.GROUP_ID>/member/<+spec.inputVariables.USER_ID><+spec.inputVariables.QUERYSTRING>
+                              method: DELETE
+                              headers:
+                                - key: x-api-key
+                                  value: <+stepGroup.variables.harness_platform_key>
+                                - key: Content-Type
+                                  value: application/json
+                              inputVariables:
+                                - name: HARNESS_ENDPOINT
+                                  value: <+stepGroup.variables.harness_account_url>
+                                  type: String
+                                - name: QUERYSTRING
+                                  value: <+stepGroup.variables.querystring>
+                                  type: String
+                                - name: USER_ID
+                                  value: <+execution.steps.Group_Management<+stepGroup.identifierPostFix>.steps.GetUserInScope.output.outputVariables.user_id>
+                                  type: String
+                                - name: GROUP_ID
+                                  value: <+stepGroup.variables.group_identifier>
+                                  type: String
+                              outputVariables: []
+                              assertion: <+httpResponseCode> == 200
+                            timeout: 60s
+                            when:
+                              stageStatus: Success
+                              condition: <+pipeline.variables.group_action> == "remove" && <+execution.steps.Group_Management<+stepGroup.identifierPostFix>.steps.Check_Group_Membership.output.outputVariables.user_exists>
+                  variables:
+                    - name: harness_account_url
+                      type: String
+                      value: <+stage.variables.harness_account_url>
+                      description: ""
+                      required: true
+                    - name: harness_platform_key
+                      type: String
+                      value: <+stage.variables.harness_platform_key>
+                      description: ""
+                      required: true
+                    - name: querystring
+                      type: String
+                      value: <+execution.steps.Build_Querystring.output.outputVariables.QUERYSTRING>
+                      description: ""
+                      required: true
+                    - name: user_email_address
+                      type: String
+                      value: <+execution.steps.User_Management.steps.GetUserInScope.spec.inputVariables.USER_EMAIL>
+                      description: ""
+                      required: true
+                    - name: group_identifier
+                      type: String
+                      value: <+stage.variables.user_email_address>
+                      description: ""
+                      required: true
+                  strategy:
+                    repeat:
+                      items: <+<+pipeline.variables.group_id>.split(",")>
+                  when:
+                    stageStatus: Success
+                    condition: <+pipeline.variables.group_action> != "purge"
+        variables:
+          - name: harness_account_url
+            type: String
+            description: ""
+            required: true
+            value: <+pipeline.variables.harness_account_url>
+          - name: harness_platform_account
+            type: String
+            description: ""
+            required: true
+            value: <+pipeline.variables.harness_platform_account>
+          - name: harness_platform_key
+            type: String
+            description: ""
+            required: true
+            value: <+pipeline.variables.harness_platform_key>
+          - name: organization_id
+            type: String
+            description: ""
+            required: true
+            value: <+pipeline.variables.org_id>
+          - name: project_id
+            type: String
+            description: ""
+            required: true
+            value: <+pipeline.variables.project_id>
+          - name: user_email_address
+            type: String
+            description: ""
+            required: true
+            value: <+repeat.item>
+          - name: group_identifier
+            type: String
+            description: ""
+            required: true
+            value: <+pipeline.variables.group_id>
+        tags: {}
+        strategy:
+          repeat:
+            items: <+<+pipeline.variables.email_addresses>.split(",")>
+  variables:
+    - name: harness_account_url
+      type: String
+      description: Harness Platform URL
+      required: true
+      value: ${HARNESS_PLATFORM_URL}
+    - name: harness_platform_account
+      type: String
+      description: Harness Account Identifier
+      required: true
+      value: <+account.identifier>
+    - name: harness_platform_key
+      type: Secret
+      description: Harness Secret Reference with API permissions to manage groups in scope
+      required: true
+      value: ${HARNESS_PLATFORM_SECRET}
+    - name: org_id
+      type: String
+      description: Provide the OrganizationId for which Group Membership will be applied.
+      required: false
+      value: <+input>
+    - name: project_id
+      type: String
+      description: Provide the ProjectId for which Group Membership will be applied.
+      required: false
+      value: <+input>
+    - name: email_addresses
+      type: String
+      description: Provide a comma-delimited list of email_address for which membership will be managed
+      required: true
+      value: <+input>
+    - name: group_id
+      type: String
+      description: Provide the Harness Group ID for which the user membership will be modified
+      required: true
+      value: <+input>
+    - name: group_action
+      type: String
+      description: Choose to add or remove users from the provided groups. purge will remove the user from the project entirely
+      required: true
+      value: <+input>.default(add).allowedValues(add,remove,purge)
