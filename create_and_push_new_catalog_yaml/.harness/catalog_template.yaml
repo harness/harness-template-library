@@ -1,0 +1,367 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: create-and-push-new-catalog-yaml
+  title: Create and Push New Catalog YAML Pipeline and Workflow
+  description: |
+    This solution provides a system to enable self-serve application onboarding for Harness IDP service catalog
+  tags:
+    - solutions-factory
+    - harness
+    - idp
+spec:
+  owner: group:default/HSF_Admins
+  hidden: true
+  type: Pipeline
+  parameters:
+    - title: Where should we store the catalog yamls?
+      description: |
+        An IDP template is created that will prompt users to fill out information on their component:
+
+        - The system it is a part of
+        - Name
+        - Description
+        - Type
+
+        When the template is executed, it triggers a Harness pipeline which creates the catalog YAML and commits it to a central repository.
+
+        This should be used as a baseline and should be customize to add specific fields and annotations you want to have on your catalog entries.
+      required:
+        - token
+        - git_connector_type
+        - git_repository_name
+        - git_branch_name
+      properties:
+        # The token property needs to be in the first page of the workflow
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+        git_connector_type:
+          title: Existing GIT Connector Type
+          type: string
+          description: The existing Source Code Manager Connector type
+          enum:
+            - Harness
+            - Github
+            - Gitlab
+            - Bitbucket
+            - AzureRepo
+      dependencies:
+        git_connector_type:           
+          oneOf:
+          - properties:
+              git_connector_type:
+                enum:
+                  - Harness
+              git_repository_location:
+                title: GIT Repo Location
+                type: string
+                description: The Harness level where the repo is located
+                enum:
+                  - Project
+                  - Organization
+                  - Account
+              git_repository_name:
+                title: GIT Repository Name
+                type: string
+                description: The source CodeBase Repository Name
+              git_branch_name:
+                title: GIT Repository Main Branch Name
+                type: string
+                description: The source CodeBase Repository Main Branch Name
+                default: main
+              harness_create_repo:
+                title: Create a new CODE repo
+                description: (If unchecked, the repo must already exist)
+                type: boolean
+                default: false
+            required:
+              - git_repository_location
+              - harness_create_repo
+          - properties:
+              git_connector_type:
+                enum:
+                  - Github
+              git_connector_ref:
+                title: Existing GIT Connector Reference
+                type: string
+                description: Provide an existing Source Code Manager Connector Reference
+              git_organization_name:
+                title: GIT Organization Name
+                type: string
+                description: The source CodeBase Organization Name
+              git_repository_name:
+                title: GIT Repository Name
+                type: string
+                description: The source CodeBase Repository Name
+              git_branch_name:
+                title: GIT Repository Main Branch Name
+                type: string
+                description: The source CodeBase Repository Main Branch Name
+                default: main
+            required:
+              - git_organization_name
+              - git_connector_ref
+          - properties:
+              git_connector_type:
+                enum:
+                  - Gitlab
+              git_connector_ref:
+                title: Existing GIT Connector Reference
+                type: string
+                description: Provide an existing Source Code Manager Connector Reference
+              git_project_name:
+                title: GIT Project Name
+                type: string
+                description: The source CodeBase Project Name
+              git_grouppath_name:
+                title: GIT Group Path Name
+                type: string
+                description: The source CodeBase Group Path Name
+              git_repository_name:
+                title: GIT Repository Name
+                type: string
+                description: The source CodeBase Repository Name
+                default: idp-service-catalog
+              git_branch_name:
+                title: GIT Repository Main Branch Name
+                type: string
+                description: The source CodeBase Repository Main Branch Name
+                default: main
+            required:
+              - git_project_name
+              - git_grouppath_name
+              - git_connector_ref
+          - properties:
+              git_connector_type:
+                enum: 
+                  - Bitbucket
+              git_connector_ref:
+                title: Existing GIT Connector Reference
+                type: string
+                description: Provide an existing Source Code Manager Connector Reference
+              git_project_name:
+                title: GIT Project Name
+                type: string
+                description: The source CodeBase Project Name
+              git_workspace_name:
+                title: GIT Workspace Name
+                type: string
+                description: The source CodeBase Workspace Name
+              git_repository_name:
+                title: GIT Repository Name
+                type: string
+                description: The source CodeBase Repository Name
+                default: idp-service-catalog
+              git_branch_name:
+                title: GIT Repository Main Branch Name
+                type: string
+                description: The source CodeBase Repository Main Branch Name
+                default: main
+            required:
+              - git_project_name
+              - git_workspace_name
+              - git_connector_ref
+          - properties:
+              git_connector_type:
+                enum:
+                  - AzureRepo
+              git_connector_ref:
+                title: Existing GIT Connector Reference
+                type: string
+                description: Provide an existing Source Code Manager Connector Reference
+              git_project_name:
+                title: GIT Project Name
+                type: string
+                description: The source CodeBase Project Name
+              git_organization_name:
+                title: GIT Organization Name
+                type: string
+                description: The source CodeBase Organization Name
+              git_repository_name:
+                title: GIT Repository Name
+                type: string
+                description: The source CodeBase Repository Name
+                default: idp-service-catalog
+              git_branch_name:
+                title: GIT Repository Main Branch Name
+                type: string
+                description: The source CodeBase Repository Main Branch Name
+                default: main
+            required:
+              - git_project_name
+              - git_organization_name
+              - git_connector_ref
+    - title: What infrastructure should the pipeline run on?
+      required:
+        - build_infrastructure_type
+      properties:
+        build_infrastructure_type:
+          title: Choose your Build Farm Infrastructure configuration
+          type: string
+          default: build_farm
+          enum:
+            - build_farm
+            - cloud
+            - custom
+          enumNames:
+            - Central Build Farm Infrastructure Only
+            - Leverage Harness CI Cloud Infrastructure
+            - Self-Hosted Kubernetes Infrastructure
+        infra_defaults:
+          title: infra_defaults
+          type: object
+          ui:widget: hidden
+          properties:
+            kubernetes_connector:
+              type: string
+              default: account.buildfarm_infrastructure
+            kubernetes_namespace:
+              type: string
+              default: default
+            kubernetes_override_image_connector:
+              type: string
+              default: ""
+            kubernetes_node_selectors:
+              type: string
+              default: ""
+      dependencies:
+        build_infrastructure_type:
+          allOf:
+            - if:
+                properties:
+                  build_infrastructure_type:
+                    const: "custom"
+              then:
+                required:
+                  - kubernetes_connector
+                  - kubernetes_namespace
+                properties:
+                  kubernetes_connector:
+                    title: Existing Kubernetes Infrastructure Connector Reference
+                    type: string
+                    description: Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline.  Must exist before execution.
+                  kubernetes_namespace:
+                    title: Existing Kubernetes Infrastructure Namespace
+                    type: string
+                    description: Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
+                  kubernetes_override_image_connector:
+                    title: Existing Override Image Container Connector Reference
+                    type: string
+                    description: Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution
+                  kubernetes_node_selectors:
+                    title: Map of Kubernetes Node Selectors (Must be in key:value JSON)
+                    type: object
+                    description: Optional Kubernetes Node Selectors
+                    additionalProperties:
+                      type: string 
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
+  steps:
+    - id: configure_workspace
+      name: Configuring Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
+          GIT_REPOSITORY_PATH: create_and_push_new_catalog_yaml
+          GIT_REPOSITORY_BRANCH: main
+          RESOURCE_NAME: create_and_push_new_catalog_yaml
+          RESOURCE_OWNER: group:default/Account_Admins
+          # YAML of Terraform variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS:
+            organization_id: ${{ parameters.solutions_factory_details.harness_org_id }}
+            project_id: ${{ parameters.solutions_factory_details.harness_project_id }}
+            
+            kubernetes_connector: ${{ "skipped" if (parameters.build_infrastructure_type == "cloud") else ( parameters.infra_defaults.kubernetes_connector if (parameters.build_infrastructure_type == "build_farm") else parameters.kubernetes_connector ) }}
+            kubernetes_namespace: ${{ "default" if (parameters.build_infrastructure_type == "cloud") else ( parameters.infra_defaults.kubernetes_namespace if (parameters.build_infrastructure_type == "build_farm") else parameters.kubernetes_namespace ) }}
+            kubernetes_node_selectors: ${{ "{}" if (parameters.build_infrastructure_type == "cloud") else ( parameters.kubernetes_node_selectors if parameters.kubernetes_node_selectors else parameters.infra_defaults.kubernetes_node_selectors ) }}
+            kubernetes_override_image_connector: ${{ "skipped" if (parameters.build_infrastructure_type == "cloud") else ( parameters.kubernetes_override_image_connector if parameters.kubernetes_override_image_connector else parameters.infra_defaults.kubernetes_override_image_connector ) }}
+            
+            git_connector_ref: ${{ parameters.git_connector_ref }}
+            git_connector_type: ${{ (parameters.git_connector_type + parameters.git_repository_location) if ( parameters.git_connector_type == "Harness") else (parameters.git_connector_type) }}
+            git_repository_name: ${{ parameters.git_repository_name }}
+            git_branch_name: ${{ parameters.git_branch_name }}
+            git_organization_name: ${{ parameters.git_organization_name }}
+            git_workspace_name: ${{ parameters.git_workspace_name }}
+            git_grouppath_name: ${{ parameters.git_grouppath_name }}
+            git_project_name: ${{ parameters.git_project_name }}
+            harness_create_repo: ${{ parameters.harness_create_repo }}
+            
+            # harness_platform_account: ${{ parameters.solutions_factory_details.harness_account_id }}
+          # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_SECRETS: {}
+          # YAML of Environment variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS_ENVS: {}
+          # YAML of Environment variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_ENVS_SECRET: {}
+          # Should the workspace automatically include the default Harness Connector environment variables
+          INCLUDE_HARNESS_ENVS: "true"
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: provision_workspace
+      name: Provisioning your Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          workspace: create_and_push_new_catalog_yaml
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: register-catalogs
+      name: Register Catalog Creation Workflows
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Register_IDP_Templates/pipeline-studio?storeType=INLINE
+        inputset:
+          hsf_branch: main
+          filter_template: create_and_push_new_catalog_yaml
+          include_children: yes
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Harness Workspace Configured - Execution Link
+        url: ${{ steps.configure_workspace.output.PipelineUrl }}
+      - title: Harness Workspace Provisioned - Execution Link
+        url: ${{ steps.provision_workspace.output.PipelineUrl }}
+    text:
+      - title: Outputs
+        content: |
+          Check out the catalog creation pipeline: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/create_and_push_new_catalog_yaml/pipeline-studio?storeType=INLINE

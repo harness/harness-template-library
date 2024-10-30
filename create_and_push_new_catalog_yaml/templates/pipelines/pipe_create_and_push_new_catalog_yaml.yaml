@@ -1,0 +1,212 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: "Create a new catalog yaml and push it to the target git repository."
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: create and push
+        identifier: create_and_push
+        description: "Create a new catalog yaml and push it to the target git repository."
+        type: IDP
+        spec:
+          cloneCodebase: false
+          execution:
+            steps:
+              - step:
+                  type: GitClone
+                  name: clone
+                  identifier: clone
+                  spec:
+%{ if startswith(CODEBASE_CONNECTOR_TYPE, "Harness") }
+%{ if CODEBASE_CONNECTOR_TYPE == "HarnessOrganization" }
+                    repoName: org.<+stage.variables.repo>
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "HarnessAccount" }
+                    repoName: account.<+stage.variables.repo>
+%{ endif ~}
+%{ else}
+                    connectorRef: ${CODEBASE_CONNECTOR}
+                    repoName: <+stage.variables.repo>
+%{ endif ~}
+                    build:
+                      type: branch
+                      spec:
+                        branch: <+stage.variables.branch>
+              - step:
+                  type: CreateCatalog
+                  name: create
+                  identifier: create
+                  spec:
+                    fileName: <+pipeline.variables.name.replace(" ", "-")>.yaml
+%{ if startswith(CODEBASE_CONNECTOR_TYPE, "Harness") }
+%{ if CODEBASE_CONNECTOR_TYPE == "HarnessProject" }
+                    filePath: <+stage.variables.repo>
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "HarnessOrganization" }
+                    filePath: org.<+stage.variables.repo>
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "HarnessAccount" }
+                    filePath: account.<+stage.variables.repo>
+%{ endif ~}
+%{ else}
+                    filePath: <+stage.variables.repo>
+%{ endif ~}
+                    fileContent: |-
+                      apiVersion: backstage.io/v1alpha1
+                      kind: Component
+                      metadata:
+                        name: <+pipeline.variables.name.replace(" ", "-")>
+                        description: <+pipeline.variables.description>
+                        tags:
+                          - from-workflow
+                      spec:
+                        type: <+pipeline.variables.type>
+                        owner: <+pipeline.triggeredBy.email>
+                        system: <+pipeline.variables.system>
+                        lifecycle: experimental
+              - step:
+                  type: DirectPush
+                  name: push
+                  identifier: push
+                  spec:
+%{ if startswith(CODEBASE_CONNECTOR_TYPE, "Harness") }
+%{ if CODEBASE_CONNECTOR_TYPE == "HarnessProject" }
+                    organization: <+stage.variables.organization>
+                    project: <+stage.variables.project>
+                    harnessCodeRepoType: project
+                    codeDirectory: <+stage.variables.repo>
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "HarnessOrganization" }
+                    organization: <+stage.variables.organization>
+                    harnessCodeRepoType: org
+                    codeDirectory: org.<+stage.variables.repo>
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "HarnessAccount" }
+                    harnessCodeRepoType: account
+                    codeDirectory: account.<+stage.variables.repo>
+%{ endif ~}
+%{ else}
+                    connectorType: ${CODEBASE_CONNECTOR_TYPE}
+                    connectorRef: ${CODEBASE_CONNECTOR}
+                    codeDirectory: <+stage.variables.repo>
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "Github" }
+                    organization: <+stage.variables.organization>
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "Gitlab" }
+                    groupPath: <+stage.variables.groupPath>
+                    project: <+stage.variables.project>
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "Bitbucket" }
+                    workspace: <+stage.variables.workspace>
+                    project: <+stage.variables.project>
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "AzureRepo" }
+                    organization: <+stage.variables.organization>
+                    project: <+stage.variables.project>
+%{ endif ~}
+                    repository: <+stage.variables.repo>
+                    branch: <+stage.variables.branch>
+              - step:
+                  type: RegisterCatalog
+                  name: register
+                  identifier: register
+                  spec:
+%{ if startswith(CODEBASE_CONNECTOR_TYPE, "Harness") }
+%{ if CODEBASE_CONNECTOR_TYPE == "HarnessProject" }
+                    organization: <+stage.variables.organization>
+                    project: <+stage.variables.project>
+                    harnessCodeRepoType: project
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "HarnessOrganization" }
+                    organization: <+stage.variables.organization>
+                    harnessCodeRepoType: organization
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "HarnessAccount" }
+                    harnessCodeRepoType: account
+%{ endif ~}
+%{ else}
+                    connectorType: ${CODEBASE_CONNECTOR_TYPE}
+                    connectorRef: ${CODEBASE_CONNECTOR}
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "Github" }
+                    organization: <+stage.variables.organization>
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "Gitlab" }
+                    groupPath: <+stage.variables.groupPath>
+                    project: <+stage.variables.project>
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "Bitbucket" }
+                    workspace: <+stage.variables.workspace>
+                    project: <+stage.variables.project>
+%{ endif ~}
+%{ if CODEBASE_CONNECTOR_TYPE == "AzureRepo" }
+                    organization: <+stage.variables.organization>
+                    project: <+stage.variables.project>
+%{ endif ~}
+                    repository: <+stage.variables.repo>
+                    filePath: <+execution.steps.create.spec.fileName>
+                    branch: <+stage.variables.branch>
+${STAGE_INFRASTRUCTURE}
+        tags: {}
+        variables:
+          - name: repo
+            type: String
+            description: name of the repository to push the catalogs to
+            required: false
+            value: "${CODEBASE_REPO}"
+          - name: branch
+            type: String
+            description: main branch of the repository
+            required: false
+            value: "${CODEBASE_BRANCH}"
+          - name: organization
+            type: String
+            description: github organization for the target repo
+            required: false
+            value: "${CODEBASE_ORG}"
+          - name: workspace
+            type: String
+            description: workspace for the target repo
+            required: false
+            value: "${CODEBASE_WORKSPACE}"
+          - name: groupPath
+            type: String
+            description: groupPath for the target repo
+            required: false
+            value: "${CODEBASE_GROUPPATH}"
+          - name: project
+            type: String
+            description: project for the target repo
+            required: false
+            value: "${CODEBASE_PROJECT}"
+  variables:
+    - name: system
+      type: String
+      description: System the component belongs to
+      required: false
+      value: <+input>
+    - name: name
+      type: String
+      description: Name of the component
+      required: false
+      value: <+input>
+    - name: description
+      type: String
+      description: Description of the component
+      required: false
+      value: <+input>
+    - name: type
+      type: String
+      description: Component type
+      required: false
+      value: <+input>
+    - name: annotations
+      type: String
+      description: Component annotations
+      required: false
+      value: ""

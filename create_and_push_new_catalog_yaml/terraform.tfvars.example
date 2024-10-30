@@ -1,0 +1,52 @@
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = # Required
+
+# [Required] Enter the Harness Platform API Key for your account
+harness_platform_key = # Required
+
+# [Optional] Provide a Map of Tags to associate with the resources
+tags = {}
+
+# Pipeline location details
+
+## [Required] Provide an existing organization reference ID.  Must exist before execution
+organization_id = # Required
+## [Required] Provide an existing project reference ID.  Must exist before execution
+project_id = # Required
+
+# Git repo details
+
+## [Required] Git repository name to push catalogs to
+git_repository_name = # Required
+## [Required] Git branch to commit catalogs to
+git_branch_name = # Required
+## [Required] The type of git connector used
+## Must be one of HarnessAccount, HarnessOrganization, HarnessProject, Github, Gitlab, Bitbucket or AzureRepo
+git_connector_type = # Required
+
+## [Optional] Git connector for pushing catalog entries
+git_connector_ref = ""
+## [Optional] Git organization name, used for Github and AzureRepo types
+git_organization_name = ""
+## [Optional] Git workspace name, used for BitBucket types
+git_workspace_name = ""
+## [Optional] Git group path name, used for Gitlab types
+git_grouppath_name = ""
+## [Optional] Git project name, used for Gitlab, Bitbucket and Azure types
+git_project_name = ""
+## [Optional] Create the Harness code repo to be used
+harness_create_repo = false
+
+# Pipeline infra details
+
+## [Required] Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
+kubernetes_connector = "skipped"
+## [Optional] Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
+kubernetes_namespace = "default"
+## [Optional] Optional Kubernetes Node Selectors
+kubernetes_node_selectors = {}
+## [Optional] Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution
+kubernetes_override_image_connector = "skipped"

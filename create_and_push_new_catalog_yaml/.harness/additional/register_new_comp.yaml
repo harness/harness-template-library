@@ -1,0 +1,95 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: register_new_component
+  title: Register New Service Catalog Component
+  description: Register a new component in Harness IDP
+spec:
+  owner: group:default/HSF_Admins
+  type: service
+  parameters:
+    - title: Fill in the component details
+      required:
+        - system
+        - name
+        - description
+        - type
+      properties:
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken   
+        system:
+          title: System
+          type: string
+          description: System of the component
+          ui:field: EntityFieldPicker
+          ui:options:
+            catalogFilter:
+                kind:
+                  - System
+        name:
+          title: Name
+          type: string
+          description: Name of the component to add
+        description:
+          title: Description
+          type: string
+          description: Description of the component
+        type:
+          title: Type
+          type: string
+          description: Type of component
+          enum:
+          - service
+          - website
+          - library
+          - database
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+  steps:
+    - id: trigger
+      name: Create new catalog yaml, commit, and register in IDP
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/create_and_push_new_catalog_yaml/pipeline-studio?storeType=INLINE
+        inputset:
+          system: ${{ parameters.system }}
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          type: ${{ parameters.type }}
+        apikey: ${{ parameters.token }}
+  output:
+    links:
+      - title: Pipeline Details
+        url: ${{ steps.trigger.output.PipelineUrl }}
