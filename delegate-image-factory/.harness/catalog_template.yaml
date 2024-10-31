@@ -122,7 +122,7 @@ spec:
           enum:
             - docker
           enumNames:
-            - Docker Container Registry
+            - Docker/Artifactory Container Registry
           default: docker
         container_registry_name:
           title: Existing Container Registry Name
@@ -337,7 +337,7 @@ spec:
       - title: Technical Documentation
         url: ../../docs/default/template/harness-delegate-image-factory/guide/
       - title: Source Repository - Delegate Image Factory
-        url: https://git.harness.io/AM8HCbDiTXGQNrTIhNl7qQ/repos/hsf/harness-delegate-setup.git
+        url: https://git.harness.io/AM8HCbDiTXGQNrTIhNl7qQ/hcr/hsf/harness-delegate-setup.git
       - title: Harness Delegate Image Factory Pipeline
         url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.pipeline']}}
     text:
@@ -353,7 +353,7 @@ spec:
 
           ---
           1) Begin by cloning the source repository from Harness locally.
-          https://git.harness.io/AM8HCbDiTXGQNrTIhNl7qQ/repos/hsf/harness-delegate-setup.git
+          https://git.harness.io/AM8HCbDiTXGQNrTIhNl7qQ/hcr/hsf/harness-delegate-setup.git
 
           2) Push the repository to your internal SCM based on the details provided
 
