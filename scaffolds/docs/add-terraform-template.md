@@ -32,6 +32,14 @@ Once you add the new scaffold, it is time to start building the resources.  The 
 - **Makefile** - _Standard Makefile included which can be used to execute standard automation_
 - **README.md** - _Fully documented user guide for the new template_
 
+### README
+
+To help generate the `resources`, `inputs`, and `outputs` section of the README you can use the [terraform-docs](https://terraform-docs.io/user-guide/installation/) tool to generate this for you: `terraform-docs markdown table --anchor=false . `
+
+### terraform.tfvars.example
+
+This file should include all the variables from your project, their description, and their defaults, so users can easily use this to bootstrap your template. You can again use [terraform-docs](https://terraform-docs.io/user-guide/installation/) to bootstrap this: `terraform-docs tfvars hcl .`
+
 ## Contributing
 
 A complete [Contributors Guide](../../../CONTRIBUTING.md) can be found in this repository
