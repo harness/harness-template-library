@@ -28,9 +28,21 @@ locals {
 
   ])
 }
-
 resource "harness_platform_usergroup" "usergroup" {
   depends_on = [harness_platform_roles.role, harness_platform_resource_group.resource_group]
+  lifecycle {
+    ignore_changes = [
+      users,
+      user_emails,
+      linked_sso_id,
+      linked_sso_display_name,
+      linked_sso_type,
+      notification_configs,
+      sso_linked,
+      sso_group_id,
+      sso_group_name
+    ]
+  }
   for_each = {
     for group in local.groups : group.name => group
   }
