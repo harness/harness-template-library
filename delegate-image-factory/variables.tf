@@ -17,7 +17,7 @@ variable "existing_harness_platform_key_ref" {
   description = "[Required] Provide an existing Harness Platform key secret reference.  Must exist before execution"
 }
 
-## Harness Hiearchy Setup Details
+## Harness Hierarchy Setup Details
 variable "organization_id" {
   type        = string
   description = "[Required] Provide an existing organization reference ID.  Must exist before execution"
