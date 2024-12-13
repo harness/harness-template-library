@@ -1,0 +1,172 @@
+template:
+  identifier: ${TEMPLATE_IDENTIFIER}
+  name: ${TEMPLATE_NAME}
+  %{~ if ORGANIZATION_ID != null ~}
+  orgIdentifier: ${ORGANIZATION_ID}
+  %{~ endif ~}
+  %{~ if PROJECT_ID != null ~}
+  projectIdentifier: ${PROJECT_ID}
+  %{~ endif ~}
+  description: ${TEMPLATE_DESC}
+  versionLabel: ${TEMPLATE_VERSION}
+  tags:
+    ${indent(4, TAGS)}
+  type: StepGroup
+  spec:
+    stageType: SecurityTests
+    steps:
+      - step:
+          type: Plugin
+          name: Process Scanner Overrides
+          identifier: Process_Scanner_Overrides
+          spec:
+            connectorRef: ${STO_CONFIG_MGR_CONNECTOR}
+            image: ${STO_CONFIG_MGR_IMAGE}
+            settings:
+              path: <+stepGroup.variables.CONFIG_MANAGER_DIR>
+              scanner: owasp
+              organization: <+org.identifier>
+              project: <+project.identifier>
+              pipeline: <+pipeline.identifier>
+            %{~ if KUBERNETES_CONNECTOR == "skipped" ~}
+            # When running in Harness Cloud CI, the target will need to run as root
+            runAsUser: "0"
+            %{~ endif ~}
+      - step:
+          type: Run
+          identifier: Remove_Yarn_Lock
+          name: Remove Yarn Lock
+          spec:
+            %{~ if TOOLS_IMAGE_CONNECTOR != "skipped" ~}
+            connectorRef: ${TOOLS_IMAGE_CONNECTOR}
+            %{~ if TOOLS_IMAGE_NAME != "skipped" ~}
+            image: ${TOOLS_IMAGE_NAME}
+            %{~ endif ~}
+            %{~ endif ~}
+            shell: Sh
+            command: |-
+              set -eo pipefail
+              currentDirectory=$${PWD}
+              copyYARN=false
+              copyNPM=false
+              copyPNPM=true
+
+              for f in **/yarn.lock; do
+                if [ $${f} == "**/yarn.lock" ]; then
+                    echo "No yarn.lock files found. Exit"
+                    break
+                fi
+                copyYARN=true
+                echo "Building modules for: $${f}"
+                echo `dirname $${f}`
+                cd `dirname $${f}`
+                if [ -f package-lock.json ]; then
+                  rm -rf yarn.lock
+                  cd $${currentDirectory}
+                  continue
+                fi
+                yarn install
+              done
+
+              # for f in **/package-lock.json; do
+              #   copyNPM=true
+              #   echo "Building modules for: $${f}"
+              #   cd `dirname $${f}`
+              #   npm install
+              #   cd $${currentDirectory}
+              # done
+
+              if [[ $${copyYARN} ]]; then
+                echo "Need to copy YARN"
+                copyYARN=`which yarn`
+                cp $${copyYARN} $${TOOLS_DIRECTORY}
+              fi
+
+              if [[ $${copyNPM} ]]; then
+                echo "Need to copy NPM"
+                copyNPM=`which npm`
+                cp $${copyNPM} $${TOOLS_DIRECTORY}
+              fi
+              if [[ $${copyPNPM} ]]; then
+                npm install -g pnpm
+                echo "Need to copy PNPM"
+                copyPNPM=`which pnpm`
+                cp $${copyPNPM} $${TOOLS_DIRECTORY}
+              fi
+
+              chmod +x $${TOOLS_DIRECTORY}
+
+              # rm -rf **/yarn.lock
+            envVariables:
+              TOOLS_DIRECTORY: <+stepGroup.variables.TOOLS_DIRECTORY>
+          when:
+            stageStatus: Success
+      - step:
+          type: Owasp
+          name: Scan
+          identifier: Scan
+          spec:
+            mode: orchestration
+            config: default
+            target:
+              type: repository
+              name: <+stepGroup.variables.SCAN_TARGET>
+              variant: <+stepGroup.variables.SCAN_VARIANT>
+            advanced:
+              log:
+                level: <+stepGroup.variables.SCANNER_LOGGING>
+              args:
+                cli: <+stepGroup.steps.Process_Scanner_Overrides.output.outputVariables.CLI_ARGS>
+            resources:
+              limits:
+                cpu: <+stepGroup.variables.SCANNER_CPU>
+                memory: <+stepGroup.variables.SCANNER_MEMORY>
+            %{~ if SCANNER_IMAGE_CONNECTOR != "skipped" ~}
+            connectorRef: ${SCANNER_IMAGE_CONNECTOR}
+            %{~ endif ~}
+            %{~ if SCANNER_IMAGE_NAME != "skipped" ~}
+            imageTag: ${SCANNER_IMAGE_NAME}
+            %{~ endif ~}
+          timeout: <+stepGroup.variables.SCANNER_TIMEOUT>
+    variables:
+      - name: CONFIG_MANAGER_DIR
+        description: Provide the Shared Path configured in the stage into which the repo will be cloned and configured.
+        type: String
+        value: <+input>
+        required: true
+      - name: SCAN_TARGET
+        description: Provide the STO Target name for this scan target. Default - <+pipeline.properties.ci.codebase.repoName>
+        type: String
+        value: <+input>.default(<+pipeline.properties.ci.codebase.repoName>)
+        required: true
+      - name: SCAN_VARIANT
+        description: Provide the STO Target Variant (the version to which to assign this scan). Default - <+codebase.branch>
+        type: String
+        value: <+input>.default(<+codebase.branch>)
+        required: true
+      - name: TOOLS_DIRECTORY
+        description: Path into which the tool binaries should be copied. Default - /shared/customer_artifacts/tools
+        type: String
+        value: <+input>.default(/shared/customer_artifacts/tools)
+        required: false
+      - name: SCANNER_CPU
+        description: How CPU cores should be pre-allocated for this Scanner? Default - 2
+        type: String
+        value: <+input>.default(2)
+        required: true
+      - name: SCANNER_MEMORY
+        description: How much memory should be pre-allocated for this Scanner? Default - 2Gi
+        type: String
+        value: <+input>.default(2Gi)
+        required: true
+      - name: SCANNER_LOGGING
+        description: What level of Logging should be displayed? Default - info
+        type: String
+        value: <+input>.default(info).allowedValues(info,debug)
+        required: true
+      - name: SCANNER_TIMEOUT
+        description: What Timeout should be applied to the scanner? Default - 10h
+        type: String
+        value: <+input>.default(10h)
+        required: true
+    when: <+input>

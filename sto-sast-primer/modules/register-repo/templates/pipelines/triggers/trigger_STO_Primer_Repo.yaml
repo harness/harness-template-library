@@ -1,0 +1,27 @@
+
+trigger:
+  identifier: ${TRIGGER_IDENTIFIER}
+  name: ${TRIGGER_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  pipelineIdentifier: ${PIPELINE_IDENTIFIER}
+  description: "${DESCRIPTION}"
+  tags:
+    ${indent(4, TAGS)}
+  encryptedWebhookSecretIdentifier: ""
+  enabled: true
+  stagesToExecute: []
+  source:
+    type: Webhook
+    spec:
+      ${WEBHOOK_TEMPLATE}
+  inputYaml: |
+    pipeline:
+      identifier: ${PIPELINE_IDENTIFIER}
+      properties:
+        ci:
+          codebase:
+            build:
+              type: branch
+              spec:
+                branch: <+trigger.branch>

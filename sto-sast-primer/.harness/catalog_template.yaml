@@ -1,0 +1,496 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: sto-sast-sca-primer
+  title: Deploy Harness SAST & SCA Templates
+  description: Configures and Deploys a series of templates for SCA & SAST scanners
+  tags:
+    - solutions-factory
+    - harness
+    - hidden
+    - security
+spec:
+  owner: group:default/HSF_Admins # Defaults to all users
+  type: harness_factory
+  parameters:
+    - title: Configure Build Infrastructure
+      description: |
+        ---
+        The STO SAST & SCA Primer Factory will deploy a fully configured set of templates into a Harness account which will provide a streamlined mechanism
+        to rapidly onboard new source code repositories into Harness to begin static code analysis (SCA) and static application security testing
+        (SAST) monitoring of the source code.
+
+        ---
+
+        _Note: This Factory requires an existing Build Infrastructure configuration to be in place. This solution will support
+        deployments via Kubernetes or Harness Cloud deployments._
+      properties:
+        # The token property needs to be in the first page of the workflow
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+        build_infrastructure_type:
+          title: Choose your Build Farm Infrastructure configuration
+          type: string
+          default: build_farm
+          enum:
+            - build_farm
+            - cloud
+            - custom
+          enumNames:
+            - Central Build Farm Infrastructure Only
+            - Leverage Harness CI Cloud Infrastructure
+            - Self-Hosted Kubernetes Infrastructure
+        infra_defaults:
+          title: infra_defaults
+          type: object
+          ui:widget: hidden
+          properties:
+            kubernetes_override_image_connector:
+              type: string
+              default: ""
+            kubernetes_connector:
+              type: string
+              default: account.buildfarm_infrastructure
+            kubernetes_namespace:
+              type: string
+              default: default
+            kubernetes_node_selectors:
+              type: string
+              default: ""
+            container_registry_connector_id:
+              type: string
+              default: account.buildfarm_container_registry
+            container_registry_connector_cloud_id:
+              type: string
+              default: account.buildfarm_container_registry_cloud
+            sto_config_mgr_repo:
+              type: string
+              default: harness-sto-global-exclusions
+            sto_config_mgr_image_connector:
+              type: string
+              default: "account.harnessImage"
+            sto_config_mgr_connector_ref:
+              type: string
+              default: account.buildfarm_source_code_manager
+            sto_config_mgr_connector_cloud_ref:
+              type: string
+              default: account.buildfarm_source_code_manager_cloud
+            existing_harness_platform_key_ref:
+              type: string
+              default: org.hsf_platform_api_key
+      dependencies:
+        build_infrastructure_type:
+          allOf:
+            - if:
+                properties:
+                  build_infrastructure_type:
+                    const: "build_farm"
+              then:
+                required:
+                  - central_build_farm_setup
+                properties:
+                  central_build_farm_setup:
+                    title: Has the Central Build Farm configuration been deployed?
+                    description: |
+                      This option requires that the `Central Build Farm Setup` factory to already be deployed and configured.
+                    type: string
+                    default: no
+                    pattern: yes
+                    enum:
+                      - no
+                      - yes
+                    enumNames:
+                      - "No: I need a moment to do this"
+                      - "Yes: All set. My Central Build Farm is deployed and configured"
+                  kubernetes_namespace:
+                    title: Existing Kubernetes Infrastructure Namespace
+                    type: string
+                    description: Enter the existing Kubernetes namespace to be used when running the Execution pipeline.  Must exist before execution
+                    default: default
+            - if:
+                properties:
+                  build_infrastructure_type:
+                    const: "custom"
+              then:
+                required:
+                  - kubernetes_connector
+                  - kubernetes_namespace
+                properties:
+                  kubernetes_connector:
+                    title: Existing Kubernetes Infrastructure Connector Reference
+                    type: string
+                    description: |
+                      ---
+                      Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline.  Must exist before execution.
+
+                      _Note: These templates will be deployed into the root of the chosen Harness Account. When providing a
+                      custom Kubernetes Connector, you must use one available within the list of Account-level connectors._
+                    pattern: '^account.*$'
+                  kubernetes_namespace:
+                    title: Existing Kubernetes Infrastructure Namespace
+                    type: string
+                    description: Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
+                  kubernetes_override_image_connector:
+                    title: Existing Override Image Container Connector Reference
+                    type: string
+                    description: Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution
+                  kubernetes_node_selectors:
+                    title: Map of Kubernetes Node Selectors (Must be in key:value JSON)
+                    type: object
+                    description: Optional Kubernetes Node Selectors
+                    additionalProperties:
+                      type: string
+    - title: Harness STO Global Config Manager
+      description: |
+        ### Harness Security Test Orchestration Global Configuration Manager Setup
+
+        ---
+        The purpose of this container image is to provide a structured approach to managing and handling the various CLI
+        arguments and configurations for different Harness STO scanners. The output of the script will return a list of
+        CLI arguments as well as optional support for removing files from a repository.  This process is hierarchical
+        which means a layered approach can be applied to support the various levels of Harness structure
+
+        **(Account->Organization->Project->Pipeline)**.
+
+        ---
+        _Note: This repository is leveraged by the underlying templates created by this factory to provide a central
+        mechanism to control hierarchical overrides for the supported scanners._
+      properties:
+        source_code_manager_type:
+          title: Where will the STO Configuration Manager Repository be stored?
+          type: string
+          default: hcr
+          enum:
+            - hcr
+            - build_farm
+            - custom
+          enumNames:
+            - Create a new Harness Code Repository?
+            - Use a Central Build Farm Source Code Manager Repository?
+            - Bring Your Own Connector and repository configuration?
+      dependencies:
+        source_code_manager_type:
+          allOf:
+            - if:
+                properties:
+                  source_code_manager_type:
+                    const: "hcr"
+              then:
+                properties:
+                  use_custom_sto_config_mgr_connector:
+                    title: Override the default Harness image connector for the Harness STO Configuration Manager plugin?
+                    description: |
+                      ---
+                      As part of the solution a custom Harness plugin will be deployed when executed within a pipeline. The image used during this execution would need to
+                      be pulled from a Container Registry.
+
+                      ---
+                      By default, this image is stored in Dockerhub and the default image connector is used.
+                    type: string
+                    default: no
+                    enum:
+                      - no
+                      - yes
+                    enumNames:
+                      - "Use the default connector - account.harnessImage"
+                      - "I would like to provide a custom Container Registry Connector"
+            - if:
+                properties:
+                  source_code_manager_type:
+                    const: "build_farm"
+              then:
+                required:
+                  - sto_config_mgr_repo
+                  - sto_config_mgr_build_farm
+                properties:
+                  sto_config_mgr_build_farm:
+                    title: Has the Central Build Farm SCM configuration been deployed and configured?
+                    description: |
+                      This option requires that the `Central Build Farm Setup` factory to already be deployed and configured.
+                    type: string
+                    default: no
+                    pattern: yes
+                    enum:
+                      - no
+                      - yes
+                    enumNames:
+                      - "No: I need a moment to do this"
+                      - "Yes: All set. My Central Build Farm configuration is ready"
+                  sto_config_mgr_repo:
+                    title: GIT Repository Name
+                    type: string
+                    description: |
+                      ---
+                      The source CodeBase Repository Name
+
+                      _Note: The repository will need to be created manually and exist before using the solution_
+                    default: harness-sto-global-exclusions
+                  use_custom_sto_config_mgr_connector:
+                    title: Override the default Harness image connector for the Harness STO Configuration Manager plugin?
+                    description: |
+                      ---
+                      As part of the solution a custom Harness plugin will be deployed when executed within a pipeline. The image used during this execution would need to
+                      be pulled from a Container Registry. By default, this image is stored in Dockerhub and the default image connector is used.
+                    type: string
+                    default: no
+                    enum:
+                      - no
+                      - yes
+                    enumNames:
+                      - "Use the default connector - account.harnessImage"
+                      - "I would like to provide a custom Container Registry Connector"
+            - if:
+                properties:
+                  source_code_manager_type:
+                    const: "custom"
+              then:
+                required:
+                  - sto_config_mgr_repo
+                  - sto_config_mgr_connector_ref
+                properties:
+                  sto_config_mgr_connector_ref:
+                    title: Existing GIT Connector Reference
+                    type: string
+                    description: |
+                      ---
+                      Provide an existing Source Code Manager Connector Reference
+
+                      _Note: These templates will be deployed into the root of the chosen Harness Account. When providing a
+                      custom Git Connector, you must use one available within the list of Account-level connectors._
+                    default: account.buildfarm_source_code_manager
+                    pattern: '^account.*$'
+                  sto_config_mgr_repo:
+                    title: GIT Repository Name
+                    type: string
+                    description: |
+                      ---
+                      The source CodeBase Repository Name
+
+                      _Note: The repository will need to be created manually_
+                    default: harness-sto-global-exclusions
+                  use_custom_sto_config_mgr_connector:
+                    title: Override the default Harness image connector for the Harness STO Configuration Manager plugin?
+                    description: |
+                      ---
+                      As part of the solution a custom Harness plugin will be deployed when executed within a pipeline. The image used during this execution would need to
+                      be pulled from a Container Registry. By default, this image is stored in Dockerhub and the default image connector is used.
+                    type: string
+                    default: no
+                    enum:
+                      - no
+                      - yes
+                    enumNames:
+                      - "Use the default connector - account.harnessImage"
+                      - "I would like to provide a custom Container Registry Connector"
+
+        use_custom_sto_config_mgr_connector:
+          allOf:
+            - if:
+                properties:
+                  use_custom_sto_config_mgr_connector:
+                    const: "yes"
+              then:
+                required:
+                  - sto_config_mgr_image_connector
+                properties:
+                  sto_config_mgr_image_connector:
+                    title: Existing Container Registry Connector
+                    type: string
+                    description: |
+                      ---
+                      Provide an existing Container Registry Connector Reference
+
+                      _Note: These templates will be deployed into the root of the chosen Harness Account. When providing a
+                      custom Container Registry Connector, you must use one available within the list of Account-level connectors._
+                    default: account.harnessImage
+                    pattern: '^account.*$'
+                  sto_config_mgr_image:
+                    title: Harness STO Configuration Manager Plugin Image
+                    description: |
+                      ---
+                      _Note: When providing a custom image name, be sure to include the repo/image path and tag_
+                    type: string
+                    default: "harnesssolutionfactory/harness-sto-config-manager:latest"
+    - title: Security Scanner Configuration
+      required:
+        - enabled_scanners
+      properties:
+        enabled_scanners:
+          title: Select Scanners to include
+          type: array
+          default:
+            - gitleaks
+            - osv
+            - owasp
+            - semgrep
+          items:
+            type: string
+            enum:
+              - gitleaks
+              - osv
+              - owasp
+              - semgrep
+            enumNames:
+              - GitLeaks (Secrets Scanner)
+              - Open Source Vulnerabilities (OSV)
+              - OWASP Dependency-Check
+              - Semgrep (SAST)
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
+  steps:
+    # - action: debug:log
+    #   id: write-inputs
+    #   name: Configured Inputs
+    #   input:
+    #     message: The following will be used as the inputs
+    #     extra:
+    - id: configure_workspace
+      name: Configuring Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
+          GIT_REPOSITORY_NAME: harness-template-library
+          GIT_REPOSITORY_PATH: sto-sast-primer
+          GIT_REPOSITORY_BRANCH: main
+          RESOURCE_NAME: STO_SCA_SAST_PRIMER
+          RESOURCE_OWNER: group:default/HSF_Admins
+          # YAML of Terraform variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS:
+            ################################################
+            # Self-Hosted Build Farm Configuration
+            # -----------
+            # When the kubernetes_connector value equals "skipped", then the resources
+            # will be deployed configured to support Harness CI Cloud provisioning.
+            ################################################
+            kubernetes_connector: ${{ "skipped" if (parameters.build_infrastructure_type == "cloud") else ( parameters.infra_defaults.kubernetes_connector if (parameters.build_infrastructure_type == "build_farm") else parameters.kubernetes_connector ) }}
+            kubernetes_namespace: ${{ "default" if (parameters.build_infrastructure_type == "cloud") else ( parameters.infra_defaults.kubernetes_namespace if (parameters.build_infrastructure_type == "build_farm") else parameters.kubernetes_namespace ) }}
+            kubernetes_node_selectors: ${{ "{}" if (parameters.build_infrastructure_type == "cloud") else ( parameters.kubernetes_node_selectors if parameters.kubernetes_node_selectors else parameters.infra_defaults.kubernetes_node_selectors ) }}
+            kubernetes_override_image_connector: ${{ "skipped" if (parameters.build_infrastructure_type == "cloud") else ( parameters.kubernetes_override_image_connector if parameters.kubernetes_override_image_connector else parameters.infra_defaults.kubernetes_override_image_connector ) }}
+            ################################################
+            # Harness STO Scanner Configuration
+            # -----------
+            # Override which Scanners to configure and their individual image overrides
+            ################################################
+            enabled_scanners: ${{ parameters.enabled_scanners }}
+            scanner_override_image_connector: "skipped"
+            gitleaks_override_image_name: "skipped"
+            osv_override_image_name: "skipped"
+            owasp_override_image_name: "skipped"
+            semgrep_override_image_name: "skipped"
+            tools_image_connector: ${{
+              parameters.infra_defaults.sto_config_mgr_image_connector
+              if parameters.use_custom_tools_image_connector == "no"
+              else (
+                parameters.tools_image_connector
+                if parameters.use_custom_tools_image_connector == "yes"
+                else (
+                  parameters.infra_defaults.sto_config_mgr_image_connector
+                  if parameters.use_custom_sto_config_mgr_connector == "no"
+                  else parameters.sto_config_mgr_image_connector
+                )
+              )}}
+            tools_image_name: "node:20.11.0-alpine"
+            ################################################
+            # Harness STO Global Configuration Manager image
+            # -----------
+            # Configures the source repository for the Harness STO Global Exclusions manager source code
+            ################################################
+            sto_config_mgr_connector_ref: ${{
+              "skipped"
+              if parameters.source_code_manager_type == "hcr"
+              else (
+                  parameters.sto_config_mgr_connector_ref
+                  if parameters.source_code_manager_type == "custom"
+                  else (
+                      parameters.infra_defaults.sto_config_mgr_connector_cloud_ref
+                      if parameters.build_infrastructure_type == "cloud"
+                      else parameters.infra_defaults.sto_config_mgr_connector_ref
+                  )
+              )}}
+            sto_config_mgr_repo: ${{ parameters.infra_defaults.sto_config_mgr_repo if parameters.source_code_manager_type == "hcr" else parameters.sto_config_mgr_repo }}
+            sto_config_mgr_connector: ${{ parameters.infra_defaults.sto_config_mgr_image_connector if parameters.use_custom_sto_config_mgr_connector == "no" else parameters.sto_config_mgr_image_connector }}
+            sto_config_mgr_image: ${{ parameters.sto_config_mgr_image }}
+          # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_SECRETS: {}
+          # YAML of Environment variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS_ENVS: {}
+          # YAML of Environment variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_ENVS_SECRET: {}
+          # Should the workspace automatically include the default Harness Connector environment variables
+          INCLUDE_HARNESS_ENVS: "true"
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: provision_workspace
+      name: Provisioning your Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          workspace: STO_SCA_SAST_PRIMER
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: register-catalogs
+      name: Register Repository Registration Workflow
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Register_IDP_Templates/pipeline-studio?storeType=INLINE
+        inputset:
+          hsf_branch: main
+          filter_template: sto-sast-primer
+          include_children: yes
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Deployed Templates
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/settings/templates?page=0&searchTerm=STO_SAST_SCA_PRIMER
+      - title: Source Code Repository Example (Required for self-managed repositories)
+        url: https://github.com/goodrum-harness/harness-sto-global-exclusions
+    text:
+      - title: Outputs
+        content: |
+          Harness STO Primer templates deployed ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.resource_placement']}}
+          ---
+          harness_sto_global_exclusions_repo: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.harness_sto_global_exclusions_repo']}}
+
+          pipeline_template_id: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.pipeline_template_id']}}
+
+          pipeline_template_hcr_id: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.pipeline_template_hcr_id']}}

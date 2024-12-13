@@ -1,0 +1,243 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: register-repository-security
+  title: Register Repository for Scans
+  description: Deploys new pipeline for chosen repository for SCA and SAST scans
+  tags:
+    - solutions-factory
+    - harness
+    - security
+    - hidden
+spec:
+  owner: group:default/HSF_Users
+  type: harness_factory
+  parameters:
+    - title: Harness Pipeline Target Location
+      description: |
+        ---
+        The STO SAST & SCA Factory requires an existing Build Infrastructure configuration to be in place. This solution will support
+        deployments via Kubernetes or Harness Cloud deployments.
+      properties:
+        # The token property needs to be in the first page of the workflow
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+        organization_id:
+          title: Harness Organization Name
+          type: string
+          description: Choose the Harness Organization into which the pipeline will be added
+          pattern: ^([a-zA-Z][_a-zA-Z0-9]*)$
+          ui:field: HarnessAutoOrgPicker
+          ui:autofocus: true
+          dependencies:
+            projectPickerRef:
+              - 'project_id'
+          ui:widget: hidden
+        project_id:
+          title: Harness Project Name
+          type: string
+          description: Choose the Harness Project into which the pipeline will be added
+          pattern: ^([a-zA-Z][_a-zA-Z0-9]*)$
+          ui:field: HarnessProjectPicker
+          ui:autofocus: true
+    - title: Repository Registration
+      properties:
+        source_code_manager_type:
+          title: Choose your Source Code Manager option for the repository
+          type: string
+          default: hcr
+          enum:
+            - hcr
+            - build_farm
+            - custom
+          enumNames:
+            - Use Harness Code Repository?
+            - Use Central Build Farm Source Code Manager?
+            - Bring Your Own Connector?
+      dependencies:
+        source_code_manager_type:
+          allOf:
+            - if:
+                properties:
+                  source_code_manager_type:
+                    const: "hcr"
+              then:
+                required:
+                  - repository_name
+                properties:
+                  repository_name:
+                    $ref: "#/repo_defaults/repo_name"
+                  should_monitor_all_branches:
+                    $ref: "#/repo_defaults/branch_manager"
+            - if:
+                properties:
+                  source_code_manager_type:
+                    const: "build_farm"
+              then:
+                required:
+                  - repository_name
+                  - repository_path
+                properties:
+                  repository_name:
+                    $ref: "#/repo_defaults/repo_name"
+                  repository_path:
+                    $ref: "#/repo_defaults/repo_path"
+                  should_monitor_all_branches:
+                    $ref: "#/repo_defaults/branch_manager"
+            - if:
+                properties:
+                  source_code_manager_type:
+                    const: "custom"
+              then:
+                required:
+                  - repo_connector_ref
+                  - repository_name
+                  - repository_path
+                properties:
+                  repo_connector_ref:
+                    title: Existing GIT Connector Reference
+                    type: string
+                    description: |
+                      ---
+                      Provide an existing Source Code Manager Connector Reference. Must exist before configuring
+
+                      _Note: Account and Organization connectors require the addition of `account.` and `org.` respectively_
+                  repository_name:
+                    $ref: "#/repo_defaults/repo_name"
+                  repository_path:
+                    $ref: "#/repo_defaults/repo_path"
+                  should_monitor_all_branches:
+                    $ref: "#/repo_defaults/branch_manager"
+        should_monitor_all_branches:
+          allOf:
+            - if:
+                properties:
+                  should_monitor_all_branches:
+                    const: "main_only"
+              then:
+                required:
+                  - primary_branch
+                properties:
+                  primary_branch:
+                    title: Enter the primary branch to monitor for changes
+                    type: string
+                    default: main
+
+      repo_defaults:
+        repo_name:
+          title: What is the name of the repository?
+          description: A new pipeline will be created based on this name
+          type: string
+        repo_path:
+          title: What is the path of the repository based on the connector root path?
+          description: The pipeline will need to know from where to clone
+          type: string
+        branch_manager:
+          title: Configure Scanning across all branches?
+          description: |
+            ---
+            _Note: Configuring this option will configure Harness Triggers to watch for changes to branches and trigger automatic execution of the pipeline_
+          type: string
+          default: all
+          enum:
+            - all
+            - main_only
+            - no
+          enumNames:
+            - Configure Harness Triggers to monitor all branches
+            - Only Scan the Main Branch
+            - No Automated Scans. Does not configure Harness Triggers
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
+            buildfarm_connector:
+              type: string
+              default: <+variable.account.STO_SAST_SCA_Build_Farm_Connector>
+              ui:widget: hidden
+  steps:
+    - id: configure_workspace
+      name: Configuring Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
+          GIT_REPOSITORY_NAME: harness-template-library
+          GIT_REPOSITORY_PATH: sto-sast-primer/modules/register-repo
+          GIT_REPOSITORY_BRANCH: main
+          RESOURCE_NAME: ${{ parameters.organization_id|lower}}_${{ parameters.project_id|lower}}_${{ parameters.repository_name|replace(" ","-")|replace("-","_")}}
+          RESOURCE_OWNER: group:default/HSF_Users
+          # YAML of Terraform variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS:
+            organization_id: ${{ parameters.organization_id }}
+            project_id: ${{ parameters.project_id }}
+            repository_name: ${{ parameters.repository_name }}
+            repository_path: ${{ parameters.repository_name if parameters.source_code_manager_type == "hcr" else parameters.repository_path }}
+            repository_connector_ref: ${{ parameters.repo_connector_ref if parameters.source_code_manager_type == "custom" else ( parameters.solutions_factory_details.buildfarm_connector if parameters.source_code_manager_type == "build_farm" else "skipped") }}
+            branches: ${{ "all" if parameters.should_monitor_all_branches == "all" else ( parameters.primary_branch if parameters.should_monitor_all_branches == "main_only" else "skipped") }}
+          # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_SECRETS: {}
+          # YAML of Environment variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS_ENVS: {}
+          # YAML of Environment variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_ENVS_SECRET: {}
+          # Should the workspace automatically include the default Harness Connector environment variables
+          INCLUDE_HARNESS_ENVS: "true"
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: provision_workspace
+      name: Provisioning your Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          workspace: ${{ parameters.organization_id|lower}}_${{ parameters.project_id|lower}}_${{ parameters.repository_name|replace(" ","-")|replace("-","_")}}
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Deployed Pipeline
+        url: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.pipeline_executions_url']}}
+    text:
+      - title: Outputs
+        content: |
+          ---
+          ## Your Harness Security Scan Pipeline is operational
+          ---
+          Click the `Deployed Pipeline` link above to navigate directly to the deployed resource.  Upon navigating to the pipeline, click **RUN** and choose/provide your branch name.
+

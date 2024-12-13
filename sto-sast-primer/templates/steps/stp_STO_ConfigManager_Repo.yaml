@@ -1,0 +1,26 @@
+template:
+  identifier: ${TEMPLATE_IDENTIFIER}
+  name: ${TEMPLATE_NAME}
+  %{~ if ORGANIZATION_ID != null ~}
+  orgIdentifier: ${ORGANIZATION_ID}
+  %{~ endif ~}
+  %{~ if PROJECT_ID != null ~}
+  projectIdentifier: ${PROJECT_ID}
+  %{~ endif ~}
+  description: ${TEMPLATE_DESC}
+  versionLabel: ${TEMPLATE_VERSION}
+  tags:
+    ${indent(4, TAGS)}
+  type: Step
+  spec:
+    type: GitClone
+    spec:
+      %{~ if STO_GLOBAL_REPO_CONNECTOR != "skipped" ~}
+      connectorRef: ${STO_GLOBAL_REPO_CONNECTOR}
+      %{~ endif ~}
+      repoName: ${STO_GLOBAL_REPO_NAME}
+      cloneDirectory: <+input>
+      build:
+        type: branch
+        spec:
+          branch: <+input>

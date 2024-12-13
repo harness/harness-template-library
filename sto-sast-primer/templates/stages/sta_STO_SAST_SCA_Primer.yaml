@@ -1,0 +1,191 @@
+template:
+  identifier: ${TEMPLATE_IDENTIFIER}
+  name: ${TEMPLATE_NAME}
+  %{~ if ORGANIZATION_ID != null ~}
+  orgIdentifier: ${ORGANIZATION_ID}
+  %{~ endif ~}
+  %{~ if PROJECT_ID != null ~}
+  projectIdentifier: ${PROJECT_ID}
+  %{~ endif ~}
+  description: ${TEMPLATE_DESC}
+  versionLabel: ${TEMPLATE_VERSION}
+  tags:
+    ${indent(4, TAGS)}
+  type: Stage
+  spec:
+    type: SecurityTests
+    spec:
+      cloneCodebase: true
+      caching:
+        enabled: true
+      sharedPaths:
+        - <+stage.variables.SHARED_ARTIFACTS>
+      execution:
+        steps:
+          - step:
+              name: STO ConfigManager Repo
+              identifier: STO_ConfigManager_Repo
+              template:
+                templateRef: ${CONFIGMGR_TEMPLATE_ID}
+                versionLabel: ${CONFIGMGR_TEMPLATE_VERSION}
+                templateInputs:
+                  type: GitClone
+                  spec:
+                    cloneDirectory: <+stage.variables.SHARED_ARTIFACTS>/sto-global-exclusions
+                    build:
+                      type: branch
+                      spec:
+                        branch: main
+          - parallel:
+              %{~ if GITLEAKS_TEMPLATE_ID != "skipped" ~}
+              - stepGroup:
+                  name: Gitleaks Scans
+                  identifier: Gitleaks_Scans
+                  template:
+                    templateRef: ${GITLEAKS_TEMPLATE_ID}
+                    versionLabel: ${GITLEAKS_TEMPLATE_VERSION}
+                    templateInputs:
+                      variables:
+                        - name: CONFIG_MANAGER_DIR
+                          type: String
+                          value: <+stage.variables.SHARED_ARTIFACTS>/sto-global-exclusions
+                        - name: SCAN_TARGET
+                          type: String
+                          value: <+stage.variables.SCAN_TARGET>
+                        - name: SCAN_VARIANT
+                          type: String
+                          value: <+stage.variables.SCAN_VARIANT>
+                        - name: SCANNER_CPU
+                          type: String
+                          value: 400m
+                        - name: SCANNER_MEMORY
+                          type: String
+                          value: 500Mi
+                        - name: SCANNER_LOGGING
+                          type: String
+                          value: info
+                        - name: SCANNER_TIMEOUT
+                          type: String
+                          value: 10h
+                      when:
+                        stageStatus: Success
+              %{~ endif ~}
+              %{~ if OSV_TEMPLATE_ID != "skipped" ~}
+              - stepGroup:
+                  name: OSV Scans
+                  identifier: OSV_Scans
+                  template:
+                    templateRef: ${OSV_TEMPLATE_ID}
+                    versionLabel: ${OSV_TEMPLATE_VERSION}
+                    templateInputs:
+                      variables:
+                        - name: CONFIG_MANAGER_DIR
+                          type: String
+                          value: <+stage.variables.SHARED_ARTIFACTS>/sto-global-exclusions
+                        - name: SCAN_TARGET
+                          type: String
+                          value: <+stage.variables.SCAN_TARGET>
+                        - name: SCAN_VARIANT
+                          type: String
+                          value: <+stage.variables.SCAN_VARIANT>
+                        - name: SCANNER_CPU
+                          type: String
+                          value: 400m
+                        - name: SCANNER_MEMORY
+                          type: String
+                          value: 500Mi
+                        - name: SCANNER_LOGGING
+                          type: String
+                          value: info
+                        - name: SCANNER_TIMEOUT
+                          type: String
+                          value: 10h
+                      when:
+                        stageStatus: Success
+              %{~ endif ~}
+              %{~ if OWASP_TEMPLATE_ID != "skipped" ~}
+              - stepGroup:
+                  name: OWASP Dependency Check
+                  identifier: OWASP_Dependency_Check
+                  template:
+                    templateRef: ${OWASP_TEMPLATE_ID}
+                    versionLabel: ${OWASP_TEMPLATE_VERSION}
+                    templateInputs:
+                      variables:
+                        - name: CONFIG_MANAGER_DIR
+                          type: String
+                          value: <+stage.variables.SHARED_ARTIFACTS>/sto-global-exclusions
+                        - name: SCAN_TARGET
+                          type: String
+                          value: <+stage.variables.SCAN_TARGET>
+                        - name: SCAN_VARIANT
+                          type: String
+                          value: <+stage.variables.SCAN_VARIANT>
+                        - name: TOOLS_DIRECTORY
+                          type: String
+                          value: <+stage.variables.SHARED_ARTIFACTS>/tools
+                        - name: SCANNER_CPU
+                          type: String
+                          value: "2"
+                        - name: SCANNER_MEMORY
+                          type: String
+                          value: 6Gi
+                        - name: SCANNER_LOGGING
+                          type: String
+                          value: info
+                        - name: SCANNER_TIMEOUT
+                          type: String
+                          value: 10h
+                      when:
+                        stageStatus: Success
+              %{~ endif ~}
+              %{~ if SEMGREP_TEMPLATE_ID != "skipped" ~}
+              - stepGroup:
+                  name: Semgrep SAST
+                  identifier: Semgrep_SAST
+                  template:
+                    templateRef: ${SEMGREP_TEMPLATE_ID}
+                    versionLabel: ${SEMGREP_TEMPLATE_VERSION}
+                    templateInputs:
+                      variables:
+                        - name: CONFIG_MANAGER_DIR
+                          type: String
+                          value: <+stage.variables.SHARED_ARTIFACTS>/sto-global-exclusions
+                        - name: SCAN_TARGET
+                          type: String
+                          value: <+stage.variables.SCAN_TARGET>
+                        - name: SCAN_VARIANT
+                          type: String
+                          value: <+stage.variables.SCAN_VARIANT>
+                        - name: SCANNER_CPU
+                          type: String
+                          value: "2"
+                        - name: SCANNER_MEMORY
+                          type: String
+                          value: 4Gi
+                        - name: SCANNER_LOGGING
+                          type: String
+                          value: info
+                        - name: SCANNER_TIMEOUT
+                          type: String
+                          value: 10h
+                      when:
+                        stageStatus: Success
+              %{~ endif ~}
+${STAGE_INFRASTRUCTURE}
+    variables:
+      - name: SCAN_TARGET
+        type: String
+        description: Provide the STO Target name for this scan target. Default - <+pipeline.properties.ci.codebase.repoName>
+        required: true
+        value: <+input>.default(<+pipeline.properties.ci.codebase.repoName>)
+      - name: SCAN_VARIANT
+        type: String
+        description: Provide the STO Target Variant (the version to which to assign this scan). Default - <+codebase.branch>
+        required: true
+        value: <+input>.default(<+codebase.branch>)
+      - name: SHARED_ARTIFACTS
+        type: String
+        description: "Stages Shared Path to create into which tools will be copied for OWASP scans. Default - /shared/customer_artifacts"
+        required: true
+        value: <+input>.default(/shared/customer_artifacts)

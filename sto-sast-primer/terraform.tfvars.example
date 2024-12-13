@@ -1,0 +1,79 @@
+################################################
+# Harness Hierarchy Setup Details
+# -----------
+# Determines placement of resources. When both organization_id and project_id are null,
+# the resources will be placed at the account level
+################################################
+# [Optional] Harness Organization ID into which resource should be built.  Must exist before execution.
+organization_id = null
+# [Optional] Harness Project ID into which resource should be built.  Must exist before execution. Requires `organization_id`
+project_id = null
+# [Optional] Provide a Map of Tags to associate with all resources
+tags = {}
+# [Optional] Should a pipeline template be included which support Harness Code Repository sources
+should_support_hcr = true
+################################################
+
+
+################################################
+# Self-Hosted Build Farm Configuration
+# -----------
+# When the kubernetes_connector value equals "skipped", then the resources
+# will be deployed configured to support Harness CI Cloud provisioning.
+################################################
+# [Optional] Enter the existing Kubernetes connector if local K8s execution should be used
+# when running the Execution pipeline.  Must exist before execution
+kubernetes_connector = "skipped"
+# [Optional] Enter the existing Kubernetes namespace if local K8s execution should be used
+# when running the Execution pipeline.  Must exist before execution
+kubernetes_namespace = "default"
+# [Optional] Optional Kubernetes Node Selectors
+kubernetes_node_selectors = {}
+# [Optional] Enter an existing Container Registry connector to use which overrides the default connector
+kubernetes_override_image_connector = "skipped"
+################################################
+
+
+################################################
+# Harness STO Scanner Configuration
+# -----------
+# Override which Scanners to configure and their individual image overrides
+################################################
+# The enabled scanners will be included by default in the templates
+enabled_scanners = ["gitleaks", "osv", "owasp", "semgrep"]
+# [Optional] Provide existing Container Registry connector_id to be used to pull all scanner images.
+scanner_override_image_connector = "skipped"
+# [Optional] Provide an override image reference to pull
+gitleaks_override_image_name = "skipped"
+# [Optional] Enter an existing Container image which to use for OSV scans
+osv_override_image_name = "skipped"
+# [Optional] Enter an existing Container image which to use for OWASP scans
+owasp_override_image_name = "skipped"
+# [Optional] Enter an existing Container image which to use for Semgrep scans
+semgrep_override_image_name = "skipped"
+# -> Tools connector for copying binaries for dependency checks
+# [Optional] Enter an existing Container Registry connector_id which contains build tools image for OWASP scans
+tools_image_connector = "account.harnessImage"
+# -> Tools image for copying binaries for dependency checks
+# [Optional] Enter an existing Container image which contains build tools for OWASP scans
+tools_image_name = "node:20.11.0-alpine"
+################################################
+
+
+################################################
+# Harness STO Global Configuration Manager image
+# -----------
+# Configures the source repository for the Harness STO Global Exclusions manager source code
+################################################
+# [Optional] When provided, the existing Git connector will be used. When 'skipped' a custom Harness Code
+# Repository will be added into the scope.
+sto_config_mgr_connector_ref = "skipped"
+# [Required] The source CodeBase Repository Name. If `sto_config_mgr_connector_ref` is set, then provide
+# the full repo details based on the connector type.
+sto_config_mgr_repo = "harness-sto-global-exclusions"
+# [Required] Provide Container Registry connector from which the STO Configuration Manager image will be
+# retrieved. Defaults to account.harnessImage
+sto_config_mgr_connector = "account.harnessImage"
+# [Required] Provide the Container Registry image name and tag for the STO Configuration Manager image
+sto_config_mgr_image = "harnesssolutionfactory/harness-sto-config-manager:latest"
+################################################

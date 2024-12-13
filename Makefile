@@ -205,7 +205,8 @@ ifeq ($(name),)
 	$(error "Missing Argument")
 endif
 ifeq ($(type),terraform)
-	@(cp -r scaffolds/terraform ${name})
+	@(mkdir -p ${name})
+	@(cp -r scaffolds/terraform/ ${name})
 else
 	$(info **** COMMAND PROCESSING ISSUE ****)
 	$(info The argument `type=<type>` needs to be passed along with this command)

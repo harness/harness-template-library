@@ -1,0 +1,17 @@
+type: Bitbucket
+      spec:
+        type: Push
+        spec:
+          connectorRef: ${REPOSITORY_CONNECTOR}
+          autoAbortPreviousExecutions: true
+          payloadConditions:
+          %{~ if TARGET_BRANCH != "all" ~}
+            - key: targetBranch
+              operator: Equals
+              value: ${TARGET_BRANCH}
+          %{~ else ~}
+            []
+          %{~ endif ~}
+          headerConditions: []
+          repoName: ${REPOSITORY_PATH}
+          actions: []
