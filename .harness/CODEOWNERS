@@ -1,9 +1,9 @@
 Harness ---
 
-* @jeremy.goodrum@harness.io @aditya.kashyap@harness.io
+* jeremy.goodrum@harness.io aditya.kashyap@harness.io
 
 # solution maintainers
 
-create_and_push_new_catalog_yaml/* @riley.snyder@harness.io
-secret_manager_github_pat/* @riley.snyder@harness.io
+create_and_push_new_catalog_yaml/* riley.snyder@harness.io
+secret_manager_github_pat/* riley.snyder@harness.io
 
