@@ -80,6 +80,7 @@ spec:
                 required:
                   - repository_name
                   - repository_path
+                  - webhook_type
                 properties:
                   repository_name:
                     $ref: "#/repo_defaults/repo_name"
@@ -87,6 +88,8 @@ spec:
                     $ref: "#/repo_defaults/repo_path"
                   should_monitor_all_branches:
                     $ref: "#/repo_defaults/branch_manager"
+                  webhook_type:
+                    $ref: "#/repo_defaults/webhook_type"
             - if:
                 properties:
                   source_code_manager_type:
@@ -96,6 +99,7 @@ spec:
                   - repo_connector_ref
                   - repository_name
                   - repository_path
+                  - webhook_type
                 properties:
                   repo_connector_ref:
                     title: Existing GIT Connector Reference
@@ -111,6 +115,8 @@ spec:
                     $ref: "#/repo_defaults/repo_path"
                   should_monitor_all_branches:
                     $ref: "#/repo_defaults/branch_manager"
+                  webhook_type:
+                    $ref: "#/repo_defaults/webhook_type"
         should_monitor_all_branches:
           allOf:
             - if:
@@ -150,6 +156,17 @@ spec:
             - Configure Harness Triggers to monitor all branches
             - Only Scan the Main Branch
             - No Automated Scans. Does not configure Harness Triggers
+        webhook_type:
+          title: Choose your SCM Provider
+          description: |
+            This value should match your chosen Source Code Manager type.  For webhook triggers, the API authentication needs to be enabled on the connector.
+          type: string
+          enum:
+            - github
+            - bitbucket
+          enumNames:
+            - Github
+            - Bitbucket
     - title: Solutions Factory Connection
       properties:
         solutions_factory_details:
@@ -210,6 +227,7 @@ spec:
             repository_path: ${{ parameters.repository_name if parameters.source_code_manager_type == "hcr" else parameters.repository_path }}
             repository_connector_ref: ${{ parameters.repo_connector_ref if parameters.source_code_manager_type == "custom" else ( parameters.solutions_factory_details.buildfarm_connector if parameters.source_code_manager_type == "build_farm" else "skipped") }}
             branches: ${{ "all" if parameters.should_monitor_all_branches == "all" else ( parameters.primary_branch if parameters.should_monitor_all_branches == "main_only" else "skipped") }}
+            webhook_type: ${{ "harness" if parameters.source_code_manager_type == "hcr" else parameters.webhook_type }}
           # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
           RESOURCE_VARS_SECRETS: {}
           # YAML of Environment variables of type 'String' mapped to their IDP parameters
