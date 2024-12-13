@@ -15,6 +15,9 @@ resource "harness_platform_connector_github" "source_code_manager" {
       token_ref    = var.scm_password
     }
   }
+  api_authentication {
+    token_ref = var.scm_password
+  }
 }
 
 resource "harness_platform_connector_github" "source_code_manager_cloud" {
@@ -32,5 +35,8 @@ resource "harness_platform_connector_github" "source_code_manager_cloud" {
       username_ref = var.scm_username
       token_ref    = var.scm_password
     }
+  }
+  api_authentication {
+    token_ref = var.scm_password
   }
 }

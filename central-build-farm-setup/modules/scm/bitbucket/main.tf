@@ -15,6 +15,10 @@ resource "harness_platform_connector_bitbucket" "source_code_manager" {
       password_ref = var.scm_password
     }
   }
+  api_authentication {
+    username_ref = var.scm_username
+    token_ref    = var.scm_password
+  }
 }
 
 resource "harness_platform_connector_bitbucket" "source_code_manager_cloud" {
@@ -32,5 +36,9 @@ resource "harness_platform_connector_bitbucket" "source_code_manager_cloud" {
       username_ref = var.scm_username
       password_ref = var.scm_password
     }
+  }
+  api_authentication {
+    username_ref = var.scm_username
+    token_ref    = var.scm_password
   }
 }
