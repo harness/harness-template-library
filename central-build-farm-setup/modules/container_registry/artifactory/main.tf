@@ -7,7 +7,7 @@ resource "harness_platform_connector_artifactory" "container_registry" {
   tags        = local.common_tags_tuple
 
   url                = var.container_registry_url
-  delegate_selectors = ["build-farm"]
+  delegate_selectors = var.delegate_selectors
   # execute_on_delegate = true
   credentials {
     username_ref = var.container_registry_username

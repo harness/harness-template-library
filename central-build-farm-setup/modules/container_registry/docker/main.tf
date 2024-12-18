@@ -8,7 +8,7 @@ resource "harness_platform_connector_docker" "container_registry" {
 
   type                = "DockerHub"
   url                 = var.container_registry_url
-  delegate_selectors  = ["build-farm"]
+  delegate_selectors  = var.delegate_selectors
   execute_on_delegate = true
   credentials {
     username_ref = var.container_registry_username

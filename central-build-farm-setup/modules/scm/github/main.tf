@@ -7,7 +7,7 @@ resource "harness_platform_connector_github" "source_code_manager" {
   url                 = var.source_code_manager_url
   connection_type     = "Account"
   validation_repo     = var.source_code_manager_validation_repo
-  delegate_selectors  = ["build-farm"]
+  delegate_selectors  = var.delegate_selectors
   execute_on_delegate = true
   credentials {
     http {

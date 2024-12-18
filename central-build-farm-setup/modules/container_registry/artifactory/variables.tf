@@ -31,3 +31,8 @@ variable "tags" {
   default     = {}
 }
 
+variable "delegate_selectors" {
+  description = "Delegate selectors"
+  type        = list(string)
+  default     = ["build-farm"]
+}
