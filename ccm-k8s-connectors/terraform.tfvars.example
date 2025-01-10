@@ -1,0 +1,20 @@
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = # Required
+
+# [Optional] Provide a Map of Tags to associate with the resources
+tags = {}
+
+# The name of the delegate that has been deployed in your cluster"
+delegate_name = # Required
+
+# The name of the cluster, if different from the delegate name
+cluster_name = null
+
+# Description of the cluster to add to the connectors
+description = ""
+
+# If optimization (autostopping) should be enabled for this cluster (requires additional in-cluster deployment)
+enable_optimization = false
