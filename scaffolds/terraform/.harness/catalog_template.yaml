@@ -70,7 +70,7 @@ spec:
           GIT_REPOSITORY_NAME: harness-template-library
           GIT_REPOSITORY_PATH: # Provide directory path to the Terraform code in this repository e.g. harness-project
           GIT_REPOSITORY_BRANCH: main
-          RESOURCE_NAME: ${{ parameters.organization_id }}_${{ parameters.project_name|replace(" ","-") }}
+          RESOURCE_NAME: ${{ parameters.organization_id }}_${{ parameters.project_name|replace(" ","-")|replace("-", "_") }}
           RESOURCE_OWNER: group:default/harness_account_all_users
           # YAML of Terraform variables of type 'String' mapped to their IDP parameters
           RESOURCE_VARS:
