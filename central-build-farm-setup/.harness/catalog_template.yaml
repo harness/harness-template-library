@@ -13,13 +13,7 @@ spec:
   owner: group:default/HSF_Admins
   type: harness_factory
   parameters:
-    - title: Setup Build Farm Connectors
-      required:
-        - container_registry_type
-        - container_registry_url
-        - source_code_manager_type
-        - source_code_manager_url
-        - source_code_manager_validation_repo
+    - title: Setup Build Farm Infrastructure
       properties:
         # The token property needs to be in the first page of the workflow
         token:
@@ -38,20 +32,41 @@ spec:
             - Self-Hosted Build Infrastructure Only
             - Leverage Harness CI Cloud Infrastructure
             - Support both Self-Hosted and Harness CI Cloud
-        container_registry_type:
-          title: Choose your Container Registry Type
+      dependencies:
+        build_infrastructure_type:
+          allOf:
+            - if:
+                properties:
+                  build_infrastructure_type:
+                    const: internal
+              then:
+                required:
+                  - delegate_selectors
+                properties:
+                  delegate_selectors:
+                    $ref: "#/delegates/selectors"
+            - if:
+                properties:
+                  build_infrastructure_type:
+                    const: both
+              then:
+                required:
+                  - delegate_selectors
+                properties:
+                  delegate_selectors:
+                    $ref: "#/delegates/selectors"
+      delegates:
+        selectors:
+          title: Delegate Selectors to attach to the connectors?
+          description: Self-hosted infrastructure connectors require that you provide a delegate tag. It is suggested that you apply only one as complex delegate selectors can cause issues with resource selection.
           type: string
-          description: What type of Container Registry Connector type will be used as the default Build Farm Registry
-          enum:
-            - docker
-            - artifactory
-          enumNames:
-            - DockerHub Registry
-            - Artifactory Container Registry
-        container_registry_url:
-          title: Container Registry URL
-          type: string
-          description: Provide the URL to which the Container Registry connector will connect - e.g. https://index.docker.io/v2/
+          default: build_farm
+    - title: Setup Build Farm Source Code Manager
+      required:
+        - source_code_manager_type
+        - source_code_manager_url
+        - source_code_manager_validation_repo
+      properties:
         source_code_manager_type:
           title: Choose your Source Code Manager Type
           type: string
@@ -70,6 +85,155 @@ spec:
           title: Validation Repository
           type: string
           description: Please provide the validation URL for the Connector - e.g. harness/terraform-provider-harness
+    - title: Setup Build Farm Container Registry
+      required:
+        - container_registry_type
+      properties:
+        build_infrastructure_type:
+          title: Configure a Kubernetes Connector for use as a Centralized Build Farm
+          type: string
+          ui:widget: hidden
+        container_registry_type:
+          title: Choose your Container Registry Type
+          type: string
+          description: What type of Container Registry Connector type will be used as the default Build Farm Registry
+          enum:
+            - docker
+            - artifactory
+            - aws
+          enumNames:
+            - DockerHub Registry
+            - Artifactory Container Registry
+            - AWS Cloud Connector
+      dependencies:
+        container_registry_type:
+          allOf:
+            - if:
+                properties:
+                  container_registry_type:
+                    const: docker
+              then:
+                required:
+                  - container_registry_url
+                properties:
+                  container_registry_url:
+                    $ref: "#/cr_defaults/container_registry_url"
+            - if:
+                properties:
+                  container_registry_type:
+                    const: artifactory
+              then:
+                required:
+                  - container_registry_url
+                properties:
+                  container_registry_url:
+                    $ref: "#/cr_defaults/container_registry_url"
+            - if:
+                properties:
+                  container_registry_type: { const: 'aws' }
+                  build_infrastructure_type: { const: 'internal' }
+              then:
+                required:
+                  - region
+                  - authentication_type_self_hosted
+                properties:
+                  region:
+                    $ref: "#/cr_defaults/region"
+                  authentication_type_self_hosted:
+                    $ref: "#/cr_defaults/authentication_type_self_hosted"
+            - if:
+                properties:
+                  container_registry_type: { const: 'aws' }
+                  build_infrastructure_type: { const: 'cloud' }
+              then:
+                required:
+                  - region
+                  - authentication_type_harness_cloud
+                properties:
+                  region:
+                    $ref: "#/cr_defaults/region"
+                  authentication_type_harness_cloud:
+                    $ref: "#/cr_defaults/authentication_type_harness_cloud"
+            - if:
+                properties:
+                  container_registry_type: { const: 'aws' }
+                  build_infrastructure_type: { const: 'both' }
+              then:
+                required:
+                  - region
+                  - authentication_type_self_hosted
+                  - authentication_type_harness_cloud
+                properties:
+                  region:
+                    $ref: "#/cr_defaults/region"
+                  authentication_type_self_hosted:
+                    $ref: "#/cr_defaults/authentication_type_self_hosted"
+                  authentication_type_harness_cloud:
+                    $ref: "#/cr_defaults/authentication_type_harness_cloud"
+        authentication_type_self_hosted:
+          allOf:
+            - if:
+                properties:
+                  authentication_type_self_hosted:
+                    const: oidc
+              then:
+                required:
+                  - iam_role_arn
+                properties:
+                  iam_role_arn:
+                    $ref: "#/cr_defaults/iam_role_arn"
+        authentication_type_harness_cloud:
+          allOf:
+            - if:
+                properties:
+                  authentication_type_harness_cloud:
+                    const: oidc
+              then:
+                required:
+                  - iam_role_arn
+                properties:
+                  iam_role_arn:
+                    $ref: "#/cr_defaults/iam_role_arn"
+      cr_defaults:
+        container_registry_url:
+          title: Container Registry URL
+          type: string
+          description: Provide the URL to which the Container Registry connector will connect - e.g. https://index.docker.io/v2/
+        region:
+          title: AWS Region
+          type: string
+          description: Provide the default AWS Region for the connector
+          default: us-east-1
+        authentication_type_self_hosted:
+          title: AWS Authentication Type - Self-Hosted Infrastructure
+          type: string
+          description: Provide the default AWS Authentication Type for the connector
+          default: manual
+          enum:
+            - manual
+            - delegate
+            - irsa
+            - oidc
+          enumNames:
+            - Access Key & Secret Key
+            - Inherit from the Delegate
+            - Use IRSA
+            - Leverage OIDC Authentication
+        authentication_type_harness_cloud:
+          title: AWS Authentication Type - Harness Cloud
+          type: string
+          description: Provide the default AWS Authentication Type for the connector
+          default: manual
+          enum:
+            - manual
+            - oidc
+          enumNames:
+            - Access Key & Secret Key
+            - Leverage OIDC Authentication
+        iam_role_arn:
+          title: AWS IAM Role ARN
+          type: string
+          description: Provide the AWS IAM Role for the connector
     - title: Solutions Factory Connection
       properties:
         solutions_factory_details:
@@ -126,6 +290,11 @@ spec:
             source_code_manager_type: ${{ parameters.source_code_manager_type }}
             source_code_manager_url: ${{ parameters.source_code_manager_url }}
             source_code_manager_validation_repo: ${{ parameters.source_code_manager_validation_repo }}
+            delegate_selectors: ["${{ parameters.delegate_selectors }}"]
+            region: ${{ parameters.region }}
+            authentication_type_self_hosted: ${{ parameters.authentication_type_self_hosted }}
+            authentication_type_harness_cloud: ${{ parameters.authentication_type_harness_cloud }}
+            iam_role_arn: ${{ parameters.iam_role_arn }}
           RESOURCE_VARS_ENVS: {}
           RESOURCE_VARS_ENVS_SECRET: {}
           RESOURCE_VARS_SECRETS: {}

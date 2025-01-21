@@ -49,3 +49,18 @@ module "cr_artifactory" {
   support_harness_cloud       = local.support_harness_cloud
   tags                        = local.common_tags
 }
+
+module "cr_aws" {
+  count  = local.container_registry_type == "aws" ? 1 : 0
+  source = "./modules/container_registry/aws"
+
+  container_registry_username       = "account.${harness_platform_secret_text.container_registry_username.id}"
+  container_registry_password       = "account.${harness_platform_secret_text.container_registry_password.id}"
+  support_self_hosted               = local.support_self_hosted
+  support_harness_cloud             = local.support_harness_cloud
+  region                            = var.region
+  authentication_type_self_hosted   = var.authentication_type_self_hosted
+  authentication_type_harness_cloud = var.authentication_type_harness_cloud
+  iam_role_arn                      = var.iam_role_arn
+  tags                              = local.common_tags
+}

@@ -25,13 +25,14 @@ variable "container_registry_type" {
 
   validation {
     condition = (
-      contains(["docker", "artifactory"], lower(var.container_registry_type))
+      contains(["docker", "artifactory", "aws"], lower(var.container_registry_type))
     )
     error_message = <<EOF
         Validation of Container Registry Type Failed.
             * Must be one of the following:
             - docker
             - artifactory
+            - aws
         EOF
   }
 }
@@ -68,4 +69,35 @@ variable "source_code_manager_url" {
 variable "source_code_manager_validation_repo" {
   type        = string
   description = "Please provide the validation URL for the Connector - e.g. harness/terraform-provider-harness"
+}
+
+variable "delegate_selectors" {
+  type        = list(string)
+  description = "Delegate selectors"
+  default     = ["build-farm"]
+}
+
+# AWS Connectors
+variable "region" {
+  type        = string
+  description = "[Optional] Choose the default AWS Region"
+  default     = "us-east-1"
+}
+
+variable "authentication_type_self_hosted" {
+  type        = string
+  description = "[Optional] Choose the authentication type for the Self-Hosted Connectors"
+  default     = "manual"
+}
+
+variable "authentication_type_harness_cloud" {
+  type        = string
+  description = "[Optional] Choose the authentication type for the Harness Cloiud Connectors"
+  default     = "manual"
+}
+
+variable "iam_role_arn" {
+  type        = string
+  description = "[Optional] The IAM Role to assume the credentials from"
+  default     = null
 }
