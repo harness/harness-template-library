@@ -20,7 +20,7 @@ resource "harness_platform_template" "stg_Build_and_Scan_Container_Image" {
           BUILD_DOCKERFILE : "<+stepGroup.variables.BUILD_DOCKERFILE>"
           BUILD_CONTEXT : "<+stepGroup.variables.BUILD_CONTEXT>"
           BUILD_ARGS : "<+stepGroup.variables.BUILD_TARGET_ARGS>"
-          USE_BUILD_CACHING : var.kubernetes_connector != "skipped" ? false : true
+          USE_BUILD_CACHING : false
           USE_REMOTE_CACHE_REPO : var.kubernetes_connector != "skipped" ? true : false
           USE_KANIKO_VARS : var.kubernetes_connector != "skipped" ? true : false
           BUILD_OPTIMIZE : true
@@ -29,10 +29,12 @@ resource "harness_platform_template" "stg_Build_and_Scan_Container_Image" {
       )
       HARNESS_STO_SCANNER : templatefile(
         "${path.module}/templates/steps/stp_${lower(var.sto_scanner_type)}_scan.yaml",
-        {}
+        {
+          USE_HARNESS_CLOUD : var.kubernetes_connector == "skipped" ? true : false
+        }
       )
       TAGS : yamlencode(merge(
-        { "buildenv" : "HarnessCloud" },
+        { buildenv : "HarnessCloud" },
         local.common_tags
       ))
     }

@@ -30,7 +30,7 @@ template:
               IMAGE: <+stepGroup.variables.BUILD_TARGET_IMAGE>
               TAG: <+stepGroup.variables.CACHE_TARGET_TAG>
       %{~ endif ~}
-      ${HARNESS_CONTAINER_REGISTRY}
+      ${HARNESS_CONTAINER_REGISTRY ~}
     variables:
       - name: BUILD_TARGET_IMAGE
         type: String

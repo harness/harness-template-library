@@ -7,6 +7,9 @@
             config: default
             target:
               type: container
+              %{~ if !USE_HARNESS_CLOUD ~}
+              workspace: /opt/docker_cache/image.tar
+              %{~ endif ~}
               detection: manual
               name: <+stepGroup.variables.BUILD_TARGET_IMAGE>
               variant: <+stepGroup.variables.BUILD_TARGET_TAG>
@@ -20,8 +23,13 @@
             privileged: true
             imagePullPolicy: Always
             image:
+            %{~ if USE_HARNESS_CLOUD ~}
               type: local_image
-              name: <+stepGroup.variables.BUILD_TARGET_IMAGE>
               tag: <+stepGroup.variables.CACHE_TARGET_TAG>
+              name: <+stepGroup.variables.BUILD_TARGET_IMAGE>
+            %{~ else ~}
+              type: local_archive
+              tag: <+stepGroup.variables.CACHE_TARGET_TAG>
+            %{~ endif ~}
             sbom:
               format: spdx-json
