@@ -1,0 +1,37 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: ${PIPELINE_DESCRIPTION}
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: Run
+        identifier: run
+        description: ""
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - stepGroup:
+                  name: steps
+                  identifier: steps
+                  steps:
+                    - step:
+                        type: Plugin
+                        name: run
+                        identifier: run
+                        spec:
+                          connectorRef: ${DOCKER_CONNECTOR}
+                          image: ${IMAGE}
+                          settings:
+                            HARNESS_ACCOUNT_ID: <+account.identifier>
+                            HARNESS_PLATFORM_API_KEY: <+secrets.getValue("${HARNESS_PLATFORM_API_KEY_SECRET}")>
+                            HARNESS_ENDPOINT: ${HARNESS_ENDPOINT}
+                            CONNECTOR_PREFIX: ${CONNECTOR_PREFIX}
+                            ONESHOT: "true"
+                  stepGroupInfra:
+${STEP_INFRASTRUCTURE}
+        tags: {}

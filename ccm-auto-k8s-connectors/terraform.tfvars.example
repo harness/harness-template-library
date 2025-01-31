@@ -1,0 +1,33 @@
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = # Required
+
+# [Optional] Provide a Map of Tags to associate with the resources
+tags = {}
+
+# [Required] The organization where the pipeline will live. Provide an existing organization reference ID.  Must exist before execution
+organization_id                     = "default"
+# [Required] The project where the pipeline will live. Provide an existing project reference ID.  Must exist before execution
+project_id                          = "dev"
+
+# Prefix to add to all create Kubernetes and CCM Kubernetes connectors
+connector_prefix = "ccm"
+# Existing secret ID for Harness API key that can modify CD services
+harness_platform_api_key_secret     = "account.api"
+# Docker connector ID for pulling plugin image
+docker_connector                    = "account.dockerhub"
+# Plugin docker image to use for creating connectors. Must follow repo/image:tag format
+image                               = "harnesscommunity/harness-ccm-k8s-auto:4a32f7c"
+# The cron schedule to trigger the pipeline on a scheduled
+cron = "0 1 * * *"
+
+# [Required] Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
+kubernetes_connector                = "account._micro"
+# [Optional] Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
+kubernetes_namespace                = "default"
+# [Optional] Optional Kubernetes Node Selectors
+kubernetes_node_selectors           = {}
+# [Optional] Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution
+kubernetes_override_image_connector = "skipped"

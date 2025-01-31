@@ -1,0 +1,18 @@
+trigger:
+  name: ${TRIGGER_NAME}
+  identifier: ${TRIGGER_IDENTIFIER}
+  enabled: true
+  description: ""
+  tags:
+    ${indent(4, TAGS)}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  pipelineIdentifier: ${PIPELINE_ID}
+  stagesToExecute: []
+  source:
+    type: Scheduled
+    spec:
+      type: Cron
+      spec:
+        type: UNIX
+        expression: ${CRON}
