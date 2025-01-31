@@ -1,0 +1,17 @@
+---
+apiVersion: ccm.harness.io/v1
+kind: AutoStoppingRule
+metadata:
+  name: {{ .Values.autostopping.ingress.name }}-{{ .Values.autostopping.service.name }}
+  annotations:
+    harness.io/cloud-connector-id: {{ .Values.autostopping.cloudConnectorId }}
+spec:
+  service:
+    name: {{ .Values.autostopping.service.name }}
+    port: {{ .Values.autostopping.service.port }}
+  ingress:
+    name: {{ .Values.autostopping.ingress.name }}
+    controllerName: {{ .Values.autostopping.ingress.type }}
+  idleTimeMins: {{ .Values.autostopping.idleTimeMins }}
+  hideProgressPage: {{ .Values.autostopping.hideProgressPage }}
+  dependencies: []

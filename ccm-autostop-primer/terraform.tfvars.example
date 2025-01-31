@@ -1,0 +1,46 @@
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = # Required
+
+# [Optional] Provide a Map of Tags to associate with the resources
+tags = {}
+
+# [Optional] Name of the 'kubectl apply' step template that will create auto stopping rules
+template_name = "Auto-Stop Ingress"
+# [Optional] Version strings for the step template
+template_version = "1.0"
+
+# [Optional] The organization where the step template will live, leave blank for account level. Provide an existing organization reference ID.  Must exist before execution
+template_organization_id = "default"
+# [Optional] The project where the step template will live, leave blank for organization or account level. Provide an existing project reference ID.  Must exist before execution
+template_project_id = "home_lab"
+
+## Pipeline Setup Variables
+
+# [Required] The organization where the pipeline will live. Provide an existing organization reference ID.  Must exist before execution
+pipeline_organization_id = # Required
+# [Required] The project where the pipeline will live. Provide an existing project reference ID.  Must exist before execution
+pipeline_project_id = # Required
+
+# [Optional] Harness endpoint for API calls
+harness_endpoint = "app.harness.io"
+# Existing secret ID for Harness API key that can modify CD services
+existing_harness_platform_key_ref = # Required
+
+# Docker connector ID for pulling plugin image
+docker_connector = "harnessImage"
+# [Optional] Plugin docker image to use for modifying services. Must follow repo/image:tag format
+image = "harnesscommunity/add-autostopping-variables:576e4f594a80d482f77761f4ca8b715cf25c983d"
+
+## Pipeline Infrastructure Variables
+
+# [Required] Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
+kubernetes_connector = # Required
+# [Optional] Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline.  Must exist before execution"
+kubernetes_namespace = "default"
+# [Optional] Optional Kubernetes Node Selectors
+kubernetes_node_selectors = {}
+# [Optional] Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution
+kubernetes_override_image_connector = "skipped"

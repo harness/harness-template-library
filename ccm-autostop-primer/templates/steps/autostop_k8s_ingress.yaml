@@ -1,0 +1,45 @@
+template:
+  name: ${TEMPLATE_NAME}
+  identifier: ${TEMPLATE_IDENTIFIER}
+  versionLabel: "${VERSION_LABEL}"
+%{ if ORGANIZATION_ID != "" }
+  orgIdentifier: ${ORGANIZATION_ID}
+%{ endif ~}
+%{ if PROJECT_ID != "" }
+  projectIdentifier: ${PROJECT_ID}
+%{ endif ~}
+  type: Step
+  tags:
+    ${indent(4, TAGS)}
+  spec:
+    timeout: 10m
+    type: K8sApply
+    spec:
+      skipDryRun: false
+      skipSteadyStateCheck: false
+      skipRendering: false
+      overrides: []
+      manifestSource:
+        type: K8sManifest
+        spec:
+          store:
+            type: Harness
+            spec:
+%{ if PROJECT_ID != "" }
+              files:
+              - project:/${MANIFEST_PATH}
+          valuesPaths:
+          - project:/${VALUES_PATH}
+%{ else }
+%{ if ORGANIZATION_ID != "" }
+              files:
+              - org:/${MANIFEST_PATH}
+          valuesPaths:
+          - org:/${VALUES_PATH}
+%{ else }
+              files:
+              - account:/${MANIFEST_PATH}
+          valuesPaths:
+          - account:/${VALUES_PATH}
+%{ endif ~}
+%{ endif ~}

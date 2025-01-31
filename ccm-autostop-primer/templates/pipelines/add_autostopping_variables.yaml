@@ -1,0 +1,54 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: "Add autostopping variables to existing Harness services."
+  tags:
+    ${indent(4, TAGS)}
+  stages:
+    - stage:
+        name: ${PIPELINE_NAME}
+        identifier: ${PIPELINE_IDENTIFIER}
+        description: "Add autostopping variables to existing Harness services."
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - stepGroup:
+                  name: steps
+                  identifier: steps
+                  steps:
+                    - step:
+                        type: Plugin
+                        name: run
+                        identifier: run
+                        spec:
+                          connectorRef: ${DOCKER_CONNECTOR}
+                          image: ${IMAGE}
+                          settings:
+                            HARNESS_ACCOUNT_ID: <+account.identifier>
+                            HARNESS_PLATFORM_API_KEY: <+secrets.getValue("${HARNESS_PLATFORM_API_KEY_SECRET}")>
+                            HARNESS_ENDPOINT: ${HARNESS_ENDPOINT}
+                            ORGANIZATION: <+pipeline.variables.org_id>
+                            PROJECT: <+pipeline.variables.project_id>
+                            SERVICE: <+pipeline.variables.service_id>
+                  stepGroupInfra:
+${STEP_INFRASTRUCTURE}
+        tags: {}
+  variables:
+    - name: org_id
+      type: String
+      description: "Organization identifier that the service is under, empty for account level service."
+      required: false
+      value: <+input>
+    - name: project_id
+      type: String
+      description: "Project identifier that the service is in, empty for org/account level service"
+      required: false
+      value: <+input>
+    - name: service_id
+      type: String
+      description: "Service identifier"
+      required: true
+      value: <+input>

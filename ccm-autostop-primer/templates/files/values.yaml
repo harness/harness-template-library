@@ -1,0 +1,10 @@
+autostopping:
+  cloudConnectorId: <+serviceVariables.cloudConnectorId>
+  service:
+    name: <+serviceVariables.serviceName>
+    port: <+serviceVariables.servicePort>
+  ingress:
+    name: <+serviceVariables.ingressName>
+    type: <+serviceVariables.ingressType>
+  idleTimeMins: <+serviceVariables.idleTimeMins>
+  hideProgressPage: <+serviceVariables.hideProgressPage>

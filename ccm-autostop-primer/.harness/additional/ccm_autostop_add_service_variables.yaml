@@ -1,0 +1,81 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: ccm_autostop_add_service_variables
+  title: Add Autostopping Variables to Service
+  description: Add the required service variables to your CD service to enable use of the autostopping step template
+spec:
+  owner: group:default/HSF_Admins
+  type: service
+  parameters:
+    - title: Fill in the component details
+      required:
+        - service_id
+      properties:
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken   
+        project_id:
+          title: Project Identifier
+          description: Harness Project Identifier, leave blank for org/account level
+          type: string
+          ui:field: HarnessProjectPicker
+        org_id:
+          title: Org Identifier
+          description: Harness Organization Identifier, leave blank for account level
+          type: string
+          ui:field: HarnessOrgPicker
+        service_id:
+          title: Harness service identifier
+          type: string
+          description: Must be of type Kubernetes or NativeHelm
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+  steps:
+    - id: trigger
+      name: Add missing autostopping variables to service
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/add_autostopping_variables/pipeline-studio?storeType=INLINE
+        inputset:
+          org_id: ${{ parameters.org_id }}
+          project_id: ${{ parameters.project_id }}
+          service_id: ${{ parameters.service_id }}
+        apikey: ${{ parameters.token }}
+  output:
+    links:
+      - title: Pipeline Details
+        url: ${{ steps.trigger.output.PipelineUrl }}
+      - title: Service Configuration
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/cd${{ ("/orgs/" + parameters.org_id) if parameters.org_id else "" }}${{ ("/projects/" + parameters.project_id) if parameters.project_id else "" }}/services/${{ parameters.service_id }}?tab=configuration

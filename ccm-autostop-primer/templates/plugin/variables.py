@@ -1,0 +1,51 @@
+SERVICE_VARIABLES = [
+    {
+        "name": "serviceName",
+        "type": "String",
+        "description": "The name of your kubernetes service",
+        "required": False,
+        "value": "<+input>",
+    },
+    {
+        "name": "servicePort",
+        "type": "String",
+        "description": "The port on your service which the ingress forwards to",
+        "required": False,
+        "value": "<+input>",
+    },
+    {
+        "name": "ingressName",
+        "type": "String",
+        "description": "The name of your kubernetes ingress",
+        "required": False,
+        "value": "<+input>",
+    },
+    {
+        "name": "ingressType",
+        "type": "String",
+        "description": "The type of ingress used (nginx, haproxy, istio, traefik, or ambassador)",
+        "required": False,
+        "value": "<+input>",
+    },
+    {
+        "name": "cloudConnectorId",
+        "type": "String",
+        "description": "The account level CCM cloud connector for the cloud account where this cluster resides",
+        "required": False,
+        "value": "<+input>",
+    },
+    {
+        "name": "idleTimeMins",
+        "type": "String",
+        "description": "How long should the service sit idle before pods are deprovisioned",
+        "required": False,
+        "value": "<+input>",
+    },
+    {
+        "name": "hideProgressPage",
+        "type": "String",
+        "description": "Do not show the progress page when users hit a deprovisioned service",
+        "required": False,
+        "value": "<+input>",
+    },
+]
