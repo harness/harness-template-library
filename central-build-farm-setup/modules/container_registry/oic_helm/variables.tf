@@ -1,0 +1,45 @@
+
+
+variable "container_registry_url" {
+  type        = string
+  description = "URL of the OCI Helm server"
+}
+
+variable "auth_type" {
+  type        = string
+  description = "Authentication type: 'UsernamePassword' or 'Anonymous'"
+}
+
+variable "container_registry_username" {
+  type        = string
+  description = "Please provide the ID of the ContainerRegistry Connector Credentials - Username"
+}
+
+variable "container_registry_password" {
+  type        = string
+  description = "Please provide the ID of the ContainerRegistry Connector Credentials - Password"
+}
+
+variable "support_self_hosted" {
+  type        = bool
+  description = "Should Self-Hosted Build Infrastructures connectors be added?"
+  default     = true
+}
+
+variable "support_harness_cloud" {
+  type        = bool
+  description = "Should Harness Cloud Build Infrastructures connectors be added?"
+  default     = false
+}
+
+variable "tags" {
+  type        = map(any)
+  description = "[Optional] Provide a Map of Tags to associate with the resources"
+  default     = {}
+}
+
+variable "delegate_selectors" {
+  description = "Delegate selectors"
+  type        = list(string)
+  default     = ["build-farm"]
+}
