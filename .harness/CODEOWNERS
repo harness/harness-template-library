@@ -6,4 +6,6 @@ Harness ---
 
 create_and_push_new_catalog_yaml/* riley.snyder@harness.io
 secret_manager_github_pat/* riley.snyder@harness.io
+secret-manager-cyberark-conjur/* riley.snyder@harness.io
+ccm-* riley.snyder@harness.io
 
