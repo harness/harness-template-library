@@ -1,0 +1,67 @@
+template:
+  name: ${TEMPLATE_NAME}
+  identifier: ${TEMPLATE_IDENTIFIER}
+  versionLabel: "${VERSION_LABEL}"
+%{ if ORGANIZATION_ID != "" }
+  orgIdentifier: ${ORGANIZATION_ID}
+%{ endif ~}
+%{ if PROJECT_ID != "" }
+  projectIdentifier: ${PROJECT_ID}
+%{ endif ~}
+  type: SecretManager
+  tags:
+    ${indent(4, TAGS)}
+  spec:
+    shell: Bash
+    delegateSelectors: []
+    source:
+      type: Inline
+      spec:
+        script: |-
+          CONJUR_APPLIANCE_URL='<+spec.environmentVariables.CONJUR_APPLIANCE_URL>'
+          ACCOUNT='<+secretManager.environmentVariables.ACCOUNT>'
+          KIND='variable'
+          IDENTIFIER='<+secretManager.environmentVariables.IDENTIFIER>'
+          
+          # Authenticate first to get an access token
+          # ref: https://docs.conjur.org/Latest/en/Content/Developer/Conjur_API_Authenticate.htm
+          HOST_ID='<+secretManager.environmentVariables.HOST_ID>'
+          API_KEY='<+secrets.getValue(<+spec.environmentVariables.API_KEY_SECRET_ID>)>'
+          AUTHENTICATOR='<+secretManager.environmentVariables.AUTHENTICATOR>'
+    
+          FULL_AUTH_URL="$CONJUR_APPLIANCE_URL/$AUTHENTICATOR/$ACCOUNT/$HOST_ID/authenticate"
+          ACCEPT_HEADER='Accept-Encoding: base64'
+          ACCESS_TOKEN=$(curl --request POST --header "$ACCEPT_HEADER" --data "$API_KEY" "$FULL_AUTH_URL")
+          
+          #  Use the token to retrieve a secret
+          RETRIEVAL_URL="$CONJUR_APPLIANCE_URL/secrets/$ACCOUNT/$KIND/$IDENTIFIER"
+          AUTH_HEADER="Authorization: Token token=\"$ACCESS_TOKEN\""
+          ACCEPT_HEADER_JSON="Accept: application/json"
+          secret="$(curl --request GET $RETRIEVAL_URL --header "$AUTH_HEADER" --header "$ACCEPT_HEADER_JSON")"
+          
+          # Check the exit status of the curl command
+          if [ $? -ne 0 ]; then
+           exit 1
+          fi
+
+    environmentVariables:
+      - name: CONJUR_APPLIANCE_URL
+        type: String
+        value: <+input>
+      - name: HOST_ID
+        type: String
+        value: <+input>
+      - name: API_KEY_SECRET_ID
+        type: String
+        value: <+input>
+      - name: AUTHENTICATOR
+        type: String
+        value: <+input>
+      - name: ACCOUNT
+        type: String
+        value: <+input>
+      - name: IDENTIFIER
+        type: String
+        value: <+input>
+    outputVariables: []
+    onDelegate: true

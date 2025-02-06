@@ -1,0 +1,169 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: secret-manager-cyberark-conjur
+  title: "Secret Manager: CyberArk Conjur"
+  description: Create a secret manager template for CyberArk Conjur
+  tags:
+    - solutions-factory
+    - harness
+    - secret-manager
+    - template
+spec:
+  owner: group:default/harness_account_all_users # Defaults to all users
+  type:  Secrets Manager
+  parameters:
+    - title: Template Location
+      description: Where should the Kubernetes manifests and Step Template be located
+      required:
+        - template_name
+        - template_version
+        - template_location
+      properties:
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+        template_name:
+          title: Template Name
+          type: string
+          description: What should the "CyberArk Conjur" secret manager template be named
+          default: CyberArk Conjur
+        template_version:
+          title: Template Version
+          type: string
+          description: What should the step template's initial version be
+          default: "1.0"
+        template_location:
+          title: Template Location
+          type: string
+          description: Where should we place the template?
+          enum:
+            - Account
+            - Organization
+            - Project
+      dependencies:
+        template_location:           
+          oneOf:
+          - properties:
+              template_location:
+                enum:
+                  - Account
+          - properties:
+              template_location:
+                enum:
+                  - Organization
+              org_id:
+                title: Org Identifier
+                description: Harness Organization Identifier
+                type: string
+                ui:field: HarnessOrgPicker
+            required:
+              - org_id
+          - properties:
+              template_location:
+                enum:
+                  - Project
+              project_id:
+                title: Project Identifier
+                description: Harness Project Identifier
+                type: string
+                ui:field: HarnessProjectPicker
+              org_id:
+                title: Org Identifier
+                description: Harness Organization Identifier
+                type: string
+                ui:field: HarnessOrgPicker
+                # ui:field: HarnessAutoOrgPicker
+                # dependencies:
+                #   projectPickerRef:
+                #     - 'project_id'
+            required:
+              - project_id
+              - org_id
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
+  steps:
+    - id: configure_workspace
+      name: Configuring Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
+          GIT_REPOSITORY_NAME: harness-template-library
+          GIT_REPOSITORY_PATH: secret-manager-cyberark-conjur
+          GIT_REPOSITORY_BRANCH: main
+          RESOURCE_NAME: ${{ parameters.org_id + "_" if parameters.project_id else ( parameters.org_id + "_" if parameters.org_id else "") }}${{ parameters.project_id + "_" if parameters.project_id else "" }}secret_manager_cyberark_conjur
+          RESOURCE_OWNER: group:default/harness_account_all_users
+          # YAML of Terraform variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS:
+            harness_platform_account: ${{ parameters.solutions_factory_details.harness_account_id }}
+
+            template_name: ${{ parameters.template_name }}
+            template_version: ${{ parameters.template_version }}
+            organization_id: ${{ parameters.org_id if parameters.project_id else ( parameters.org_id if parameters.org_id else "") }}
+            project_id: ${{ parameters.project_id if parameters.project_id else "" }}
+          # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_SECRETS: {}
+          # YAML of Environment variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS_ENVS: {}
+          # YAML of Environment variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_ENVS_SECRET: {}
+          # Should the workspace automatically include the default Harness Connector environment variables
+          INCLUDE_HARNESS_ENVS: "true"
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: provision_workspace
+      name: Provisioning your Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          workspace: ${{ parameters.org_id + "_" if parameters.project_id else ( parameters.org_id + "_" if parameters.org_id else "") }}${{ parameters.project_id + "_" if parameters.project_id else "" }}secret_manager_cyberark_conjur
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Harness Workspace Configured - Execution Link
+        url: ${{ steps.configure_workspace.output.PipelineUrl }}
+      - title: Harness Workspace Provisioned - Execution Link
+        url: ${{ steps.provision_workspace.output.PipelineUrl }}
+    text:
+      - title: Outputs
+        content: |
+          Step Template: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all${{ ("/orgs/" + parameters.org_id) if parameters.org_id else "" }}${{ ("/projects/" + parameters.project_id) if parameters.project_id else "" }}/settings/templates/${{ parameters.template_name|replace(" ","_")|replace("-","_") }}/template-studio/SecretManager/?versionLabel=${{ parameters.template_version }}
