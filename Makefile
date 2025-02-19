@@ -144,7 +144,7 @@ cycle: init destroy apply plan
 
 .PHONY: teardown # Full Suite Cleanup
 #: Full Suite Cleanup.  Runs the commands - destroy and testing_cleanup
-teardown: destroy testing_cleanup
+teardown: init destroy testing_cleanup
 
 .PHONY: deploy # Continuous Deployment
 #: Applies the Terraform template. Runs the commands - init, plan, and apply. Note: If the argument `dryrun` is passed then the `apply` step is skipped.

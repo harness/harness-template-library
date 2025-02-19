@@ -27,7 +27,7 @@ resource "harness_platform_secret_text" "container_registry_password" {
 }
 
 module "cr_docker" {
-  count  = local.container_registry_type == "docker" ? 1 : 0
+  count  = contains(local.generic_container_registry_types, local.container_registry_type) ? 1 : 0
   source = "./modules/container_registry/docker"
 
   container_registry_url      = var.container_registry_url
@@ -35,20 +35,21 @@ module "cr_docker" {
   container_registry_password = "account.${harness_platform_secret_text.container_registry_password.id}"
   support_self_hosted         = local.support_self_hosted
   support_harness_cloud       = local.support_harness_cloud
+  provider_type               = var.container_registry_provider_type
   tags                        = local.common_tags
 }
 
-module "cr_artifactory" {
-  count  = local.container_registry_type == "artifactory" ? 1 : 0
-  source = "./modules/container_registry/artifactory"
+# module "cr_artifactory" {
+#   count  = local.container_registry_type == "artifactory" ? 1 : 0
+#   source = "./modules/container_registry/artifactory"
 
-  container_registry_url      = var.container_registry_url
-  container_registry_username = "account.${harness_platform_secret_text.container_registry_username.id}"
-  container_registry_password = "account.${harness_platform_secret_text.container_registry_password.id}"
-  support_self_hosted         = local.support_self_hosted
-  support_harness_cloud       = local.support_harness_cloud
-  tags                        = local.common_tags
-}
+#   container_registry_url      = var.container_registry_url
+#   container_registry_username = "account.${harness_platform_secret_text.container_registry_username.id}"
+#   container_registry_password = "account.${harness_platform_secret_text.container_registry_password.id}"
+#   support_self_hosted         = local.support_self_hosted
+#   support_harness_cloud       = local.support_harness_cloud
+#   tags                        = local.common_tags
+# }
 
 module "cr_aws" {
   count  = local.container_registry_type == "aws" ? 1 : 0
@@ -62,5 +63,39 @@ module "cr_aws" {
   authentication_type_self_hosted   = var.authentication_type_self_hosted
   authentication_type_harness_cloud = var.authentication_type_harness_cloud
   iam_role_arn                      = var.iam_role_arn
+  cross_account_role_arn            = var.aws_cross_account_role_arn
+  cross_account_external_id         = var.aws_cross_account_external_id
+  tags                              = local.common_tags
+}
+
+module "cr_gcp" {
+  count  = local.container_registry_type == "gcp" ? 1 : 0
+  source = "./modules/container_registry/gcp"
+
+  container_registry_password       = "account.${harness_platform_secret_text.container_registry_password.id}"
+  support_self_hosted               = local.support_self_hosted
+  support_harness_cloud             = local.support_harness_cloud
+  authentication_type_self_hosted   = var.authentication_type_self_hosted
+  authentication_type_harness_cloud = var.authentication_type_harness_cloud
+  oidc_workload_pool_id             = var.gcp_workload_pool_id
+  oidc_provider_id                  = var.gcp_provider_id
+  oidc_project_id                   = var.gcp_project_id
+  oidc_service_account_email        = var.gcp_service_account_email
+  tags                              = local.common_tags
+}
+
+module "cr_azure" {
+  count  = local.container_registry_type == "azure" ? 1 : 0
+  source = "./modules/container_registry/azure"
+
+  container_registry_password       = "account.${harness_platform_secret_text.container_registry_password.id}"
+  support_self_hosted               = local.support_self_hosted
+  support_harness_cloud             = local.support_harness_cloud
+  authentication_type_self_hosted   = var.authentication_type_self_hosted
+  authentication_type_harness_cloud = var.authentication_type_harness_cloud
+  application_id                    = var.azure_application_id
+  tenant_id                         = var.azure_tenant_id
+  azure_environment_type            = var.azure_environment_type
+  user_assigned_client_id           = var.azure_user_assigned_client_id
   tags                              = local.common_tags
 }

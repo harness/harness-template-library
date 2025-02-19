@@ -6,7 +6,7 @@ resource "harness_platform_connector_docker" "container_registry" {
   description = "BuildFarm Container Registry Connector"
   tags        = local.common_tags_tuple
 
-  type                = "DockerHub"
+  type                = var.provider_type
   url                 = var.container_registry_url
   delegate_selectors  = var.delegate_selectors
   execute_on_delegate = true
@@ -23,7 +23,7 @@ resource "harness_platform_connector_docker" "container_registry_cloud" {
   description = "BuildFarm Container Registry Connector for Harness CI Cloud builds"
   tags        = local.common_tags_tuple
 
-  type                = "DockerHub"
+  type                = var.provider_type
   url                 = var.container_registry_url
   execute_on_delegate = false
   credentials {

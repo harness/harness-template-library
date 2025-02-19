@@ -1,4 +1,3 @@
-
 resource "harness_platform_connector_aws" "container_registry" {
   lifecycle {
     precondition {
@@ -45,6 +44,14 @@ resource "harness_platform_connector_aws" "container_registry" {
       iam_role_arn       = var.iam_role_arn
       region             = var.region
       delegate_selectors = var.delegate_selectors
+    }
+  }
+
+  dynamic "cross_account_access" {
+    for_each = local.cross_account_access ? [1] : []
+    content {
+      role_arn    = var.cross_account_role_arn
+      external_id = var.cross_account_external_id
     }
   }
 }

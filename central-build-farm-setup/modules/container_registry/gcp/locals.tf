@@ -37,7 +37,7 @@ locals {
   oidc_auth_ready = (
     var.authentication_type_self_hosted == "oidc" || var.authentication_type_harness_cloud == "oidc"
     ?
-    join(",", compact(flatten([
+    join("\n", compact(flatten([
       for check_name, check_var in local.oidc_variables :
       check_var == null
       ?

@@ -14,6 +14,15 @@ locals {
 
   self_hosted_only_auth_types   = ["manual", "delegate", "irsa", "oidc"]
   harness_cloud_only_auth_types = setsubtract(local.self_hosted_only_auth_types, ["delegate", "irsa"])
+  supports_cross_account_access = setsubtract(local.self_hosted_only_auth_types, local.harness_cloud_only_auth_types)
+
+  cross_account_access = (
+    contains(local.supports_cross_account_access, var.authentication_type_self_hosted) && var.cross_account_role_arn != null
+    ?
+    true
+    :
+    false
+  )
 
   delegate_selector_ready = (
     var.support_self_hosted

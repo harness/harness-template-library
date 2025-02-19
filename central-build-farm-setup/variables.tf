@@ -25,14 +25,35 @@ variable "container_registry_type" {
 
   validation {
     condition = (
-      contains(["docker", "artifactory", "aws"], lower(var.container_registry_type))
+      contains(["docker", "aws", "gcp", "azure"], lower(var.container_registry_type))
     )
     error_message = <<EOF
         Validation of Container Registry Type Failed.
             * Must be one of the following:
             - docker
-            - artifactory
             - aws
+            - gcp
+            - azure
+        EOF
+  }
+}
+
+variable "container_registry_provider_type" {
+  type        = string
+  description = "Choose a Generic Container Registry Type"
+  default     = "DockerHub"
+
+  validation {
+    condition = (
+      contains(["DockerHub", "Harbor", "Quay", "Other"], var.container_registry_provider_type)
+    )
+    error_message = <<EOF
+        Validation of Generic Container Registry Type Failed.
+            * Must be one of the following:
+            - DockerHub
+            - Harbor
+            - Quay
+            - Other
         EOF
   }
 }
@@ -77,13 +98,6 @@ variable "delegate_selectors" {
   default     = ["build-farm"]
 }
 
-# AWS Connectors
-variable "region" {
-  type        = string
-  description = "[Optional] Choose the default AWS Region"
-  default     = "us-east-1"
-}
-
 variable "authentication_type_self_hosted" {
   type        = string
   description = "[Optional] Choose the authentication type for the Self-Hosted Connectors"
@@ -96,8 +110,78 @@ variable "authentication_type_harness_cloud" {
   default     = "manual"
 }
 
+# AWS Connectors
+variable "region" {
+  type        = string
+  description = "[Optional] Choose the default AWS Region"
+  default     = "us-east-1"
+}
+
 variable "iam_role_arn" {
   type        = string
   description = "[Optional] The IAM Role to assume the credentials from"
+  default     = null
+}
+
+variable "aws_cross_account_role_arn" {
+  type        = string
+  description = "[Optional] The Amazon Resource Name (ARN) of the role that you want to assume. This is an IAM role in the target AWS account."
+  default     = null
+}
+
+variable "aws_cross_account_external_id" {
+  type        = string
+  description = "[Optional] If the administrator of the account to which the role belongs provided you with an external ID, then enter that value."
+  default     = null
+}
+
+
+# GCP Connectors
+variable "gcp_workload_pool_id" {
+  type        = string
+  description = "Workload Pool ID for OIDC authentication"
+  default     = null
+}
+
+variable "gcp_provider_id" {
+  type        = string
+  description = "Provider ID for OIDC authentication"
+  default     = null
+}
+
+variable "gcp_project_id" {
+  type        = string
+  description = "GCP Project ID for OIDC authentication"
+  default     = null
+}
+
+variable "gcp_service_account_email" {
+  type        = string
+  description = "Service Account Email for OIDC authentication"
+  default     = null
+}
+
+# Azure
+variable "azure_application_id" {
+  type        = string
+  description = "Azure application ID for authentication"
+  default     = null
+}
+
+variable "azure_tenant_id" {
+  type        = string
+  description = "Azure tenant ID for authentication"
+  default     = null
+}
+
+variable "azure_environment_type" {
+  type        = string
+  description = "ENV TYPE: AZURE or AZURE_US_GOVERNMENT"
+  default     = "AZURE"
+}
+
+variable "azure_user_assigned_client_id" {
+  type        = string
+  description = "Client ID for User Assigned Managed Identity"
   default     = null
 }

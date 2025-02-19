@@ -99,35 +99,32 @@ spec:
           description: What type of Container Registry Connector type will be used as the default Build Farm Registry
           enum:
             - docker
-            - artifactory
             - aws
+            - gcp
+            - azure
           enumNames:
-            - DockerHub Registry
-            - Artifactory Container Registry
-            - AWS Cloud Connector
+            - DockerHub (or compatible) Registry
+            - AWS Cloud Provider
+            - Google Cloud Provider
+            - Azure Cloud Provider
       dependencies:
         container_registry_type:
           allOf:
+            # Docker Connectors
             - if:
                 properties:
                   container_registry_type:
                     const: docker
               then:
                 required:
+                  - container_registry_provider_type
                   - container_registry_url
                 properties:
+                  container_registry_provider_type:
+                    $ref: "#/cr_defaults/docker/container_registry_provider_type"
                   container_registry_url:
-                    $ref: "#/cr_defaults/container_registry_url"
-            - if:
-                properties:
-                  container_registry_type:
-                    const: artifactory
-              then:
-                required:
-                  - container_registry_url
-                properties:
-                  container_registry_url:
-                    $ref: "#/cr_defaults/container_registry_url"
+                    $ref: "#/cr_defaults/docker/container_registry_url"
+            # AWS Connectors
             - if:
                 properties:
                   container_registry_type: { const: 'aws' }
@@ -138,9 +135,9 @@ spec:
                   - authentication_type_self_hosted
                 properties:
                   region:
-                    $ref: "#/cr_defaults/region"
+                    $ref: "#/cr_defaults/aws/region"
                   authentication_type_self_hosted:
-                    $ref: "#/cr_defaults/authentication_type_self_hosted"
+                    $ref: "#/cr_defaults/aws/authentication_type_self_hosted"
             - if:
                 properties:
                   container_registry_type: { const: 'aws' }
@@ -151,9 +148,9 @@ spec:
                   - authentication_type_harness_cloud
                 properties:
                   region:
-                    $ref: "#/cr_defaults/region"
+                    $ref: "#/cr_defaults/aws/region"
                   authentication_type_harness_cloud:
-                    $ref: "#/cr_defaults/authentication_type_harness_cloud"
+                    $ref: "#/cr_defaults/aws/authentication_type_harness_cloud"
             - if:
                 properties:
                   container_registry_type: { const: 'aws' }
@@ -165,75 +162,412 @@ spec:
                   - authentication_type_harness_cloud
                 properties:
                   region:
-                    $ref: "#/cr_defaults/region"
+                    $ref: "#/cr_defaults/aws/region"
                   authentication_type_self_hosted:
-                    $ref: "#/cr_defaults/authentication_type_self_hosted"
+                    $ref: "#/cr_defaults/aws/authentication_type_self_hosted"
                   authentication_type_harness_cloud:
-                    $ref: "#/cr_defaults/authentication_type_harness_cloud"
+                    $ref: "#/cr_defaults/aws/authentication_type_harness_cloud"
+            # GCP Connectors
+            - if:
+                properties:
+                  container_registry_type: { const: 'gcp' }
+                  build_infrastructure_type: { const: 'internal' }
+              then:
+                required:
+                  - authentication_type_self_hosted
+                properties:
+                  authentication_type_self_hosted:
+                    $ref: "#/cr_defaults/gcp/authentication_type_self_hosted"
+            - if:
+                properties:
+                  container_registry_type: { const: 'gcp' }
+                  build_infrastructure_type: { const: 'cloud' }
+              then:
+                required:
+                  - authentication_type_harness_cloud
+                properties:
+                  authentication_type_harness_cloud:
+                    $ref: "#/cr_defaults/gcp/authentication_type_harness_cloud"
+            - if:
+                properties:
+                  container_registry_type: { const: 'gcp' }
+                  build_infrastructure_type: { const: 'both' }
+              then:
+                required:
+                  - authentication_type_self_hosted
+                  - authentication_type_harness_cloud
+                properties:
+                  authentication_type_self_hosted:
+                    $ref: "#/cr_defaults/gcp/authentication_type_self_hosted"
+                  authentication_type_harness_cloud:
+                    $ref: "#/cr_defaults/gcp/authentication_type_harness_cloud"
+            # Azure Connectors
+            - if:
+                properties:
+                  container_registry_type: { const: 'azure' }
+                  build_infrastructure_type: { const: 'internal' }
+              then:
+                required:
+                  - azure_environment_type
+                  - authentication_type_self_hosted
+                properties:
+                  azure_environment_type:
+                    $ref: "#/cr_defaults/azure/azure_environment_type"
+                  authentication_type_self_hosted:
+                    $ref: "#/cr_defaults/azure/authentication_type_self_hosted"
+            - if:
+                properties:
+                  container_registry_type: { const: 'azure' }
+                  build_infrastructure_type: { const: 'cloud' }
+              then:
+                required:
+                  - azure_environment_type
+                  - authentication_type_harness_cloud
+                properties:
+                  azure_environment_type:
+                    $ref: "#/cr_defaults/azure/azure_environment_type"
+                  authentication_type_harness_cloud:
+                    $ref: "#/cr_defaults/azure/authentication_type_harness_cloud"
+            - if:
+                properties:
+                  container_registry_type: { const: 'azure' }
+                  build_infrastructure_type: { const: 'both' }
+              then:
+                required:
+                  - azure_environment_type
+                  - authentication_type_self_hosted
+                  - authentication_type_harness_cloud
+                properties:
+                  azure_environment_type:
+                    $ref: "#/cr_defaults/azure/azure_environment_type"
+                  authentication_type_self_hosted:
+                    $ref: "#/cr_defaults/azure/authentication_type_self_hosted"
+                  authentication_type_harness_cloud:
+                    $ref: "#/cr_defaults/azure/authentication_type_harness_cloud"
         authentication_type_self_hosted:
           allOf:
+            # AWS Connectors
             - if:
                 properties:
-                  authentication_type_self_hosted:
-                    const: oidc
+                  authentication_type_self_hosted: { const: 'oidc' }
+                  container_registry_type: { const: 'aws' }
               then:
                 required:
                   - iam_role_arn
                 properties:
                   iam_role_arn:
-                    $ref: "#/cr_defaults/iam_role_arn"
+                    $ref: "#/cr_defaults/aws/iam_role_arn"
+            - if:
+                properties:
+                  authentication_type_self_hosted: { const: 'delegate' }
+                  container_registry_type: { const: 'aws' }
+              then:
+                properties:
+                  cross_account_role_arn:
+                    $ref: "#/cr_defaults/aws/cross_account_role_arn"
+                  cross_account_external_id:
+                    $ref: "#/cr_defaults/aws/cross_account_external_id"
+            - if:
+                properties:
+                  authentication_type_self_hosted: { const: 'irsa' }
+                  container_registry_type: { const: 'aws' }
+              then:
+                properties:
+                  cross_account_role_arn:
+                    $ref: "#/cr_defaults/aws/cross_account_role_arn"
+                  cross_account_external_id:
+                    $ref: "#/cr_defaults/aws/cross_account_external_id"
+            # GCP Connectors
+            - if:
+                properties:
+                  authentication_type_self_hosted: { const: 'oidc' }
+                  container_registry_type: { const: 'gcp' }
+              then:
+                required:
+                  - workload_pool_id
+                  - provider_id
+                  - project_id
+                  - service_account_email
+                properties:
+                  workload_pool_id:
+                    $ref: "#/cr_defaults/gcp/workload_pool_id"
+                  provider_id:
+                    $ref: "#/cr_defaults/gcp/provider_id"
+                  project_id:
+                    $ref: "#/cr_defaults/gcp/project_id"
+                  service_account_email:
+                    $ref: "#/cr_defaults/gcp/service_account_email"
+            # Azure Connectors
+            - if:
+                properties:
+                  authentication_type_self_hosted: { const: 'secret' }
+                  container_registry_type: { const: 'azure' }
+              then:
+                required:
+                  - azure_application_id
+                  - azure_tenant_id
+                properties:
+                  azure_application_id:
+                    $ref: "#/cr_defaults/azure/azure_application_id"
+                  azure_tenant_id:
+                    $ref: "#/cr_defaults/azure/azure_tenant_id"
+            - if:
+                properties:
+                  authentication_type_self_hosted: { const: 'certificate' }
+                  container_registry_type: { const: 'azure' }
+              then:
+                required:
+                  - azure_application_id
+                  - azure_tenant_id
+                properties:
+                  azure_application_id:
+                    $ref: "#/cr_defaults/azure/azure_application_id"
+                  azure_tenant_id:
+                    $ref: "#/cr_defaults/azure/azure_tenant_id"
+            - if:
+                properties:
+                  authentication_type_self_hosted: { const: 'delegate' }
+                  container_registry_type: { const: 'azure' }
+              then:
+                properties:
+                  azure_delegate_auth_type:
+                    $ref: "#/cr_defaults/azure/azure_delegate_auth_type"
         authentication_type_harness_cloud:
+          allOf:
+            # AWS Connectors
+            - if:
+                properties:
+                  authentication_type_harness_cloud: { const: 'oidc' }
+                  container_registry_type: { const: 'aws' }
+              then:
+                required:
+                  - iam_role_arn
+                properties:
+                  iam_role_arn:
+                    $ref: "#/cr_defaults/aws/iam_role_arn"
+            # GCP Connectors
+            - if:
+                properties:
+                  authentication_type_harness_cloud: { const: 'oidc' }
+                  container_registry_type: { const: 'gcp' }
+              then:
+                required:
+                  - workload_pool_id
+                  - provider_id
+                  - project_id
+                  - service_account_email
+                properties:
+                  workload_pool_id:
+                    $ref: "#/cr_defaults/gcp/workload_pool_id"
+                  provider_id:
+                    $ref: "#/cr_defaults/gcp/provider_id"
+                  project_id:
+                    $ref: "#/cr_defaults/gcp/project_id"
+                  service_account_email:
+                    $ref: "#/cr_defaults/gcp/service_account_email"
+            # Azure Connectors
+            - if:
+                properties:
+                  authentication_type_harness_cloud: { const: 'secret' }
+                  container_registry_type: { const: 'azure' }
+              then:
+                required:
+                  - azure_application_id
+                  - azure_tenant_id
+                properties:
+                  azure_application_id:
+                    $ref: "#/cr_defaults/azure/azure_application_id"
+                  azure_tenant_id:
+                    $ref: "#/cr_defaults/azure/azure_tenant_id"
+            - if:
+                properties:
+                  authentication_type_harness_cloud: { const: 'certificate' }
+                  container_registry_type: { const: 'azure' }
+              then:
+                required:
+                  - azure_application_id
+                  - azure_tenant_id
+                properties:
+                  azure_application_id:
+                    $ref: "#/cr_defaults/azure/azure_application_id"
+                  azure_tenant_id:
+                    $ref: "#/cr_defaults/azure/azure_tenant_id"
+        azure_delegate_auth_type:
           allOf:
             - if:
                 properties:
-                  authentication_type_harness_cloud:
-                    const: oidc
+                  azure_delegate_auth_type: { const: 'user' }
+                  container_registry_type: { const: 'azure' }
               then:
                 required:
-                  - iam_role_arn
+                  - azure_user_assigned_client_id
                 properties:
-                  iam_role_arn:
-                    $ref: "#/cr_defaults/iam_role_arn"
+                  azure_user_assigned_client_id:
+                    $ref: "#/cr_defaults/azure/azure_user_assigned_client_id"
       cr_defaults:
-        container_registry_url:
-          title: Container Registry URL
-          type: string
-          description: Provide the URL to which the Container Registry connector will connect - e.g. https://index.docker.io/v2/
-        region:
-          title: AWS Region
-          type: string
-          description: Provide the default AWS Region for the connector
-          default: us-east-1
-        authentication_type_self_hosted:
-          title: AWS Authentication Type - Self-Hosted Infrastructure
-          type: string
-          description: Provide the default AWS Authentication Type for the connector
-          default: manual
-          enum:
-            - manual
-            - delegate
-            - irsa
-            - oidc
-          enumNames:
-            - Access Key & Secret Key
-            - Inherit from the Delegate
-            - Use IRSA
-            - Leverage OIDC Authentication
-        authentication_type_harness_cloud:
-          title: AWS Authentication Type - Harness Cloud
-          type: string
-          description: Provide the default AWS Authentication Type for the connector
-          default: manual
-          enum:
-            - manual
-            - oidc
-          enumNames:
-            - Access Key & Secret Key
-            - Leverage OIDC Authentication
-        iam_role_arn:
-          title: AWS IAM Role ARN
-          type: string
-          description: Provide the AWS IAM Role for the connector
+        docker:
+          container_registry_provider_type:
+            title: Container Registry Type
+            type: string
+            description: Choose a Generic Container Registry Type
+            enum:
+              - DockerHub
+              - Other
+              - Harbor
+              - Quay
+            enumNames:
+              - DockerHub
+              - Artifactory/Nexus/Other
+              - Harbor
+              - Quay
+          container_registry_url:
+            title: Container Registry URL
+            type: string
+            description: Provide the URL to which the Container Registry connector will connect - e.g. https://index.docker.io/v2/
+        aws:
+          region:
+            title: AWS Region
+            type: string
+            description: Provide the default AWS Region for the connector
+            default: us-east-1
+          authentication_type_self_hosted:
+            title: AWS Authentication Type - Self-Hosted Infrastructure
+            type: string
+            description: Provide the default AWS Authentication Type for the connector
+            default: oidc
+            enum:
+              - manual
+              - delegate
+              - irsa
+              - oidc
+            enumNames:
+              - Access Key & Secret Key
+              - Inherit from the Delegate
+              - Use IRSA
+              - Leverage OIDC Authentication
+          authentication_type_harness_cloud:
+            title: AWS Authentication Type - Harness Cloud
+            type: string
+            description: Provide the default AWS Authentication Type for the connector
+            default: oidc
+            enum:
+              - manual
+              - oidc
+            enumNames:
+              - Access Key & Secret Key
+              - Leverage OIDC Authentication
+          iam_role_arn:
+            title: AWS IAM Role ARN
+            type: string
+            description: Provide the AWS IAM Role for the connector
+          cross_account_role_arn:
+            title: Cross account role ARN
+            type: string
+            description: The Amazon Resource Name (ARN) of the role that you want to assume. This is an IAM role in the target AWS account.
+          cross_account_external_id:
+            title: External Id
+            type: string
+            description: If the administrator of the account to which the role belongs provided you with an external Id, then enter that value.
+        gcp:
+          authentication_type_self_hosted:
+            title: GCP Authentication Type - Self-Hosted Infrastructure
+            type: string
+            description: Provide the default GCP Authentication Type for the connector
+            default: oidc
+            enum:
+              - manual
+              - delegate
+              - oidc
+            enumNames:
+              - Access Key & Secret Key
+              - Inherit from the Delegate
+              - Leverage OIDC Authentication
+          authentication_type_harness_cloud:
+            title: GCP Authentication Type - Harness Cloud
+            type: string
+            description: Provide the default GCP Authentication Type for the connector
+            default: oidc
+            enum:
+              - manual
+              - oidc
+            enumNames:
+              - Access Key & Secret Key
+              - Leverage OIDC Authentication
+          workload_pool_id:
+            title: GCP Pool ID
+            type: string
+            description: Workload Pool ID for OIDC authentication
+          provider_id:
+            title: GCP Provider ID
+            type: string
+            description: Provider ID for OIDC authentication
+          project_id:
+            title: GCP Project ID
+            type: string
+            description: GCP Project ID for OIDC authentication
+          service_account_email:
+            title: GCP Service Account Email
+            type: string
+            description: Service Account Email for OIDC authentication
+        azure:
+          authentication_type_self_hosted:
+            title: Azure Authentication Type - Self-Hosted Infrastructure
+            type: string
+            description: Provide the default Azure Authentication Type for the connector
+            default: delegate
+            enum:
+              - secret
+              - certificate
+              - delegate
+            enumNames:
+              - Service Principal Secret
+              - Service Principal Certificate
+              - Managed Identity on Delegate
+          authentication_type_harness_cloud:
+            title: Azure Authentication Type - Harness Cloud
+            type: string
+            description: Provide the default Azure Authentication Type for the connector
+            default: certificate
+            enum:
+              - secret
+              - certificate
+            enumNames:
+              - Service Principal Secret
+              - Service Principal Certificate
+          azure_environment_type:
+            title: Choose your Azure Cloud Type
+            type: string
+            description: Select Azure Global or US Government
+            default: AZURE
+            enum:
+              - AZURE
+              - AZURE_US_GOVERNMENT
+            enumNames:
+              - Azure Global
+              - US Government
+          azure_application_id:
+            title: Azure application ID for authentication
+            type: string
+            description: This is the Application (Client) Id for the Azure app registration you are using
+          azure_tenant_id:
+            title: Azure tenant ID for authentication
+            type: string
+            description: The Tenant Id is the Id of the Azure Active Directory (AAD) in which you created your application.
+          azure_delegate_auth_type:
+            title: Select the Managed Identity type
+            type: string
+            description: Select System Assigned Managed Identity or User Assigned Managed Identity.
+            default: system
+            enum:
+              - system
+              - user
+            enumNames:
+              - System Assigned Managed Identity
+              - User Assigned Managed Identity
+          azure_user_assigned_client_id:
+            title: Client ID for User Assigned Managed Identity
+            type: string
+            description: The Tenant Id is the Id of the Azure Active Directory (AAD) in which you created your application.
     - title: Solutions Factory Connection
       properties:
         solutions_factory_details:
@@ -285,16 +619,31 @@ spec:
           RESOURCE_OWNER: group:default/Account_Admins
           RESOURCE_VARS:
             build_infrastructure_type: ${{ parameters.build_infrastructure_type }}
-            container_registry_type: ${{ parameters.container_registry_type }}
-            container_registry_url: ${{ parameters.container_registry_url }}
+            delegate_selectors: ["${{ parameters.delegate_selectors }}"]
             source_code_manager_type: ${{ parameters.source_code_manager_type }}
             source_code_manager_url: ${{ parameters.source_code_manager_url }}
             source_code_manager_validation_repo: ${{ parameters.source_code_manager_validation_repo }}
-            delegate_selectors: ["${{ parameters.delegate_selectors }}"]
-            region: ${{ parameters.region }}
             authentication_type_self_hosted: ${{ parameters.authentication_type_self_hosted }}
             authentication_type_harness_cloud: ${{ parameters.authentication_type_harness_cloud }}
+            container_registry_type: ${{ parameters.container_registry_type }}
+            # Generic Docker
+            container_registry_url: ${{ parameters.container_registry_url }}
+            container_registry_provider_type: ${{ parameters.container_registry_provider_type }}
+            # AWS Connectors
+            region: ${{ parameters.region }}
             iam_role_arn: ${{ parameters.iam_role_arn }}
+            aws_cross_account_role_arn: ${{ parameters.cross_account_role_arn }}
+            aws_cross_account_external_id: ${{ parameters.cross_account_external_id }}
+            # GCP Connectors
+            gcp_workload_pool_id: ${{ parameters.workload_pool_id }}
+            gcp_provider_id: ${{ parameters.provider_id }}
+            gcp_project_id: ${{ parameters.project_id }}
+            gcp_service_account_email: ${{ parameters.service_account_email }}
+            # Azure Connectors
+            azure_application_id: ${{ parameters.azure_application_id }}
+            azure_tenant_id: ${{ parameters.azure_tenant_id }}
+            azure_environment_type: ${{ parameters.azure_environment_type }}
+            azure_user_assigned_client_id: ${{ parameters.azure_user_assigned_client_id }}
           RESOURCE_VARS_ENVS: {}
           RESOURCE_VARS_ENVS_SECRET: {}
           RESOURCE_VARS_SECRETS: {}

@@ -7,16 +7,26 @@ locals {
     null
   )
 
+  output_container_registry_type = (
+    contains(local.generic_container_registry_types, local.container_registry_type)
+    ?
+    "docker"
+    :
+    local.container_registry_type
+  )
+
   container_registry_id = {
-    "docker"      = (local.container_registry_type == "docker" ? module.cr_docker.0.connector : null)
-    "artifactory" = (local.container_registry_type == "artifactory" ? module.cr_artifactory.0.connector : null)
-    "aws"         = (local.container_registry_type == "aws" ? module.cr_aws.0.connector : null)
+    "docker" = (local.output_container_registry_type == "docker" ? module.cr_docker.0.connector : null)
+    "aws"    = (local.output_container_registry_type == "aws" ? module.cr_aws.0.connector : null)
+    "gcp"    = (local.output_container_registry_type == "gcp" ? module.cr_gcp.0.connector : null)
+    "azure"  = (local.output_container_registry_type == "azure" ? module.cr_azure.0.connector : null)
   }
 
   container_registry_cloud_id = {
-    "docker"      = (local.container_registry_type == "docker" ? module.cr_docker.0.connector_cloud : null)
-    "artifactory" = (local.container_registry_type == "artifactory" ? module.cr_artifactory.0.connector_cloud : null)
-    "aws"         = (local.container_registry_type == "aws" ? module.cr_aws.0.connector_cloud : null)
+    "docker" = (local.output_container_registry_type == "docker" ? module.cr_docker.0.connector_cloud : null)
+    "aws"    = (local.output_container_registry_type == "aws" ? module.cr_aws.0.connector_cloud : null)
+    "gcp"    = (local.output_container_registry_type == "gcp" ? module.cr_gcp.0.connector_cloud : null)
+    "azure"  = (local.output_container_registry_type == "azure" ? module.cr_azure.0.connector_cloud : null)
   }
 
   source_code_manager_id = {

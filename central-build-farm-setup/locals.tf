@@ -14,6 +14,7 @@ locals {
   container_registry_type  = lower(var.container_registry_type)
   source_code_manager_type = lower(var.source_code_manager_type)
 
+  generic_container_registry_types = ["docker", "generic", "quay", "harbor"]
 
   support_self_hosted   = tobool(lower(var.build_infrastructure_type) != "cloud")
   support_harness_cloud = tobool(lower(var.build_infrastructure_type) != "internal")

@@ -58,3 +58,15 @@ variable "iam_role_arn" {
   description = "[Optional] The IAM Role to assume the credentials from"
   default     = null
 }
+
+variable "cross_account_role_arn" {
+  type        = string
+  description = "[Optional] The Amazon Resource Name (ARN) of the role that you want to assume. This is an IAM role in the target AWS account."
+  default     = null
+}
+
+variable "cross_account_external_id" {
+  type        = string
+  description = "[Optional] If the administrator of the account to which the role belongs provided you with an external ID, then enter that value."
+  default     = null
+}

@@ -36,3 +36,23 @@ variable "delegate_selectors" {
   type        = list(string)
   default     = ["build-farm"]
 }
+
+variable "provider_type" {
+  type        = string
+  description = "Please provide the default URL for the Connector - e.g. https://index.docker.io/v2/"
+  default     = "DockerHub"
+
+  validation {
+    condition = (
+      contains(["DockerHub", "Harbor", "Quay", "Other"], var.provider_type)
+    )
+    error_message = <<EOF
+        Validation of Azure Environment Type Failed.
+            * Must be one of the following:
+            - DockerHub
+            - Harbor
+            - Quay
+            - Other
+        EOF
+  }
+}
