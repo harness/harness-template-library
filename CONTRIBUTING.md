@@ -27,6 +27,8 @@ When contributing to this project, please adhere to the following guidelines:
 ## Documentation Requirements
 Each module and associated variables need to be clearly and descriptively documented indicating their purpose and expected value types.  In addition, example snippets should be shared to show how the module can be leveraged in Terraform templates.
 
+Leverage [terraform-docs](https://terraform-docs.io/) to generate matching README tables from your defined variables and outputs. A make command `docs` has been provided for this.
+
 ## Use of additional Providers
 If required, then additional providers can be leveraged in this project.  However, the use of those providers must confirm to the open source project licensing guidelines and be clearly documented within the module code and README files.  Approval of external Providers is contingent on the review of the repository maintainers team as part of the Pull Request.
 

@@ -218,3 +218,12 @@ else
 endif
 
 ##################################
+
+##################################
+# TEMPLATE HELPERS
+##################################
+# Generate readme tables for variables and outputs automatically
+docs:
+	terraform-docs markdown table . --anchor=false
+
+##################################
