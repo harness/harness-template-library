@@ -1,0 +1,17 @@
+{
+	"name": "harness-template-library-dev",
+	"image": "ghcr.io/opentofu/opentofu:latest",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"gamunu.opentofu",
+				"4ops.terraform",
+				"harness-inc.harness-aida-code-assistant-vsx"
+			]
+		}
+	},
+	"containerEnv": {
+		"HARNESS_ACCOUNT_ID": "AM8HCbDiTXGQNrTIhNl7qQ"
+	},
+	"postStartCommand": "apk add make curl; curl -sSLo ./terraform-docs.tar.gz https://terraform-docs.io/dl/v0.19.0/terraform-docs-v0.19.0-$(uname)-amd64.tar.gz && tar -C /tmp -xzf terraform-docs.tar.gz && chmod +x /tmp/terraform-docs && mv /tmp/terraform-docs /usr/local/bin/ && rm terraform-docs.tar.gz"
+}
