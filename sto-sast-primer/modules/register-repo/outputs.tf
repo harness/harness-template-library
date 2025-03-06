@@ -1,8 +1,20 @@
 locals {
+  harness_platform_url = (
+    endswith(var.harness_platform_url, "/ng")
+    ?
+      var.harness_platform_url
+    :
+      endswith(var.harness_platform_url, "/gateway")
+      ?
+        replace(var.harness_platform_url, "/gateway", "/ng")
+      :
+        "${var.harness_platform_url}/ng"
+  )
+
   pipeline = join(
     "/",
     [
-      replace(var.harness_platform_url, "/gateway", "/ng"),
+      local.harness_platform_url,
       "account",
       var.harness_platform_account,
       "all/orgs",
