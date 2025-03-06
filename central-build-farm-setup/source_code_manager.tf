@@ -51,3 +51,18 @@ module "scm_bitbucket" {
   support_harness_cloud               = local.support_harness_cloud
   tags                                = local.common_tags
 }
+
+module "scm_gitlab" {
+  count  = local.source_code_manager_type == "gitlab" ? 1 : 0
+  source = "./modules/scm/gitlab"
+
+  source_code_manager_url             = var.source_code_manager_url
+  source_code_manager_validation_repo = var.source_code_manager_validation_repo
+  authentication_type                 = var.authentication_type
+  scm_username                        = "account.${harness_platform_secret_text.scm_username.id}"
+  scm_password                        = "account.${harness_platform_secret_text.scm_password.id}"
+  support_self_hosted                 = local.support_self_hosted
+  support_harness_cloud               = local.support_harness_cloud
+  tags                                = local.common_tags
+
+}

@@ -71,13 +71,14 @@ variable "source_code_manager_type" {
 
   validation {
     condition = (
-      contains(["github", "bitbucket"], lower(var.source_code_manager_type))
+      contains(["github", "bitbucket", "gitlab"], lower(var.source_code_manager_type))
     )
     error_message = <<EOF
         Validation of Source Code Manager Type Failed.
             * Must be one of the following:
             - github
             - bitbucket
+            - gitlab
         EOF
   }
 }
@@ -90,6 +91,11 @@ variable "source_code_manager_url" {
 variable "source_code_manager_validation_repo" {
   type        = string
   description = "Please provide the validation URL for the Connector - e.g. harness/terraform-provider-harness"
+}
+variable "authentication_type" {
+  type        = string
+  description = "[Optional] Choose the authentication type for the Self-Hosted Connectors"
+  default     = "manual"
 }
 
 variable "delegate_selectors" {

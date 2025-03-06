@@ -32,10 +32,12 @@ locals {
   source_code_manager_id = {
     "github"    = (local.source_code_manager_type == "github" ? module.scm_github.0.connector : null)
     "bitbucket" = (local.source_code_manager_type == "bitbucket" ? module.scm_bitbucket.0.connector : null)
+    "gitlab"    = (local.source_code_manager_type == "gitlab" ? module.scm_gitlab.0.connector : null)
   }
   source_code_manager_cloud_id = {
     "github"    = (local.source_code_manager_type == "github" ? module.scm_github.0.connector_cloud : null)
     "bitbucket" = (local.source_code_manager_type == "bitbucket" ? module.scm_bitbucket.0.connector_cloud : null)
+    "gitlab"    = (local.source_code_manager_type == "gitlab" ? module.scm_gitlab.0.connector_cloud : null)
   }
 
   build_farm_delegate = (
