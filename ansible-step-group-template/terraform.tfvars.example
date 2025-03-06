@@ -1,0 +1,33 @@
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = # Required
+
+# [Optional] Provide a Map of Tags to associate with the resources
+tags = {}
+
+# [Optional] Name of the Ansible step group template
+template_name = "Execute Ansible"
+# [Optional] Version strings for the step group template
+template_version = "1.0"
+# [Optional] A seperate template will be created for each stage type specified
+template_types = ["Deployment", "CI", "IACM"]
+
+# [Optional] If you are using Harness code to store your ansible playbooks
+harness_code = false
+# [Optional] Docker connector ID for pulling ansible image
+docker_connector = "account.harnessImage"
+# [Optional] Docker image to use for running ansible. Must follow repo/image format
+image = "alpine/ansible"
+
+## Step Group Infrastructure Variables
+
+# [Optional] Enter the existing Kubernetes connector to use for Execution.  Must exist before execution. Set to 'skipped' to use <+input>
+kubernetes_connector = "skipped"
+# [Optional] Enter the existing Kubernetes namespace to use for Execution.  Must exist before execution. Set to 'skipped' to use <+input>
+kubernetes_namespace = "skipped"
+# [Optional] Optional Kubernetes Node Selectors
+kubernetes_node_selectors = {}
+# [Optional] Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution
+kubernetes_override_image_connector = "skipped"

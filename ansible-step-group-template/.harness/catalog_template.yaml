@@ -1,0 +1,220 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: ansible-step-group-template
+  title: Ansible Step Group Template
+  description: A step group template to run ansible
+  tags:
+    - solutions-factory
+    - harness
+    - step-group
+    - ansible
+    - custom
+spec:
+  owner: group:default/harness_account_all_users # Defaults to all users
+  type: step-group
+  parameters:
+    - title: Template Configuration
+      required:
+        - template_name
+        - template_version
+        - harness_code
+        - docker_connector
+        - image
+        - build_infrastructure_type
+      properties:
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+        template_name:
+          title: Step Template Name
+          type: string
+          description: What should the "Execute Ansible" step group template be named
+          default: Execute Ansible
+        template_version:
+          title: Step Template Version
+          type: string
+          description: What should the step group template's initial version be
+          default: "1.0"
+        template_types:
+          title: Templates to create
+          type: array
+          description: What stage types do you want to create templates for
+          items:
+            type: string
+            enum:
+              - Deployment
+              - CI
+              - IACM
+            enumNames:
+              - CD/Custom
+              - CI
+              - IACM
+          uniqueItems: true
+          ui:widget: checkboxes
+        harness_code:
+          title: Harness Code
+          type: boolean
+          description: Are you using Harness Code to store ansible playbooks?
+          default: false
+        docker_connector:
+          title: Docker Connector
+          type: string
+          description: Docker connector ID for pulling ansible image
+          default: account.harnessImage
+        image:
+          title: Ansible image
+          type: string
+          default: alpine/ansible
+          description: Docker image to use for running ansible. Must follow repo/image format
+        build_infrastructure_type:
+          title: Choose your Step Group Infrastructure configuration
+          type: string
+          default: build_farm
+          enum:
+            - build_farm
+            - custom
+            - runtime_input
+          enumNames:
+            - Central Build Farm Infrastructure Only
+            - Static Self-Hosted Kubernetes Infrastructure
+            - Runtime Input
+        infra_defaults:
+          title: infra_defaults
+          type: object
+          ui:widget: hidden
+          properties:
+            kubernetes_connector:
+              type: string
+              default: account.buildfarm_infrastructure
+            kubernetes_namespace:
+              type: string
+              default: default
+            kubernetes_override_image_connector:
+              type: string
+              default: ""
+            kubernetes_node_selectors:
+              type: string
+              default: ""
+      dependencies:
+        build_infrastructure_type:
+          allOf:
+            - if:
+                properties:
+                  build_infrastructure_type:
+                    const: "custom"
+              then:
+                required:
+                  - kubernetes_connector
+                  - kubernetes_namespace
+                properties:
+                  kubernetes_connector:
+                    title: Existing Kubernetes Infrastructure Connector Reference
+                    type: string
+                    description: Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline.  Must exist before execution.
+                  kubernetes_namespace:
+                    title: Existing Kubernetes Infrastructure Namespace
+                    type: string
+                    description: Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
+                  kubernetes_override_image_connector:
+                    title: Existing Override Image Container Connector Reference
+                    type: string
+                    description: Enter an existing Container Registry connector to use which overrides the default connector.  Must exist before execution
+                  kubernetes_node_selectors:
+                    title: Map of Kubernetes Node Selectors (Must be in key:value JSON)
+                    type: object
+                    description: Optional Kubernetes Node Selectors
+                    additionalProperties:
+                      type: string
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
+  steps:
+    - id: configure_workspace
+      name: Configuring Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
+          GIT_REPOSITORY_NAME: harness-template-library
+          GIT_REPOSITORY_PATH: ansible-step-group-template
+          GIT_REPOSITORY_BRANCH: main
+          RESOURCE_NAME: ansible_step_group_template
+          RESOURCE_OWNER: group:default/harness_account_all_users
+          # YAML of Terraform variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS:
+            template_name: ${{ parameters.template_name }}
+            template_version: ${{ parameters.template_version }}
+
+            template_types:
+            harness_code: ${{ parameters.harness_code }}
+
+            docker_connector: ${{ parameters.docker_connector }}
+            image: ${{ parameters.image }}
+            
+            kubernetes_connector: ${{ parameters.infra_defaults.kubernetes_connector if (parameters.build_infrastructure_type == "build_farm") else ("skipped" if (parameters.build_infrastructure_type == "runtime_input") else parameters.kubernetes_connector) }}
+            kubernetes_namespace: ${{ parameters.infra_defaults.kubernetes_namespace if (parameters.build_infrastructure_type == "build_farm") else ("skipped" if (parameters.build_infrastructure_type == "runtime_input") else parameters.kubernetes_namespace) }}
+            kubernetes_node_selectors: ${{ parameters.kubernetes_node_selectors if parameters.kubernetes_node_selectors else parameters.infra_defaults.kubernetes_node_selectors }}
+            kubernetes_override_image_connector: ${{ parameters.kubernetes_override_image_connector if parameters.kubernetes_override_image_connector else parameters.infra_defaults.kubernetes_override_image_connector }}
+          # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_SECRETS: {}
+          # YAML of Environment variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS_ENVS: {}
+          # YAML of Environment variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_ENVS_SECRET: {}
+          # Should the workspace automatically include the default Harness Connector environment variables
+          INCLUDE_HARNESS_ENVS: "true"
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: provision_workspace
+      name: Provisioning your Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          workspace: ansible_step_group_template
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Harness Workspace Configured - Execution Link
+        url: ${{ steps.configure_workspace.output.PipelineUrl }}
+      - title: Harness Workspace Provisioned - Execution Link
+        url: ${{ steps.provision_workspace.output.PipelineUrl }}
+      - title: View Templates
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/settings/templates

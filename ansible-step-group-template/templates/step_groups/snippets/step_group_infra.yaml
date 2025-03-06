@@ -1,0 +1,12 @@
+      type: KubernetesDirect
+      spec:
+        connectorRef: ${KUBERNETES_CONNECTOR}
+        namespace: ${KUBERNETES_NAMESPACE}
+        automountServiceAccountToken: true
+        %{~ if KUBERNETES_NODESELECTORS != "skipped" ~}
+        nodeSelector:
+          ${KUBERNETES_NODESELECTORS}
+        %{~ endif ~}
+        %{~ if KUBERNETES_IMAGE_CONNECTOR != "skipped" ~}
+        harnessImageConnectorRef: ${KUBERNETES_IMAGE_CONNECTOR}
+        %{~ endif ~}
