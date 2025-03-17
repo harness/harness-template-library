@@ -70,21 +70,49 @@ spec:
         source_code_manager_type:
           title: Choose your Source Code Manager Type
           type: string
-          description: What type of Source Code Manager Connector type will be used as the default Build Farm SC
+          description: What type of Source Code Manager Connector type will be used as the default Build Farm SCM. | Enterprise versions require a Harness Delegate to function
           enum:
             - github
             - bitbucket
+            - gitlab
           enumNames:
             - GitHub (Cloud or Enterprise)
             - Bitbucket (Cloud or Enterprise)
+            - Gitlab (Cloud or Enterprise)
         source_code_manager_url:
           title: Source Code Manager URL
           type: string
-          description: Please provide the default URL for the Connector - e.g. https://github.com
+          description: Please provide the default URL for the Connector - e.g.
+            https://github.com
         source_code_manager_validation_repo:
           title: Validation Repository
           type: string
-          description: Please provide the validation URL for the Connector - e.g. harness/terraform-provider-harness
+          description: Please provide the validation URL for the Connector - e.g.
+            harness/terraform-provider-harness
+      dependencies:
+        source_code_manager_type:
+          allOf:
+            - if:
+                properties:
+                  source_code_manager_type:
+                    const: gitlab
+              then:
+                required:
+                  - source_code_manager_auth_type
+                properties:
+                  source_code_manager_auth_type:
+                    $ref: "#/source_code_manager_auth_type"
+      source_code_manager_auth_type:
+        title: SCM Authentication Type
+        type: string
+        description: Provide the default SCM Authentication Type for the connector
+        default: http
+        enum:
+          - http
+          - ssh
+        enumNames:
+          - HTTP
+          - SSH
     - title: Setup Build Farm Container Registry
       required:
         - container_registry_type
@@ -623,6 +651,7 @@ spec:
             source_code_manager_type: ${{ parameters.source_code_manager_type }}
             source_code_manager_url: ${{ parameters.source_code_manager_url }}
             source_code_manager_validation_repo: ${{ parameters.source_code_manager_validation_repo }}
+            source_code_manager_auth_type: ${{ parameters.source_code_manager_auth_type }}
             authentication_type_self_hosted: ${{ parameters.authentication_type_self_hosted }}
             authentication_type_harness_cloud: ${{ parameters.authentication_type_harness_cloud }}
             container_registry_type: ${{ parameters.container_registry_type }}

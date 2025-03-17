@@ -28,7 +28,7 @@ resource "harness_platform_connector_gitlab" "source_code_manager" {
     dynamic "ssh" {
       for_each = var.authentication_type == "ssh" ? [1] : []
       content {
-        ssh_key_ref = var.scm_password
+        ssh_key_ref = var.scm_ssh_key
       }
     }
   }
@@ -70,7 +70,7 @@ resource "harness_platform_connector_gitlab" "source_code_manager_cloud" {
     dynamic "ssh" {
       for_each = var.authentication_type == "ssh" ? [1] : []
       content {
-        ssh_key_ref = var.scm_password
+        ssh_key_ref = var.scm_ssh_key
       }
     }
   }

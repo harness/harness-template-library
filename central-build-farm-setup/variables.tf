@@ -92,10 +92,10 @@ variable "source_code_manager_validation_repo" {
   type        = string
   description = "Please provide the validation URL for the Connector - e.g. harness/terraform-provider-harness"
 }
-variable "authentication_type" {
+variable "source_code_manager_auth_type" {
   type        = string
-  description = "[Optional] Choose the authentication type for the Self-Hosted Connectors"
-  default     = "manual"
+  description = "[Optional] Choose the authentication type for the SCM Connectors"
+  default     = "http"
 }
 
 variable "delegate_selectors" {

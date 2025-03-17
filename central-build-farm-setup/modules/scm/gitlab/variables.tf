@@ -30,6 +30,12 @@ variable "scm_password" {
   description = "Please provide the ID of the SCM Connector Credentials - Password"
 }
 
+variable "scm_ssh_key" {
+  type        = string
+  description = "Please provide the ID of the SCM Connector Credentials - SSH-KEY"
+  default     = null
+}
+
 variable "enable_api_authentication" {
   type        = bool
   description = "Enable API authentication using the provided password/token"
