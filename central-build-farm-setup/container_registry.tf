@@ -39,18 +39,6 @@ module "cr_docker" {
   tags                        = local.common_tags
 }
 
-# module "cr_artifactory" {
-#   count  = local.container_registry_type == "artifactory" ? 1 : 0
-#   source = "./modules/container_registry/artifactory"
-
-#   container_registry_url      = var.container_registry_url
-#   container_registry_username = "account.${harness_platform_secret_text.container_registry_username.id}"
-#   container_registry_password = "account.${harness_platform_secret_text.container_registry_password.id}"
-#   support_self_hosted         = local.support_self_hosted
-#   support_harness_cloud       = local.support_harness_cloud
-#   tags                        = local.common_tags
-# }
-
 module "cr_aws" {
   count  = local.container_registry_type == "aws" ? 1 : 0
   source = "./modules/container_registry/aws"

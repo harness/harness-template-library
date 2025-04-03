@@ -596,6 +596,134 @@ spec:
             title: Client ID for User Assigned Managed Identity
             type: string
             description: The Tenant Id is the Id of the Azure Active Directory (AAD) in which you created your application.
+    - title: Setup Build Farm Artifact Manager
+      required:
+        - artifact_manager_type
+        - artifact_manager_url
+      properties:
+        build_infrastructure_type:
+          title: Configure a Kubernetes Connector for use as a Centralized Build Farm
+          type: string
+          ui:widget: hidden
+        artifact_manager_type:
+          title: Choose your Artifact Manager Type
+          type: string
+          description: What type of Artifact Manager Connector type will be used as the
+            default Build Farm Registry
+          enum:
+            - artifactory
+            - nexus
+            - http_helm
+            - oci_helm
+          enumNames:
+            - Artifactory
+            - Nexus
+            - Helm HTTP
+            - Helm OCI
+        artifact_manager_url:
+          title: Artifact Manager URL
+          type: string
+          description: Please provide the default URL for the Connector - e.g.
+            https://mycompany.jfrog.io/module_name/
+      dependencies:
+        artifact_manager_type:
+          allOf:
+            - if:
+                properties:
+                  artifact_manager_type:
+                    const: http_helm
+              then:
+                required:
+                  - artifact_manager_auth_type
+                  - artifact_manager_delegate
+                properties:
+                  artifact_manager_auth_type:
+                    $ref: "#/artifact_manager_auth_type"
+                  artifact_manager_delegate:
+                    $ref: "#/artifact_manager_delegate"
+            - if:
+                properties:
+                  artifact_manager_type:
+                    const: oci_helm
+              then:
+                required:
+                  - artifact_manager_auth_type
+                  - artifact_manager_delegate
+                properties:
+                  artifact_manager_auth_type:
+                    $ref: "#/artifact_manager_auth_type"
+                  artifact_manager_delegate:
+                    $ref: "#/artifact_manager_delegate"
+            - if:
+                properties:
+                  artifact_manager_type:
+                    const: nexus
+              then:
+                required:
+                  - artifact_manager_auth_type
+                  - nexus_version
+                  - artifact_manager_delegate
+                properties:
+                  artifact_manager_auth_type:
+                    $ref: "#/artifact_manager_auth_type"
+                  nexus_version:
+                    $ref: "#/nexus_version"
+                  artifact_manager_delegate:
+                    $ref: "#/artifact_manager_delegate"
+            - if:
+                properties:
+                  artifact_manager_type:
+                    const: artifactory
+                  build_infrastructure_type:
+                    const: internal
+              then:
+                required:
+                  - artifact_manager_delegate
+                properties:
+                  artifact_manager_delegate:
+                    $ref: "#/artifact_manager_delegate"
+            - if:
+                properties:
+                  artifact_manager_type:
+                    const: artifactory
+                  build_infrastructure_type:
+                    const: both
+              then:
+                required:
+                  - artifact_manager_delegate
+                properties:
+                  artifact_manager_delegate:
+                    $ref: "#/artifact_manager_delegate"
+      artifact_manager_auth_type:
+        title: Artifact Manager Authentication Type
+        type: string
+        description: Provide the default Artifact Manager Authentication Type for the
+          connector
+        default: Anonymous
+        enum:
+          - UsernamePassword
+          - Anonymous
+        enumNames:
+          - UsernamePassword
+          - Anonymous
+      artifact_manager_delegate:
+        title: Delegate Selectors to attach to the artifact manager connectors?
+        description: Self-hosted infrastructure connectors require that you provide a
+          delegate tag. It is suggested that you apply only one as complex
+          delegate selectors can cause issues with resource selection.
+        type: string
+        default: build_farm
+      nexus_version:
+        title: Nexus Server Version
+        type: string
+        description: Provide the default Nexus Server Version for the connector
+        default: 2.x
+        enum:
+          - 2.x
+          - 3.x
+        enumNames:
+          - 2.x
+          - 3.x
     - title: Solutions Factory Connection
       properties:
         solutions_factory_details:
@@ -673,6 +801,11 @@ spec:
             azure_tenant_id: ${{ parameters.azure_tenant_id }}
             azure_environment_type: ${{ parameters.azure_environment_type }}
             azure_user_assigned_client_id: ${{ parameters.azure_user_assigned_client_id }}
+            artifact_manager_type: ${{ parameters.artifact_manager_type }}
+            artifact_manager_url: ${{ parameters.artifact_manager_url }}
+            artifact_manager_auth_type: ${{ parameters.artifact_manager_auth_type }}
+            nexus_version: ${{ parameters.nexus_version }}
+            artifact_manager_delegate: ["${{ parameters.artifact_manager_delegate }}"]
           RESOURCE_VARS_ENVS: {}
           RESOURCE_VARS_ENVS_SECRET: {}
           RESOURCE_VARS_SECRETS: {}

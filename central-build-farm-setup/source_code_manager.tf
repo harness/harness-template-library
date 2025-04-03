@@ -77,7 +77,7 @@ module "scm_gitlab" {
 
   source_code_manager_url             = var.source_code_manager_url
   source_code_manager_validation_repo = var.source_code_manager_validation_repo
-  authentication_type                 = var.source_code_manager_auth_type
+  source_code_manager_auth_type       = var.source_code_manager_auth_type
   scm_username                        = "account.${harness_platform_secret_text.scm_username.id}"
   scm_password                        = "account.${harness_platform_secret_text.scm_password.id}"
   scm_ssh_key                         = var.source_code_manager_auth_type == "ssh" ? "account.${harness_platform_secret_sshkey.scm_ssh_key[0].id}" : null

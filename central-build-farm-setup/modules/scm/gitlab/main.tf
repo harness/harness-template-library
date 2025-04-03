@@ -18,7 +18,7 @@ resource "harness_platform_connector_gitlab" "source_code_manager" {
 
   credentials {
     dynamic "http" {
-      for_each = var.authentication_type == "http" ? [1] : []
+      for_each = var.source_code_manager_auth_type == "http" ? [1] : []
       content {
         username  = var.scm_username
         token_ref = var.scm_password
@@ -26,7 +26,7 @@ resource "harness_platform_connector_gitlab" "source_code_manager" {
     }
 
     dynamic "ssh" {
-      for_each = var.authentication_type == "ssh" ? [1] : []
+      for_each = var.source_code_manager_auth_type == "ssh" ? [1] : []
       content {
         ssh_key_ref = var.scm_ssh_key
       }
@@ -60,7 +60,7 @@ resource "harness_platform_connector_gitlab" "source_code_manager_cloud" {
 
   credentials {
     dynamic "http" {
-      for_each = var.authentication_type == "http" ? [1] : []
+      for_each = var.source_code_manager_auth_type == "http" ? [1] : []
       content {
         username  = var.scm_username
         token_ref = var.scm_password
@@ -68,7 +68,7 @@ resource "harness_platform_connector_gitlab" "source_code_manager_cloud" {
     }
 
     dynamic "ssh" {
-      for_each = var.authentication_type == "ssh" ? [1] : []
+      for_each = var.source_code_manager_auth_type == "ssh" ? [1] : []
       content {
         ssh_key_ref = var.scm_ssh_key
       }

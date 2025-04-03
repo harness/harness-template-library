@@ -1,21 +1,21 @@
-variable "container_registry_url" {
-  description = "URL of the Helm server"
+variable "artifact_manager_url" {
   type        = string
+  description = "URL of the OCI Helm server"
 }
 
-variable "auth_type" {
+variable "artifact_manager_auth_type" {
   type        = string
   description = "Authentication type: 'UsernamePassword' or 'Anonymous'"
 }
 
-variable "container_registry_username" {
-  description = "Username for authentication (required if auth_type is username_password)"
+variable "artifact_manager_username" {
   type        = string
+  description = "Please provide the ID of the Connector Credentials - Username"
 }
 
-variable "container_registry_password" {
-  description = "Password reference for authentication (required if auth_type is username_password)"
+variable "artifact_manager_password" {
   type        = string
+  description = "Please provide the ID of the Connector Credentials - Password"
 }
 
 variable "support_self_hosted" {
@@ -36,7 +36,7 @@ variable "tags" {
   default     = {}
 }
 
-variable "delegate_selectors" {
+variable "artifact_manager_delegate" {
   description = "Delegate selectors"
   type        = list(string)
   default     = ["build-farm"]

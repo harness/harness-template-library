@@ -97,7 +97,48 @@ variable "source_code_manager_auth_type" {
   description = "[Optional] Choose the authentication type for the SCM Connectors"
   default     = "http"
 }
+variable "artifact_manager_type" {
+  type        = string
+  description = "What type of Artifact Manager Connector type will be used as the default Build Farm Registry"
+  default     = "nexus"
 
+  validation {
+    condition = (
+      contains(["nexus", "artifactory", "oci_helm", "http_helm"], lower(var.artifact_manager_type))
+    )
+    error_message = <<EOF
+        Validation of Container Registry Type Failed.
+            * Must be one of the following:
+            - nexus
+            - artifactory
+            - oci_helm
+            - http_helm
+        EOF
+  }
+}
+variable "artifact_manager_url" {
+  type        = string
+  description = "Please provide the default URL for the Connector - e.g. https://mycompany.jfrog.io/module_name/."
+}
+variable "artifact_manager_auth_type" {
+  type        = string
+  description = "Choose the authentication type for the Artifact Manager Connectors. Allowed values: 'UsernamePassword', 'Anonymous'"
+  default     = "Anonymous"
+
+  validation {
+    condition     = contains(["UsernamePassword", "Anonymous"], var.artifact_manager_auth_type)
+    error_message = "Invalid authentication type. Allowed values are 'UsernamePassword' or 'Anonymous'."
+  }
+}
+variable "nexus_version" {
+  type        = string
+  description = "Choose the Nexus Version for Nexus Connectors. Allowed values: '2.x', '3.x'"
+  default     = "2.x"
+  validation {
+    condition     = contains(["2.x", "3.x"], var.nexus_version)
+    error_message = "Invalid Nexus version. Allowed values are '2.x' or '3.x'."
+  }
+}
 variable "delegate_selectors" {
   type        = list(string)
   description = "Delegate selectors"
@@ -190,4 +231,10 @@ variable "azure_user_assigned_client_id" {
   type        = string
   description = "Client ID for User Assigned Managed Identity"
   default     = null
+}
+
+variable "artifact_manager_delegate" {
+  type        = list(string)
+  description = "Delegate selectors"
+  default     = ["build-farm"]
 }

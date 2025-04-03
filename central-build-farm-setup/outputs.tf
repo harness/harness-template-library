@@ -40,6 +40,16 @@ locals {
     "gitlab"    = (local.source_code_manager_type == "gitlab" ? module.scm_gitlab.0.connector_cloud : null)
   }
 
+  artifact_manager_id = {
+    "nexus"       = (local.artifact_manager_type == "nexus" ? module.ar_nexus.0.connector : null)
+    "artifactory" = (local.artifact_manager_type == "artifactory" ? module.ar_artifactory.0.connector : null)
+    "oci_helm"    = (local.artifact_manager_type == "oci_helm" ? module.ar_oci_helm.0.connector : null)
+    "http_helm"   = (local.artifact_manager_type == "http_helm" ? module.ar_http_helm.0.connector : null)
+  }
+  artifact_manager_cloud_id = {
+    "artifactory" = (local.artifact_manager_type == "artifactory" ? module.ar_artifactory.0.connector_cloud : null)
+  }
+
   build_farm_delegate = (
     local.support_self_hosted
     ?
@@ -72,4 +82,12 @@ output "build_farm_source_code_manager" {
 output "build_farm_source_code_manager_cloud" {
   description = "The BuildFarm Source Code Manager Connector Id - Cloud"
   value       = local.support_harness_cloud ? "account.${local.source_code_manager_cloud_id[local.source_code_manager_type]}" : null
+}
+output "build_farm_artifact_manager" {
+  description = "The BuildFarm Artifact Manager Connector Id"
+  value       = local.support_self_hosted ? "account.${local.artifact_manager_id[local.artifact_manager_type]}" : null
+}
+output "build_farm_artifact_manager_cloud" {
+  description = "The BuildFarm Artifact Manager Connector Id"
+  value       = local.support_harness_cloud ? "account.${local.artifact_manager_cloud_id[local.artifact_manager_type]}" : null
 }

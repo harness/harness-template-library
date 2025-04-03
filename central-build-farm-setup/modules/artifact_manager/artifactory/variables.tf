@@ -1,14 +1,14 @@
-variable "container_registry_username" {
+variable "artifact_manager_username" {
   type        = string
-  description = "Please provide the ID of the ContainerRegistry Connector Credentials - Username"
+  description = "Please provide the ID of the ArtifactManager Connector Credentials - Username"
 }
 
-variable "container_registry_password" {
+variable "artifact_manager_password" {
   type        = string
-  description = "Please provide the ID of the ContainerRegistry Connector Credentials - Password"
+  description = "Please provide the ID of the ArtifactManager Connector Credentials - Password"
 }
 
-variable "container_registry_url" {
+variable "artifact_manager_url" {
   type        = string
   description = "Please provide the default URL for the Connector - e.g. https://artifactory.url"
 }
@@ -31,7 +31,7 @@ variable "tags" {
   default     = {}
 }
 
-variable "delegate_selectors" {
+variable "artifact_manager_delegate" {
   description = "Delegate selectors"
   type        = list(string)
   default     = ["build-farm"]

@@ -18,9 +18,9 @@ locals {
 
   # Validation for authentication type
   auth_type_valid = (
-    contains(local.valid_authentication_types, var.authentication_type)
+    contains(local.valid_authentication_types, var.source_code_manager_auth_type)
     ? null
-    : "[Invalid] Chosen authentication type '${var.authentication_type}' is not supported. Valid types: ${join(", ", local.valid_authentication_types)}"
+    : "[Invalid] Chosen authentication type '${var.source_code_manager_auth_type}' is not supported. Valid types: ${join(", ", local.valid_authentication_types)}"
   )
 
   # Validation for SCM URL
@@ -32,14 +32,14 @@ locals {
 
   # Validation for Credentials based on Authentication Type
   credentials_valid = (
-    var.authentication_type == "http"
+    var.source_code_manager_auth_type == "http"
     ?
     (
       var.scm_username == null || var.scm_password == null
       ? "[Invalid] 'username' and 'password_ref' must be provided for HTTP authentication."
       : null
     )
-    : var.authentication_type == "ssh"
+    : var.source_code_manager_auth_type == "ssh"
     ?
     (
       var.scm_password == null

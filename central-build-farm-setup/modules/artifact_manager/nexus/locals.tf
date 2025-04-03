@@ -1,7 +1,7 @@
 locals {
   # Required tags for the resource
   required_tags = {
-    required_for : "buildfarm_container_registry"
+    required_for : "buildfarm_artifact_manager"
   }
 
   # Combine required tags with user-provided tags
@@ -21,9 +21,9 @@ locals {
 
   # Validate the chosen authentication type
   auth_type_valid = (
-    contains(local.valid_nexus_auth_types, var.authentication_type_self_hosted)
+    contains(local.valid_nexus_auth_types, var.artifact_manager_auth_type)
     ? null
-    : "[Invalid] Chosen Nexus authentication type '${var.authentication_type_self_hosted}' is not supported. Valid types: ${join(", ", local.valid_nexus_auth_types)}"
+    : "[Invalid] Chosen Nexus authentication type '${var.artifact_manager_auth_type}' is not supported. Valid types: ${join(", ", local.valid_nexus_auth_types)}"
   )
 
   # Validation for Nexus version
@@ -35,10 +35,10 @@ locals {
 
   # Validate that Username and Password are provided for UsernamePassword authentication
   username_password_valid = (
-    var.authentication_type_self_hosted == "UsernamePassword"
+    var.artifact_manager_auth_type == "UsernamePassword"
     ?
     (
-      var.container_registry_username == null || var.container_registry_password == null
+      var.artifact_manager_username == null || var.artifact_manager_password == null
       ? "[Invalid] 'nexus_username' and 'nexus_password_ref' must be provided for UsernamePassword authentication."
       : null
     )
@@ -47,7 +47,7 @@ locals {
 
   # Validate that delegate selectors are provided
   delegate_selector_ready = (
-    var.delegate_selectors == []
+    var.artifact_manager_delegate == []
     ? "[Invalid] Missing value for 'delegate_selectors', required for self-hosted Nexus connectors."
     : null
   )

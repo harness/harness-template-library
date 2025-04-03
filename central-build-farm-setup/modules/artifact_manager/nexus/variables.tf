@@ -1,4 +1,4 @@
-variable "container_registry_url" {
+variable "artifact_manager_url" {
   type        = string
   description = "Nexus server URL"
 }
@@ -8,17 +8,17 @@ variable "nexus_version" {
   description = "Nexus server version"
 }
 
-variable "authentication_type_self_hosted" {
+variable "artifact_manager_auth_type" {
   type        = string
-  description = "Authentication type for Nexus connector: UsernamePassword or Anonymous"
+  description = "Authentication type: 'UsernamePassword' or 'Anonymous'"
 }
 
-variable "container_registry_username" {
+variable "artifact_manager_username" {
   type        = string
   description = "[Optional] Username for Nexus authentication"
 }
 
-variable "container_registry_password" {
+variable "artifact_manager_password" {
   type        = string
   description = "[Optional] Reference to the secret storing the Nexus password"
 }
@@ -29,7 +29,7 @@ variable "support_self_hosted" {
   default     = true
 }
 
-variable "delegate_selectors" {
+variable "artifact_manager_delegate" {
   type        = list(string)
   description = "List of delegate selectors to use for the connector"
   default     = ["build-farm"]

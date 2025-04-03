@@ -26,3 +26,9 @@ source_code_manager_url = # Required
 
 # Please provide the validation URL for the Connector - e.g. harness/terraform-provider-harness
 source_code_manager_validation_repo = # Required
+
+# What type of Artifact Manager Connector type will be used as the default Build Farm Manager
+artifact_manager_type = "artifactory"
+
+# What type of Artifact Manager Connector type will be used as the default Build Farm Manager
+artifact_manager_url = "https://mycompany.jfrog.io/module_name/"

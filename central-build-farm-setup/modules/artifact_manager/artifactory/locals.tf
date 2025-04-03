@@ -1,6 +1,6 @@
 locals {
   required_tags = {
-    required_for : "buildfarm_container_registry"
+    required_for : "buildfarm_artifact_manager"
   }
 
   common_tags = merge(

@@ -15,7 +15,7 @@ variable "source_code_manager_validation_repo" {
   default     = null
 }
 
-variable "authentication_type" {
+variable "source_code_manager_auth_type" {
   type        = string
   description = "Authentication type for GitLab: http, ssh"
 }
