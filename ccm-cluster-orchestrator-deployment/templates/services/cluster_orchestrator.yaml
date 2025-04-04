@@ -1,0 +1,119 @@
+service:
+  name: ${SERVICE_NAME}
+  identifier: ${SERVICE_IDENTIFIER}
+%{ if ORGANIZATION_ID != "" }
+  orgIdentifier: ${ORGANIZATION_ID}
+%{ endif ~}
+%{ if PROJECT_ID != "" }
+  projectIdentifier: ${PROJECT_ID}
+%{ endif ~}
+  description: ${SERVICE_DESCRIPTION}
+  tags:
+    ${indent(4, TAGS)}
+  serviceDefinition:
+    type: Kubernetes
+    spec:
+      manifests:
+        - manifest:
+            identifier: main
+            type: HelmChart
+            spec:
+              store:
+                type: Http
+                spec:
+                  connectorRef: ${HELM_CONNECTOR}
+              chartName: harness-ccm-cluster-orchestrator
+              chartVersion: ""
+              subChartPath: ""
+              helmVersion: V3
+              skipResourceVersioning: false
+              enableDeclarativeRollback: false
+              fetchHelmChartMetadata: false
+        - manifest:
+            identifier: values
+            type: Values
+            spec:
+              store:
+                type: Harness
+                spec:
+%{ if PROJECT_ID != "" }
+                  files:
+                  - project:/${VALUES_PATH}
+%{ else }
+%{ if ORGANIZATION_ID != "" }
+                  files:
+                  - org:/${VALUES_PATH}
+%{ else }
+                  files:
+                  - account:/${VALUES_PATH}
+%{ endif ~}
+%{ endif ~}
+      artifacts:
+        primary:
+          primaryArtifactRef: main
+          sources:
+            - spec:
+                connectorRef: ${DOCKER_CONNECTOR}
+                imagePath: ${IMAGE}
+                tag: <+input>
+                digest: ""
+              identifier: main
+              type: DockerRegistry
+      variables:
+        - name: eksClusterName
+          type: String
+          description: ""
+          required: true
+          value: <+input>
+        - name: eksClusterRegion
+          type: String
+          description: ""
+          required: true
+          value: <+input>
+        - name: eksClusterControllerRoleARN
+          type: String
+          description: ""
+          required: true
+          value: <+input>
+        - name: eksClusterEndpoint
+          type: String
+          description: ""
+          required: true
+          value: <+input>
+        - name: eksClusterDefaultInstanceProfile
+          type: String
+          description: ""
+          required: true
+          value: <+input>
+        - name: eksClusterNodeRoleARN
+          type: String
+          description: ""
+          required: true
+          value: <+input>
+        - name: clusterOrchestratorID
+          type: String
+          description: ""
+          required: true
+          value: <+input>
+        - name: k8sConnectorID
+          type: String
+          description: ""
+          required: true
+          value: <+input>
+        - name: binPackingEnabled
+          type: String
+          default: "true"
+          description: ""
+          required: true
+          value: <+input>.default(true).allowedValues(true,false)
+        - name: logLevel
+          type: String
+          default: error
+          description: ""
+          required: true
+          value: <+input>.default(error).allowedValues(debug,info,error)
+        - name: harnessApiKey
+          type: Secret
+          description: "Harness API Key with account admin permissions"
+          required: true
+          value: <+input>

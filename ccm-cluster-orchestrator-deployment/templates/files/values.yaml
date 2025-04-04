@@ -1,0 +1,24 @@
+harness:
+  accountID: "<+account.identifier>"
+  k8sConnectorID: "<+serviceVariables.k8sConnectorID>"
+  ccm:
+    secret:
+      token: <+serviceVariables.harnessApiKey>
+eksCluster:
+  name: "<+serviceVariables.eksClusterName>"
+  region: "<+serviceVariables.eksClusterRegion>"
+  controllerRoleARN: "<+serviceVariables.eksClusterControllerRoleARN>"
+  endpoint: "<+serviceVariables.eksClusterEndpoint>"
+  defaultInstanceProfile:
+    name: "<+serviceVariables.eksClusterDefaultInstanceProfile>"
+  nodeRole:
+    arn: "<+serviceVariables.eksClusterNodeRoleARN>"
+clusterOrchestrator:
+  id: "<+serviceVariables.clusterOrchestratorID>"
+  operator:
+    logLevel: "<+serviceVariables.logLevel>"
+    binPacking:
+      enabled: <+serviceVariables.binPackingEnabled>
+  image:
+    repository: <+artifacts.primary.imagePath>
+    tag: <+artifacts.primary.tag>

@@ -1,0 +1,21 @@
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = # Required
+
+# [Optional] Provide a Map of Tags to associate with the resources
+tags = {}
+
+# [Optional] Enter the name of the service"
+service_name = "Cluster Orchestrator"
+
+# [Optional] Docker connector ID for pulling orchestrator image
+docker_connector = "account.harnessImage"
+# [Optional] Orchestrator docker image to use. Must follow repo/image format
+image = "harness/cluster-orchestrator"
+
+# [Optional] The organization where the resources will live, leave blank for account level. Provide an existing organization reference ID.  Must exist before execution
+organization_id = null
+# [Optional] The project where the resources will live, leave blank for organization or account level. Provide an existing project reference ID.  Must exist before execution
+project_id = null

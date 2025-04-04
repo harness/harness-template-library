@@ -1,0 +1,169 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: ccm-cluster-orchestrator-deployment
+  title: CCM Cluster Orchestrator Deployment
+  description: Create a Harness CD service for deploying the CCM cluster orchestrator
+  tags:
+    - solutions-factory
+    - harness
+    - ccm
+    - cluster-orchestrator
+    - cd
+    - service
+spec:
+  owner: group:default/harness_account_all_users # Defaults to all users
+  type: service
+  parameters:
+    - title: Service Setup
+      required:
+        - service_name
+        - docker_connector
+        - image
+      properties:
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+        service_name:
+          title: Step Service Name
+          type: string
+          description: What should the "Commitment Orchestrator" step service be named
+          default: Commitment Orchestrator
+        docker_connector:
+          title: Docker Connector
+          type: string
+          description: Docker connector ID for pulling controller image
+          default: account.harnessImage
+        image:
+          title: Ansible image
+          type: string
+          default: harness/cluster-orchestrator
+          description: Docker image to use for running the controller. Must follow repo/image format
+        service_location:
+          title: Service Location
+          type: string
+          description: Where should we place the service?
+          enum:
+            - Account
+            - Organization
+            - Project
+      dependencies:
+        service_location:           
+          oneOf:
+          - properties:
+              service_location:
+                enum:
+                  - Account
+          - properties:
+              service_location:
+                enum:
+                  - Organization
+              org_id:
+                title: Org Identifier
+                description: Harness Organization Identifier
+                type: string
+                ui:field: HarnessOrgPicker
+            required:
+              - org_id
+          - properties:
+              service_location:
+                enum:
+                  - Project
+              org_id:
+                title: Org Identifier
+                description: Harness Organization Identifier
+                type: string
+                ui:field: HarnessOrgPicker
+              project_id:
+                title: Project Identifier
+                description: Harness Project Identifier
+                type: string
+                ui:field: HarnessProjectPicker
+            required:
+              - project_id
+              - org_id
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
+  steps:
+    - id: configure_workspace
+      name: Configuring Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
+          GIT_REPOSITORY_NAME: harness-template-library
+          GIT_REPOSITORY_PATH: ccm-cluster-orchestrator-deployment
+          GIT_REPOSITORY_BRANCH: main
+          RESOURCE_NAME: ${{ parameters.org_id if parameters.project_id else ( parameters.org_id if parameters.org_id else "") }}_${{ parameters.project_id if parameters.project_id else "" }}_ccm_cluster_orchestrator
+          RESOURCE_OWNER: group:default/harness_account_all_users
+          # YAML of Terraform variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS:
+            service_name: ${{ parameters.service_name }}
+            organization_id: ${{ parameters.org_id if parameters.project_id else ( parameters.org_id if parameters.org_id else "") }}
+            project_id: ${{ parameters.project_id if parameters.project_id else "" }}
+
+            docker_connector: ${{ parameters.docker_connector }}
+            image: ${{ parameters.image }}
+          # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_SECRETS: {}
+          # YAML of Environment variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS_ENVS: {}
+          # YAML of Environment variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_ENVS_SECRET: {}
+          # Should the workspace automatically include the default Harness Connector environment variables
+          INCLUDE_HARNESS_ENVS: "true"
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: provision_workspace
+      name: Provisioning your Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          workspace: ${{ parameters.org_id if parameters.project_id else ( parameters.org_id if parameters.org_id else "") }}_${{ parameters.project_id if parameters.project_id else "" }}_ccm_cluster_orchestrator
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Harness Workspace Configured - Execution Link
+        url: ${{ steps.configure_workspace.output.PipelineUrl }}
+      - title: Harness Workspace Provisioned - Execution Link
+        url: ${{ steps.provision_workspace.output.PipelineUrl }}
+      - title: View Service
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all${{ ("/orgs/" + parameters.org_id) if parameters.org_id else "" }}${{ ("/projects/" + parameters.project_id) if parameters.project_id else "" }}/settings/services/${{ parameters.service_name|replace(" ","_")|replace("-","_") }}
