@@ -1,5 +1,5 @@
-# Naming Convention Standards
-[<- Return to Harness Template Library Scaffold - Developer's Guide](../../README.md)
+# Harness Template Library - Naming Convention Standards
+[<- Return to Harness Template Library - Developer's Guide](../../README.md)
 
 ## Purpose
 As new resources are created by various members of the team and sources, we need to ensure that we stick to a standard process to create and manage the resources.  The purpose of this document is to collect and detail those naming conventions and guidelines.

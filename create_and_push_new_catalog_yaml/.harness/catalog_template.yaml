@@ -49,7 +49,7 @@ spec:
             - Bitbucket
             - AzureRepo
       dependencies:
-        git_connector_type:           
+        git_connector_type:
           oneOf:
           - properties:
               git_connector_type:
@@ -136,7 +136,7 @@ spec:
               - git_connector_ref
           - properties:
               git_connector_type:
-                enum: 
+                enum:
                   - Bitbucket
               git_connector_ref:
                 title: Existing GIT Connector Reference
@@ -256,7 +256,7 @@ spec:
                     type: object
                     description: Optional Kubernetes Node Selectors
                     additionalProperties:
-                      type: string 
+                      type: string
     - title: Solutions Factory Connection
       properties:
         solutions_factory_details:
@@ -292,6 +292,14 @@ spec:
               type: string
               default: <+variable.account.solutions_factory_template_library_connector>
               ui:widget: hidden
+            template_library_repo:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_repo>
+              ui:widget: hidden
+            template_library_branch:
+              type: string
+              default: main
+              ui:widget: hidden
   steps:
     - id: configure_workspace
       name: Configuring Harness Workspace
@@ -300,20 +308,21 @@ spec:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
         inputset:
           GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
+          GIT_REPOSITORY_NAME: ${{ parameters.solutions_factory_details.template_library_repo }}
+          GIT_REPOSITORY_BRANCH: ${{ parameters.solutions_factory_details.template_library_branch }}
           GIT_REPOSITORY_PATH: create_and_push_new_catalog_yaml
-          GIT_REPOSITORY_BRANCH: main
           RESOURCE_NAME: create_and_push_new_catalog_yaml
           RESOURCE_OWNER: group:default/Account_Admins
           # YAML of Terraform variables of type 'String' mapped to their IDP parameters
           RESOURCE_VARS:
             organization_id: ${{ parameters.solutions_factory_details.harness_org_id }}
             project_id: ${{ parameters.solutions_factory_details.harness_project_id }}
-            
+
             kubernetes_connector: ${{ "skipped" if (parameters.build_infrastructure_type == "cloud") else ( parameters.infra_defaults.kubernetes_connector if (parameters.build_infrastructure_type == "build_farm") else parameters.kubernetes_connector ) }}
             kubernetes_namespace: ${{ "default" if (parameters.build_infrastructure_type == "cloud") else ( parameters.infra_defaults.kubernetes_namespace if (parameters.build_infrastructure_type == "build_farm") else parameters.kubernetes_namespace ) }}
             kubernetes_node_selectors: ${{ "{}" if (parameters.build_infrastructure_type == "cloud") else ( parameters.kubernetes_node_selectors if parameters.kubernetes_node_selectors else parameters.infra_defaults.kubernetes_node_selectors ) }}
             kubernetes_override_image_connector: ${{ "skipped" if (parameters.build_infrastructure_type == "cloud") else ( parameters.kubernetes_override_image_connector if parameters.kubernetes_override_image_connector else parameters.infra_defaults.kubernetes_override_image_connector ) }}
-            
+
             git_connector_ref: ${{ parameters.git_connector_ref }}
             git_connector_type: ${{ (parameters.git_connector_type + parameters.git_repository_location) if ( parameters.git_connector_type == "Harness") else (parameters.git_connector_type) }}
             git_repository_name: ${{ parameters.git_repository_name }}
@@ -323,7 +332,7 @@ spec:
             git_grouppath_name: ${{ parameters.git_grouppath_name }}
             git_project_name: ${{ parameters.git_project_name }}
             harness_create_repo: ${{ parameters.harness_create_repo }}
-            
+
             # harness_platform_account: ${{ parameters.solutions_factory_details.harness_account_id }}
           # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
           RESOURCE_VARS_SECRETS: {}

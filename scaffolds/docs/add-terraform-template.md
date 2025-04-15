@@ -1,5 +1,5 @@
-# Harness Template Library Scaffold - New Terraform Template
-[<- Return to Harness Template Library Scaffold - Developer's Guide](../../README.md)
+# Harness Template Library - New Terraform Template
+[<- Return to Harness Template Library - Developer's Guide](../../README.md)
 
 ## Summary
 This document will guide the user through the creation of new Terraform templates to be included in the Harness Template Library. The goal will be to guide the user through adding a new local development branch and base scaffold necessary to build a new Terraform Template.

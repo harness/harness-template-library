@@ -108,7 +108,7 @@ spec:
                     type: object
                     description: Optional Kubernetes Node Selectors
                     additionalProperties:
-                      type: string 
+                      type: string
     - title: Solutions Factory Connection
       properties:
         solutions_factory_details:
@@ -144,6 +144,14 @@ spec:
               type: string
               default: <+variable.account.solutions_factory_template_library_connector>
               ui:widget: hidden
+            template_library_repo:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_repo>
+              ui:widget: hidden
+            template_library_branch:
+              type: string
+              default: main
+              ui:widget: hidden
   steps:
     - id: configure_workspace
       name: Configuring Harness Workspace
@@ -152,9 +160,9 @@ spec:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
         inputset:
           GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
-          GIT_REPOSITORY_NAME: harness-template-library
+          GIT_REPOSITORY_NAME: ${{ parameters.solutions_factory_details.template_library_repo }}
+          GIT_REPOSITORY_BRANCH: ${{ parameters.solutions_factory_details.template_library_branch }}
           GIT_REPOSITORY_PATH: ccm-auto-k8s-connectors
-          GIT_REPOSITORY_BRANCH: feat/ccm-auto-k8s-connectors # TESTING
           RESOURCE_NAME: ccm_auto_k8s_connectors
           RESOURCE_OWNER: group:default/harness_account_all_users
           # YAML of Terraform variables of type 'String' mapped to their IDP parameters

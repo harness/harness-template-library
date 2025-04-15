@@ -1,5 +1,5 @@
-# Harness Solutions Factory Scaffold - Local Testing using make
-[<- Return to Harness Template Library Scaffold - Developer's Guide](../../README.md)
+# Harness Template Library - Local Testing using make
+[<- Return to Harness Template Library - Developer's Guide](../../README.md)
 
 ## Summary
 This document details the available Makefile commands.  The goal is to simplify the various commands to rapid testing and prototyping.

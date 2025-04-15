@@ -1,4 +1,4 @@
-# Harness Solutions Factory Scaffold - Developer's Guide
+# Harness Template Library - Developer's Guide
 
 This document contains links to various development guides intended to help developers add new functionality and resources to this repository.
 
@@ -9,7 +9,10 @@ Part of maintaining this project will often require enhancements and new feature
 
 - [Developer Environment Setup](docs/local-developers-lab.md)
 - [Local Testing using make](docs/makefile-commands.md)
+- [Naming Convention Guidelines](docs/naming-conventions.md)
+- [How to upgrade your Solutions Factory implementation](docs/upgrading-your-installation.md)
 - [New Terraform Template](docs/add-terraform-template.md)
+- [Setup Custom Harness Template Library](docs/add-custom-template-library.md)
 
 ## Contributing
 

@@ -373,6 +373,14 @@ spec:
               type: string
               default: <+variable.account.solutions_factory_template_library_connector>
               ui:widget: hidden
+            template_library_repo:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_repo>
+              ui:widget: hidden
+            template_library_branch:
+              type: string
+              default: main
+              ui:widget: hidden
   steps:
     # - action: debug:log
     #   id: write-inputs
@@ -387,9 +395,9 @@ spec:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
         inputset:
           GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
-          GIT_REPOSITORY_NAME: harness-template-library
+          GIT_REPOSITORY_NAME: ${{ parameters.solutions_factory_details.template_library_repo }}
+          GIT_REPOSITORY_BRANCH: ${{ parameters.solutions_factory_details.template_library_branch }}
           GIT_REPOSITORY_PATH: sto-sast-primer
-          GIT_REPOSITORY_BRANCH: main
           RESOURCE_NAME: STO_SCA_SAST_PRIMER
           RESOURCE_OWNER: group:default/HSF_Admins
           # YAML of Terraform variables of type 'String' mapped to their IDP parameters

@@ -163,6 +163,14 @@ spec:
               type: string
               default: <+variable.account.solutions_factory_template_library_connector>
               ui:widget: hidden
+            template_library_repo:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_repo>
+              ui:widget: hidden
+            template_library_branch:
+              type: string
+              default: main
+              ui:widget: hidden
   steps:
     - id: configure_workspace
       name: Configuring Harness Workspace
@@ -171,9 +179,9 @@ spec:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
         inputset:
           GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
-          GIT_REPOSITORY_NAME: harness-template-library
+          GIT_REPOSITORY_NAME: ${{ parameters.solutions_factory_details.template_library_repo }}
+          GIT_REPOSITORY_BRANCH: ${{ parameters.solutions_factory_details.template_library_branch }}
           GIT_REPOSITORY_PATH: ansible-step-group-template
-          GIT_REPOSITORY_BRANCH: main
           RESOURCE_NAME: ansible_step_group_template
           RESOURCE_OWNER: group:default/harness_account_all_users
           # YAML of Terraform variables of type 'String' mapped to their IDP parameters
@@ -186,7 +194,7 @@ spec:
 
             docker_connector: ${{ parameters.docker_connector }}
             image: ${{ parameters.image }}
-            
+
             kubernetes_connector: ${{ parameters.infra_defaults.kubernetes_connector if (parameters.build_infrastructure_type == "build_farm") else ("skipped" if (parameters.build_infrastructure_type == "runtime_input") else parameters.kubernetes_connector) }}
             kubernetes_namespace: ${{ parameters.infra_defaults.kubernetes_namespace if (parameters.build_infrastructure_type == "build_farm") else ("skipped" if (parameters.build_infrastructure_type == "runtime_input") else parameters.kubernetes_namespace) }}
             kubernetes_node_selectors: ${{ parameters.kubernetes_node_selectors if parameters.kubernetes_node_selectors else parameters.infra_defaults.kubernetes_node_selectors }}
