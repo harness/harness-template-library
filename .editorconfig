@@ -20,5 +20,11 @@ indent_size = 2
 [*.yaml]
 indent_size = 2
 
+[*.yml.tpl]
+indent_size = 2
+
+[*.yaml.tpl]
+indent_size = 2
+
 [Makefile*]
 indent_style = tab

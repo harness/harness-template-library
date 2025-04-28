@@ -1,0 +1,23 @@
+          %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
+          infrastructure:
+              type: KubernetesDirect
+              spec:
+                connectorRef: ${KUBERNETES_CONNECTOR}
+                namespace: ${KUBERNETES_NAMESPACE}
+                automountServiceAccountToken: true
+                %{~ if KUBERNETES_NODESELECTORS != "{}" ~}
+                nodeSelector:
+                    ${KUBERNETES_NODESELECTORS}
+                %{~ endif ~}
+                os: Linux
+                %{~ if KUBERNETES_IMAGE_CONNECTOR != "skipped" ~}
+                harnessImageConnectorRef: ${KUBERNETES_IMAGE_CONNECTOR}
+                %{~ endif ~}
+          %{~ else ~}
+          platform:
+              os: Linux
+              arch: Amd64
+          runtime:
+              type: Cloud
+              spec: {}
+          %{~ endif ~}

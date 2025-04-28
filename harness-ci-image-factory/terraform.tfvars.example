@@ -1,0 +1,95 @@
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = # Required
+
+# [Optional] Provide a Map of Tags to associate with the resources
+tags = {}
+
+# [Required] Provide an existing organization reference ID.  Must exist before execution
+organization_id = # Required
+
+# [Required] Provide an existing project reference ID.  Must exist before execution
+project_id = # Required
+
+
+
+################################################
+# Self-Hosted Build Farm Configuration
+# -----------
+# When the kubernetes_connector value equals "skipped", then the resources
+# will be deployed configured to support Harness CI Cloud provisioning.
+################################################
+# [Optional] Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
+kubernetes_connector = "skipped"
+
+# [Optional] Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline.  Must exist before execution
+kubernetes_namespace = "default"
+
+# [Optional] Optional Kubernetes Node Selectors
+kubernetes_node_selectors = {}
+
+# [Optional] Enter an existing Container Registry connector to use which overrides the default connector
+kubernetes_override_image_connector = "skipped"
+
+################################################
+
+
+
+################################################
+# Pipeline Input Variables Controls
+# -----------
+# Configures the Defaults for both the pipeline as well as the Trigger
+################################################
+# Harness maintained container registry from which images will be sourced
+harness_ci_image_source_repository = "us-docker.pkg.dev/gar-prod-setup/harness-public/"
+
+# [Required] Customer provided Container Registry Path
+customer_image_target_repository = # Required
+
+# Reference to Harness Secret containing the Container Registry Username. Defaults to Central Build Farm Container Registry Credentials
+container_registry_username_ref = "account.buildfarm_container_registry_username"
+
+# Reference to Harness Secret containing the Container Registry Password. Defaults to Central Build Farm Container Registry Credentials
+container_registry_password_ref = "account.buildfarm_container_registry_password"
+
+# If 'true' the Harness CI Manager will be updated immediately to change the default behaviour of Harness CI to only pull images from those stored in the target container registry.
+should_update_harness_mgr = true <-
+################################################
+
+
+
+################################################
+# Pipeline Image and Connector Controls
+# -----------
+# Configures the connectors and images used for the steps
+################################################
+# [Optional] Configures the connector from which the Pipeline Step images will be pulled. Defaults to account.harnessImage
+pipeline_step_connector_ref = "account.harnessImage"
+
+# Harness Solutions Factory Script Manager Image. Path should be relative to the connector `pipeline_step_connector_ref`
+hsf_script_mgr_image = "harnesssolutionfactory/harness-python-api-sdk:latest"
+
+# Harness Container Image Migration tool. Path should be relative to the connector `pipeline_step_connector_ref`
+harness_image_migration_image = "plugins/image-migration"
+
+# Determines the maximum number of concurrent images that should be migrated in parallel
+max_concurrency = 5 <-
+################################################
+
+
+
+################################################
+# Scheduled Execution Management
+# -----------
+# When enabled, a new trigger will be scheduled to execution and update the pipeline
+# at a regular frequency
+################################################
+# [Optional] Should we enable the execution of this pipeline to run on a schedule?
+should_trigger_pipeline_on_schedule = true
+
+# [Optional] Cron Format schedule for when and how frequently to schedule this pipeline. Default is daily at 2am
+scheduled_pipeline_execution_frequency = "0 2 * * *"
+
+################################################
