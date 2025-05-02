@@ -1,21 +1,15 @@
 # Terraform TFVARS Sample
 # ---------
-# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
-harness_platform_url = "https://app.harness.io/gateway"
-
-# [Required] Enter the Harness Platform Account Number
-harness_platform_account = null # If Not passed, then the ENV HARNESS_ACCOUNT_ID will be used
-
-# [Required] Enter the Harness Platform API Key for your account
-harness_platform_key = null # If Not passed, then the ENV HARNESS_PLATFORM_API_KEY will be used
-
 # Select the Build infrastructure types to support - internal, cloud, or both
 build_infrastructure_type = "internal"
 
 # What type of Container Registry Connector type will be used as the default Build Farm Registry
 container_registry_type = "docker"
 
-# What type of Container Registry Connector type will be used as the default Build Farm Registry
+# Choose a Generic Container Registry Type
+container_registry_provider_type = "DockerHub"
+
+# Provide the URL to which the Container Registry connector will connect
 container_registry_url = "https://index.docker.io/v2/"
 
 # What type of Source Code Manager Connector type will be used as the default Build Farm SCM
@@ -27,8 +21,69 @@ source_code_manager_url = # Required
 # Please provide the validation URL for the Connector - e.g. harness/terraform-provider-harness
 source_code_manager_validation_repo = # Required
 
-# What type of Artifact Manager Connector type will be used as the default Build Farm Manager
-artifact_manager_type = "artifactory"
+# [Optional] Choose the authentication type for the SCM Connectors
+source_code_manager_auth_type = "http"
 
-# What type of Artifact Manager Connector type will be used as the default Build Farm Manager
-artifact_manager_url = "https://mycompany.jfrog.io/module_name/"
+# What type of Artifact Manager Connector type will be used as the default Build Farm Registry
+artifact_manager_type = "nexus"
+
+# Please provide the default URL for the Connector - e.g. https://mycompany.jfrog.io/module_name/.
+artifact_manager_url = "skipped"
+
+# Choose the authentication type for the Artifact Manager Connectors. Allowed values: 'UsernamePassword', 'Anonymous'
+artifact_manager_auth_type = "Anonymous"
+
+# Choose the Nexus Version for Nexus Connectors. Allowed values: '2.x', '3.x'
+nexus_version = "2.x"
+
+# Delegate selectors
+delegate_selectors = ["build-farm"]
+
+# [Optional] Choose the authentication type for the Self-Hosted Connectors
+authentication_type_self_hosted = "manual"
+
+# [Optional] Choose the authentication type for the Harness Cloud Connectors
+authentication_type_harness_cloud = "manual"
+
+# AWS Connectors
+# [Optional] Choose the default AWS Region
+region = "us-east-1"
+
+# [Optional] The IAM Role to assume the credentials from
+iam_role_arn = null
+
+# [Optional] The Amazon Resource Name (ARN) of the role that you want to assume. This is an IAM role in the target AWS account.
+aws_cross_account_role_arn = null
+
+# [Optional] If the administrator of the account to which the role belongs provided you with an external ID, then enter that value.
+aws_cross_account_external_id = null
+
+
+# GCP Connectors
+# Workload Pool ID for OIDC authentication
+gcp_workload_pool_id = null
+
+# Provider ID for OIDC authentication
+gcp_provider_id = null
+
+# GCP Project ID for OIDC authentication
+gcp_project_id = null
+
+# Service Account Email for OIDC authentication
+gcp_service_account_email = null
+
+# Azure
+# Azure application ID for authentication
+azure_application_id = null
+
+# Azure tenant ID for authentication
+azure_tenant_id = null
+
+# ENV TYPE: AZURE or AZURE_US_GOVERNMENT
+azure_environment_type = "AZURE"
+
+# Client ID for User Assigned Managed Identity
+azure_user_assigned_client_id = null
+
+# Delegate selectors
+artifact_manager_delegate = ["build-farm"]

@@ -54,11 +54,58 @@ _Note: When providing `_ref` values, please ensure that these are prefixed with 
 | Name | Mandatory | Description | Type | Default |
 | --- | --- | --- | --- | --- |
 | build_infrastructure_type | | Select the Build infrastructure types to support - internal, cloud, or both | string | internal |
-| container_registry_type | | What type of Container Registry Connector type will be used as the default Build Farm Registry. Supported Values - docker, artifactory | string | docker |
-| container_registry_url | | What type of Container Registry Connector type will be used as the default Build Farm Registry | string | https://registry.hub.docker.com/v2/ |
-| source_code_manager_type | | type of Source Code Manager Connector type will be used as the default Build Farm SCM. Supported Values - github, bitbucket | string | github |
+| authentication_type_self_hosted | | Choose the authentication type for the Self-Hosted Connectors | string | manual |
+| authentication_type_harness_cloud | | Choose the authentication type for the Harness Cloud Connectors | string | manual |
+| container_registry_type | | What type of Container Registry Connector type will be used as the default Build Farm Registry. Supported values - docker, aws, gcp, azure | string | docker |
+| delegate_selectors | | Delegate selectors | list(string) | [build-farm] |
+
+### Generic Container Registry Connectors
+| Name | Mandatory | Description | Type | Default |
+| --- | --- | --- | --- | --- |
+| container_registry_provider_type | | Choose a Generic Container Registry Type. Supported Values - DockerHub, Harbor, Quay, Other | string | DockerHub |
+| container_registry_url | | Provide the URL to which the Container Registry connector will connect | string | https://index.docker.io/v2/ |
+
+### Source Code Manager Connectors
+| Name | Mandatory | Description | Type | Default |
+| --- | --- | --- | --- | --- |
+| source_code_manager_type | | What type of Source Code Manager Connector type will be used as the default Build Farm SCM. Supported values - github, bitbucket, gitlab | string | github |
 | source_code_manager_url | X | Please provide the default URL for the Connector - e.g. https://github.com | string | |
-| source_code_manager_validation_repo | X | provide the validation URL for the Connector - e.g. harness/terraform-provider-harness | string | |
+| source_code_manager_validation_repo | X | Please provide the validation URL for the Connector - e.g. harness/terraform-provider-harness | string | |
+| source_code_manager_auth_type | | Choose the authentication type for the SCM Connectors | string | http |
+
+### Artifact Manager Connectors
+| Name | Mandatory | Description | Type | Default |
+| --- | --- | --- | --- | --- |
+| artifact_manager_type | | What type of Artifact Manager Connector type will be used as the default Build Farm Registry | string | nexus |
+| artifact_manager_url | | Please provide the default URL for the Connector - e.g. https://mycompany.jfrog.io/module_name/. | string | skipped |
+| artifact_manager_auth_type | | Choose the authentication type for the Artifact Manager Connectors. Allowed values: 'UsernamePassword', 'Anonymous' | string | Anonymous |
+| nexus_version | | Choose the Nexus Version for Nexus Connectors. Allowed values: '2.x', '3.x' | string | 2.x |
+
+### AWS Container Registry Connectors
+| Name | Mandatory | Description | Type | Default |
+| --- | --- | --- | --- | --- |
+| region | | Choose the default AWS Region | string | us-east-1 |
+| iam_role_arn | | The IAM Role to assume the credentials from | string | null |
+| aws_cross_account_role_arn | | The Amazon Resource Name (ARN) of the role that you want to assume. This is an IAM role in the target AWS account. | string | null |
+| aws_cross_account_external_id | | If the administrator of the account to which the role belongs provided you with an external ID, then enter that value. | string | null |
+
+
+### GCP Container Registry Connectors
+| Name | Mandatory | Description | Type | Default |
+| --- | --- | --- | --- | --- |
+| gcp_workload_pool_id | | Workload Pool ID for OIDC authentication | string | null |
+| gcp_provider_id | | Provider ID for OIDC authentication | string | null |
+| gcp_project_id | | GCP Project ID for OIDC authentication | string | null |
+| gcp_service_account_email | | Service Account Email for OIDC authentication | string | null |
+
+### Azure Container Registry Connectors
+| Name | Mandatory | Description | Type | Default |
+| --- | --- | --- | --- | --- |
+| azure_application_id | | Azure application ID for authentication | string | null |
+| azure_tenant_id | | Azure tenant ID for authentication | string | null |
+| azure_environment_type | | ENV TYPE: AZURE or AZURE_US_GOVERNMENT | string | AZURE |
+| azure_user_assigned_client_id | | Client ID for User Assigned Managed Identity | string | null |
+| artifact_manager_delegate | | Delegate selectors | list(string) | [build-farm] |
 
 
 ## Terraform TFVARS
@@ -76,6 +123,8 @@ Included in this repository is a `terraform.tfvars.example` file with a sample f
 | build_farm_container_registry_cloud | string | The BuildFarm Container Registry Connector Id - Cloud |
 | build_farm_source_code_manager | string | The BuildFarm Source Code Manager Connector Id |
 | build_farm_source_code_manager_cloud | string | The BuildFarm Source Code Manager Connector Id - Cloud |
+| build_farm_artifact_manager | string | The BuildFarm Artifact Manager Connector Id |
+| build_farm_artifact_manager_cloud | string | The BuildFarm Artifact Manager Connector Id - Cloud |
 
 ## Contributing
 

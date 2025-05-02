@@ -85,9 +85,9 @@ output "build_farm_source_code_manager_cloud" {
 }
 output "build_farm_artifact_manager" {
   description = "The BuildFarm Artifact Manager Connector Id"
-  value       = local.support_self_hosted ? "account.${local.artifact_manager_id[local.artifact_manager_type]}" : null
+  value       = local.support_self_hosted && local.artifact_manager_type != null ? "account.${local.artifact_manager_id[local.artifact_manager_type]}" : null
 }
 output "build_farm_artifact_manager_cloud" {
-  description = "The BuildFarm Artifact Manager Connector Id"
-  value       = local.support_harness_cloud ? "account.${local.artifact_manager_cloud_id[local.artifact_manager_type]}" : null
+  description = "The BuildFarm Artifact Manager Connector Id - Cloud"
+  value       = local.support_harness_cloud && local.artifact_manager_type != null ? lookup(local.artifact_manager_cloud_id, local.artifact_manager_type, null) != null ? "account.${local.artifact_manager_cloud_id[local.artifact_manager_type]}" : null : null
 }

@@ -119,6 +119,7 @@ variable "artifact_manager_type" {
 variable "artifact_manager_url" {
   type        = string
   description = "Please provide the default URL for the Connector - e.g. https://mycompany.jfrog.io/module_name/."
+  default     = "skipped"
 }
 variable "artifact_manager_auth_type" {
   type        = string
@@ -153,7 +154,7 @@ variable "authentication_type_self_hosted" {
 
 variable "authentication_type_harness_cloud" {
   type        = string
-  description = "[Optional] Choose the authentication type for the Harness Cloiud Connectors"
+  description = "[Optional] Choose the authentication type for the Harness Cloud Connectors"
   default     = "manual"
 }
 

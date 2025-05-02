@@ -597,35 +597,48 @@ spec:
             type: string
             description: The Tenant Id is the Id of the Azure Active Directory (AAD) in which you created your application.
     - title: Setup Build Farm Artifact Manager
-      required:
-        - artifact_manager_type
-        - artifact_manager_url
       properties:
         build_infrastructure_type:
           title: Configure a Kubernetes Connector for use as a Centralized Build Farm
           type: string
           ui:widget: hidden
-        artifact_manager_type:
-          title: Choose your Artifact Manager Type
-          type: string
-          description: What type of Artifact Manager Connector type will be used as the
-            default Build Farm Registry
-          enum:
-            - artifactory
-            - nexus
-            - http_helm
-            - oci_helm
-          enumNames:
-            - Artifactory
-            - Nexus
-            - Helm HTTP
-            - Helm OCI
-        artifact_manager_url:
-          title: Artifact Manager URL
-          type: string
-          description: Please provide the default URL for the Connector - e.g.
-            https://mycompany.jfrog.io/module_name/
+        should_setup_artifact_manager:
+          title: Should we set up a Central Build Farm Artifact Manager?
+          type: boolean
+          description: When enabled, a new Artifact Manager Connector will be created.
+          default: true
       dependencies:
+        should_setup_artifact_manager:
+          allOf:
+            - if:
+                properties:
+                  should_setup_artifact_manager:
+                    const: true
+              then:
+                required:
+                  - artifact_manager_type
+                  - artifact_manager_url
+                properties:
+                  artifact_manager_type:
+                    title: Choose your Artifact Manager Type
+                    type: string
+                    description: What type of Artifact Manager Connector type will be used as the
+                      default Build Farm Registry
+                    enum:
+                      - artifactory
+                      - nexus
+                      - http_helm
+                      - oci_helm
+                    enumNames:
+                      - Artifactory
+                      - Nexus
+                      - Helm HTTP
+                      - Helm OCI
+                  artifact_manager_url:
+                    title: Artifact Manager URL
+                    type: string
+                    description: Please provide the default URL for the Connector - e.g.
+                      https://mycompany.jfrog.io/module_name/
         artifact_manager_type:
           allOf:
             - if:
@@ -811,7 +824,7 @@ spec:
             azure_environment_type: ${{ parameters.azure_environment_type }}
             azure_user_assigned_client_id: ${{ parameters.azure_user_assigned_client_id }}
             artifact_manager_type: ${{ parameters.artifact_manager_type }}
-            artifact_manager_url: ${{ parameters.artifact_manager_url }}
+            artifact_manager_url: ${{ parameters.artifact_manager_url if parameters.should_setup_artifact_manager else "skipped" }}
             artifact_manager_auth_type: ${{ parameters.artifact_manager_auth_type }}
             nexus_version: ${{ parameters.nexus_version }}
             artifact_manager_delegate: ["${{ parameters.artifact_manager_delegate }}"]
@@ -875,4 +888,15 @@ spec:
 
           {% if parameters.build_infrastructure_type != "internal" %}
           - build_farm_source_code_manager (Used by Harness CI Cloud): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_source_code_manager_cloud']}}
+          {% endif %}
+
+          {% if parameters.should_setup_artifact_manager %}
+          ### Artifact Manager
+          {% if parameters.build_infrastructure_type != "cloud" %}
+          - build_farm_artifact_manager (Requires Delegate): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_artifact_manager']}}
+          {% endif %}
+
+          {% if parameters.build_infrastructure_type != "internal" %}
+          - build_farm_artifact_manager (Used by Harness CI Cloud): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_artifact_manager_cloud']}}
+          {% endif %}
           {% endif %}
