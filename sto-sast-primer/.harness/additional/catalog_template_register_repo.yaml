@@ -80,7 +80,6 @@ spec:
                 required:
                   - repository_name
                   - repository_path
-                  - webhook_type
                 properties:
                   repository_name:
                     $ref: "#/repo_defaults/repo_name"
@@ -88,8 +87,6 @@ spec:
                     $ref: "#/repo_defaults/repo_path"
                   should_monitor_all_branches:
                     $ref: "#/repo_defaults/branch_manager"
-                  webhook_type:
-                    $ref: "#/repo_defaults/webhook_type"
             - if:
                 properties:
                   source_code_manager_type:
@@ -99,7 +96,6 @@ spec:
                   - repo_connector_ref
                   - repository_name
                   - repository_path
-                  - webhook_type
                 properties:
                   repo_connector_ref:
                     title: Existing GIT Connector Reference
@@ -115,14 +111,44 @@ spec:
                     $ref: "#/repo_defaults/repo_path"
                   should_monitor_all_branches:
                     $ref: "#/repo_defaults/branch_manager"
-                  webhook_type:
-                    $ref: "#/repo_defaults/webhook_type"
         should_monitor_all_branches:
           allOf:
             - if:
                 properties:
                   should_monitor_all_branches:
+                    const: "all"
+                  source_code_manager_type:
+                    enum: ["build_farm","custom"]
+              then:
+                required:
+                  - webhook_type
+                  - primary_branch
+                properties:
+                  webhook_type:
+                    $ref: "#/repo_defaults/webhook_type"
+            - if:
+                properties:
+                  should_monitor_all_branches:
                     const: "main_only"
+                  source_code_manager_type:
+                    enum: ["build_farm","custom"]
+              then:
+                required:
+                  - webhook_type
+                  - primary_branch
+                properties:
+                  webhook_type:
+                    $ref: "#/repo_defaults/webhook_type"
+                  primary_branch:
+                    title: Enter the primary branch to monitor for changes
+                    type: string
+                    default: main
+            - if:
+                properties:
+                  should_monitor_all_branches:
+                    const: "main_only"
+                  source_code_manager_type:
+                    enum: ["hcr"]
               then:
                 required:
                   - primary_branch
