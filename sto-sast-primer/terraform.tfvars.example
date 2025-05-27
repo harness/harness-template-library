@@ -45,12 +45,28 @@ enabled_scanners = ["gitleaks", "osv", "owasp", "semgrep"]
 scanner_override_image_connector = "skipped"
 # [Optional] Provide an override image reference to pull
 gitleaks_override_image_name = "skipped"
+# [Optional] Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu.
+gitleaks_override_cpu = "0.4"
+# [Optional] Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi.
+gitleaks_override_mem = "600Mi"
 # [Optional] Enter an existing Container image which to use for OSV scans
 osv_override_image_name = "skipped"
+# [Optional] Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu.
+osv_override_cpu = "1"
+# [Optional] Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi.
+osv_override_mem = "2Gi"
 # [Optional] Enter an existing Container image which to use for OWASP scans
 owasp_override_image_name = "skipped"
+# [Optional] Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu.
+owasp_override_cpu = "2"
+# [Optional] Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi.
+owasp_override_mem = "6Gi"
 # [Optional] Enter an existing Container image which to use for Semgrep scans
 semgrep_override_image_name = "skipped"
+# [Optional] Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu.
+semgrep_override_cpu = "2"
+# [Optional] Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi.
+semgrep_override_mem = "4Gi"
 # -> Tools connector for copying binaries for dependency checks
 # [Optional] Enter an existing Container Registry connector_id which contains build tools image for OWASP scans
 tools_image_connector = "account.harnessImage"

@@ -1,0 +1,43 @@
+template:
+  identifier: ${TEMPLATE_IDENTIFIER}
+  name: ${TEMPLATE_NAME}
+  %{~ if ORGANIZATION_ID != null ~}
+  orgIdentifier: ${ORGANIZATION_ID}
+  %{~ endif ~}
+  %{~ if PROJECT_ID != null ~}
+  projectIdentifier: ${PROJECT_ID}
+  %{~ endif ~}
+  description: "${TEMPLATE_DESC}"
+  versionLabel: ${TEMPLATE_VERSION}
+  tags:
+    ${indent(4, TAGS)}
+  type: Pipeline
+  spec:
+    properties:
+      ci:
+        codebase:
+          %{~ if USE_HCR == false ~}
+          connectorRef: <+input>
+          %{~ endif ~}
+          repoName: <+input>
+          build: <+input>
+          sparseCheckout: []
+    stages:
+      - stage:
+          name: Repository Scans
+          identifier: Repository_Scans
+          template:
+            templateRef: ${STAGE_TEMPLATE_ID}
+            versionLabel: ${STAGE_TEMPLATE_VERSION}
+            templateInputs:
+              type: SecurityTests
+              variables:
+                - name: SCAN_TARGET
+                  type: String
+                  value: <+pipeline.properties.ci.codebase.repoName>
+                - name: SCAN_VARIANT
+                  type: String
+                  value: <+codebase.branch>
+                - name: SHARED_ARTIFACTS
+                  type: String
+                  value: /shared/customer_artifacts

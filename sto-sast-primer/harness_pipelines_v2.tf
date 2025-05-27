@@ -1,28 +1,24 @@
-locals {
-  pipe_sto_sast_sca_template_version = "v1"
-}
-
-resource "harness_platform_template" "pipe_STO_SAST_SCA_Pipeline_HCR" {
+resource "harness_platform_template" "pipe_STO_SAST_SCA_Pipeline_HCR_v2" {
   depends_on = [time_sleep.stages]
   count      = var.should_support_hcr ? 1 : 0
   identifier = "pipe_STO_SAST_SCA_Pipeline_HCR"
   name       = "STO SAST SCA Pipeline - HCR"
   org_id     = var.organization_id
   project_id = var.project_id
-  version    = local.pipe_sto_sast_sca_template_version
+  version    = "v2"
   is_stable  = true
   template_yaml = templatefile(
-    "${path.module}/templates/pipelines/pipe_STO_SAST_SCA_Pipeline.yaml",
+    "${path.module}/templates/pipelines/v2/pipe_STO_SAST_SCA_Pipeline.yaml",
     {
       TEMPLATE_IDENTIFIER : "pipe_STO_SAST_SCA_Pipeline_HCR"
       TEMPLATE_NAME : "STO SAST SCA Pipeline - HCR"
-      TEMPLATE_VERSION : local.pipe_sto_sast_sca_template_version
+      TEMPLATE_VERSION : "v2"
       ORGANIZATION_ID : var.organization_id
       PROJECT_ID : var.project_id
       TEMPLATE_DESC : "[Requires Harness Code] Pipeline Example to scan an application repository with supported SCA and SAST scanners"
 
-      STAGE_TEMPLATE_ID : "${local.tier_handler}${harness_platform_template.sta_STO_SAST_SCA_Primer.id}"
-      STAGE_TEMPLATE_VERSION : harness_platform_template.sta_STO_SAST_SCA_Primer.version
+      STAGE_TEMPLATE_ID : "${local.tier_handler}${harness_platform_template.sta_STO_SAST_SCA_Primer_v2.id}"
+      STAGE_TEMPLATE_VERSION : harness_platform_template.sta_STO_SAST_SCA_Primer_v2.version
 
       # Included Scanners
       INCLUDE_GITLEAKS : contains(var.enabled_scanners, "gitleaks") ? "include" : "skipped"
@@ -38,26 +34,26 @@ resource "harness_platform_template" "pipe_STO_SAST_SCA_Pipeline_HCR" {
   tags = local.common_tags_tuple
 }
 
-resource "harness_platform_template" "pipe_STO_SAST_SCA_Pipeline" {
+resource "harness_platform_template" "pipe_STO_SAST_SCA_Pipeline_v2" {
   depends_on = [time_sleep.stages]
   identifier = "pipe_STO_SAST_SCA_Pipeline"
   name       = "STO SAST SCA Pipeline"
   org_id     = var.organization_id
   project_id = var.project_id
-  version    = local.pipe_sto_sast_sca_template_version
+  version    = "v2"
   is_stable  = true
   template_yaml = templatefile(
-    "${path.module}/templates/pipelines/pipe_STO_SAST_SCA_Pipeline.yaml",
+    "${path.module}/templates/pipelines/v2/pipe_STO_SAST_SCA_Pipeline.yaml",
     {
       TEMPLATE_IDENTIFIER : "pipe_STO_SAST_SCA_Pipeline"
       TEMPLATE_NAME : "STO SAST SCA Pipeline"
-      TEMPLATE_VERSION : local.pipe_sto_sast_sca_template_version
+      TEMPLATE_VERSION : "v2"
       ORGANIZATION_ID : var.organization_id
       PROJECT_ID : var.project_id
       TEMPLATE_DESC : "Pipeline Example to scan an application repository with supported SCA and SAST scanners"
 
-      STAGE_TEMPLATE_ID : "${local.tier_handler}${harness_platform_template.sta_STO_SAST_SCA_Primer.id}"
-      STAGE_TEMPLATE_VERSION : harness_platform_template.sta_STO_SAST_SCA_Primer.version
+      STAGE_TEMPLATE_ID : "${local.tier_handler}${harness_platform_template.sta_STO_SAST_SCA_Primer_v2.id}"
+      STAGE_TEMPLATE_VERSION : harness_platform_template.sta_STO_SAST_SCA_Primer_v2.version
 
       # Included Scanners
       INCLUDE_GITLEAKS : contains(var.enabled_scanners, "gitleaks") ? "include" : "skipped"
@@ -71,13 +67,4 @@ resource "harness_platform_template" "pipe_STO_SAST_SCA_Pipeline" {
     }
   )
   tags = local.common_tags_tuple
-}
-
-resource "time_sleep" "pipelines" {
-  depends_on = [
-    harness_platform_template.pipe_STO_SAST_SCA_Pipeline
-  ]
-
-  create_duration  = "5s"
-  destroy_duration = "15s"
 }

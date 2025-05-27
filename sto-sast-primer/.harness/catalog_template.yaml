@@ -314,7 +314,7 @@ spec:
                       _Note: When providing a custom image name, be sure to include the repo/image path and tag_
                     type: string
                     default: "harnesssolutionfactory/harness-sto-config-manager:latest"
-    - title: Security Scanner Configuration
+    - title: Security Scanner Selection
       required:
         - enabled_scanners
       properties:
@@ -338,6 +338,112 @@ spec:
               - Open Source Vulnerabilities (OSV)
               - OWASP Dependency-Check
               - Semgrep (SAST)
+    - title: Security Scanner Configuration
+      description: |
+        Choose to modify the CPU & Memory configurations for the scanners. Note, the default values are typically aligned to the majority of use cases to optimize the scanners.
+          - Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu.
+          - Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi.
+      properties:
+        enabled_scanners:
+          title: Select Scanners to include
+          type: array
+          ui:widget: hidden
+      dependencies:
+        enabled_scanners:
+          allOf:
+            - if:
+                properties:
+                  enabled_scanners:
+                    contains:
+                      const: "gitleaks"
+              then:
+                required:
+                  - gitleaks_override_cpu
+                  - gitleaks_override_mem
+                properties:
+                  gitleaks_override_cpu:
+                    $ref: "#/scanner_defaults/gitleaks_override_cpu"
+                  gitleaks_override_mem:
+                    $ref: "#/scanner_defaults/gitleaks_override_mem"
+            - if:
+                properties:
+                  enabled_scanners:
+                    contains:
+                      const: "osv"
+              then:
+                required:
+                  - osv_override_cpu
+                  - osv_override_mem
+                properties:
+                  osv_override_cpu:
+                    $ref: "#/scanner_defaults/osv_override_cpu"
+                  osv_override_mem:
+                    $ref: "#/scanner_defaults/osv_override_mem"
+            - if:
+                properties:
+                  enabled_scanners:
+                    contains:
+                      const: "owasp"
+              then:
+                required:
+                  - owasp_override_cpu
+                  - owasp_override_mem
+                properties:
+                  owasp_override_cpu:
+                    $ref: "#/scanner_defaults/owasp_override_cpu"
+                  owasp_override_mem:
+                    $ref: "#/scanner_defaults/owasp_override_mem"
+            - if:
+                properties:
+                  enabled_scanners:
+                    contains:
+                      const: "semgrep"
+              then:
+                required:
+                  - semgrep_override_cpu
+                  - semgrep_override_mem
+                properties:
+                  semgrep_override_cpu:
+                    $ref: "#/scanner_defaults/semgrep_override_cpu"
+                  semgrep_override_mem:
+                    $ref: "#/scanner_defaults/semgrep_override_mem"
+      scanner_defaults:
+        gitleaks_override_cpu:
+          title: GitLeaks CPU configuration
+          type: number
+          default: 0.4
+        gitleaks_override_mem:
+          title: GitLeaks Memory configuration
+          type: string
+          default: 600Mi
+          pattern: '^\d*(M|Mi|G|Gi)$'
+        osv_override_cpu:
+          title: OSV CPU configuration
+          type: number
+          default: 1
+        osv_override_mem:
+          title: OSV Memory configuration
+          type: string
+          default: 2Gi
+          pattern: '^\d*(M|Mi|G|Gi)$'
+        owasp_override_cpu:
+          title: OWASP CPU configuration
+          type: number
+          default: 2
+        owasp_override_mem:
+          title: OWASP Memory configuration
+          type: string
+          default: 6Gi
+          pattern: '^\d*(M|Mi|G|Gi)$'
+        semgrep_override_cpu:
+          title: Semgrep CPU configuration
+          type: number
+          default: 2
+        semgrep_override_mem:
+          title: Semgrep Memory configuration
+          type: string
+          default: 4Gi
+          pattern: '^\d*(M|Mi|G|Gi)$'
     - title: Solutions Factory Connection
       properties:
         solutions_factory_details:
@@ -382,12 +488,6 @@ spec:
               default: main
               ui:widget: hidden
   steps:
-    # - action: debug:log
-    #   id: write-inputs
-    #   name: Configured Inputs
-    #   input:
-    #     message: The following will be used as the inputs
-    #     extra:
     - id: configure_workspace
       name: Configuring Harness Workspace
       action: trigger:harness-custom-pipeline
@@ -420,9 +520,17 @@ spec:
             enabled_scanners: ${{ parameters.enabled_scanners }}
             scanner_override_image_connector: "skipped"
             gitleaks_override_image_name: "skipped"
+            gitleaks_override_cpu: ${{ "0.4" if parameters.gitleaks_override_cpu == null else (parameters.gitleaks_override_cpu | string) }}
+            gitleaks_override_mem: ${{ "600Mi" if parameters.gitleaks_override_mem == null else parameters.gitleaks_override_mem }}
             osv_override_image_name: "skipped"
+            osv_override_cpu: ${{ "1" if parameters.osv_override_cpu == null else (parameters.osv_override_cpu | string) }}
+            osv_override_mem: ${{ "2Gi" if parameters.osv_override_mem == null else parameters.osv_override_mem }}
             owasp_override_image_name: "skipped"
+            owasp_override_cpu: ${{ "2" if parameters.owasp_override_cpu == null else (parameters.owasp_override_cpu | string) }}
+            owasp_override_mem: ${{ "6Gi" if parameters.owasp_override_mem == null else parameters.owasp_override_mem }}
             semgrep_override_image_name: "skipped"
+            semgrep_override_cpu: ${{ "2" if parameters.semgrep_override_cpu == null else (parameters.semgrep_override_cpu | string) }}
+            semgrep_override_mem: ${{ "4Gi" if parameters.semgrep_override_mem == null else parameters.semgrep_override_mem }}
             tools_image_connector: ${{
               parameters.infra_defaults.sto_config_mgr_image_connector
               if parameters.use_custom_tools_image_connector == "no"

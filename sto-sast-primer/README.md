@@ -83,9 +83,17 @@ _Note: When providing `_ref` values, please ensure that these are prefixed with 
 | enabled_scanners | | The enabled scanners will be included by default in the templates | list(string) | [gitleaks, osv, owasp, semgrep] |
 | scanner_override_image_connector | | Provide existing Container Registry connector_id to be used to pull all scanner images. | string | skipped |
 | gitleaks_override_image_name | | Provide an override image reference to pull | string | skipped |
+| gitleaks_override_cpu | | Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu. | string | 0.4 |
+| gitleaks_override_mem | | Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi. | string | 600Mi |
 | osv_override_image_name | | Enter an existing Container image which to use for OSV scans | string | skipped |
-| owasp_override_image_name | | Enter an existing Container image which to use for OWASP scans | string | skipped |
-| semgrep_override_image_name | | Enter an existing Container image which to use for Semgrep scans | string | skipped |
+| osv_override_cpu | | Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu. | string | 1 |
+| osv_override_mem | | Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi. | string | 2Gi |
+| owasp_override_image_name |  Enter an existing Container image which to use for OWASP scans | string | skipped |
+| owasp_override_cpu | | Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu. | string | 2 |
+| owasp_override_mem | | Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi. | string | 6Gi |
+| semgrep_override_image_name  Enter an existing Container image which to use for Semgrep scans | string | skipped |
+| semgrep_override_cpu | | Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu. | string | 2 |
+| semgrep_override_mem | | Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi. | string | 4Gi |
 | tools_image_connector | | Enter an existing Container Registry connector_id which contains build tools image for OWASP scans | string | account.harnessImage |
 | tools_image_name | | Enter an existing Container image which contains build tools for OWASP scans | string | node:20.11.0-alpine |
 

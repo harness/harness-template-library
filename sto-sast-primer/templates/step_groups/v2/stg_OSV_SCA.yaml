@@ -1,0 +1,89 @@
+template:
+  identifier: ${TEMPLATE_IDENTIFIER}
+  name: ${TEMPLATE_NAME}
+  %{~ if ORGANIZATION_ID != null ~}
+  orgIdentifier: ${ORGANIZATION_ID}
+  %{~ endif ~}
+  %{~ if PROJECT_ID != null ~}
+  projectIdentifier: ${PROJECT_ID}
+  %{~ endif ~}
+  description: ${TEMPLATE_DESC}
+  versionLabel: ${TEMPLATE_VERSION}
+  tags:
+    ${indent(4, TAGS)}
+  type: StepGroup
+  spec:
+    stageType: SecurityTests
+    steps:
+      - step:
+          type: Plugin
+          name: Process Scanner Overrides
+          identifier: Process_Scanner_Overrides
+          spec:
+            connectorRef: ${STO_CONFIG_MGR_CONNECTOR}
+            image: ${STO_CONFIG_MGR_IMAGE}
+            settings:
+              path: <+stepGroup.variables.CONFIG_MANAGER_DIR>
+              scanner: osv
+              organization: <+org.identifier>
+              project: <+project.identifier>
+              pipeline: <+pipeline.identifier>
+            %{~ if KUBERNETES_CONNECTOR == "skipped" ~}
+            # When running in Harness Cloud CI, the target will need to run as root
+            runAsUser: "0"
+            %{~ endif ~}
+      - step:
+          type: OsvScanner
+          name: Scan
+          identifier: Scan
+          spec:
+            mode: orchestration
+            config: default
+            target:
+              type: repository
+              detection: manual
+              name: <+stepGroup.variables.SCAN_TARGET>
+              variant: <+stepGroup.variables.SCAN_VARIANT>
+            advanced:
+              log:
+                level: <+stepGroup.variables.SCANNER_LOGGING>
+              args:
+                cli: <+stepGroup.steps.Process_Scanner_Overrides.output.outputVariables.CLI_ARGS>
+            resources:
+              limits:
+                cpu: <+stage.variables.OSV_CPU>
+                memory: <+stage.variables.OSV_MEM>
+            %{~ if SCANNER_IMAGE_CONNECTOR != "skipped" ~}
+            connectorRef: ${SCANNER_IMAGE_CONNECTOR}
+            %{~ endif ~}
+            %{~ if SCANNER_IMAGE_NAME != "skipped" ~}
+            imageTag: ${SCANNER_IMAGE_NAME}
+            %{~ endif ~}
+          timeout: <+stepGroup.variables.SCANNER_TIMEOUT>
+    variables:
+      - name: CONFIG_MANAGER_DIR
+        description: Provide the Shared Path configured in the stage into which the repo will be cloned and configured.
+        type: String
+        value: <+input>
+        required: true
+      - name: SCAN_TARGET
+        description: Provide the STO Target name for this scan target. Default - <+pipeline.properties.ci.codebase.repoName>
+        type: String
+        value: <+input>.default(<+pipeline.properties.ci.codebase.repoName>)
+        required: true
+      - name: SCAN_VARIANT
+        description: Provide the STO Target Variant (the version to which to assign this scan). Default - <+codebase.branch>
+        type: String
+        value: <+input>.default(<+codebase.branch>)
+        required: true
+      - name: SCANNER_LOGGING
+        description: What level of Logging should be displayed? Default - info
+        type: String
+        value: <+input>.default(info).allowedValues(info,debug)
+        required: true
+      - name: SCANNER_TIMEOUT
+        description: What Timeout should be applied to the scanner? Default - 10h
+        type: String
+        value: <+input>.default(10h)
+        required: true
+    when: <+input>

@@ -33,3 +33,27 @@ pipeline:
               - name: SHARED_ARTIFACTS
                 type: String
                 value: /shared/customer_artifacts
+              - name: GITLEAKS_CPU
+                type: String
+                value: 400m
+              - name: GITLEAKS_MEM
+                type: String
+                value: 600Mi
+              - name: OSV_CPU
+                type: String
+                value: "1"
+              - name: OSV_MEM
+                type: String
+                value: 2Gi
+              - name: OWASP_CPU
+                type: String
+                value: "2"
+              - name: OWASP_MEM
+                type: String
+                value: 6Gi
+              - name: SEMGREP_CPU
+                type: String
+                value: "2"
+              - name: SEMGREP_MEM
+                type: String
+                value: 4Gi

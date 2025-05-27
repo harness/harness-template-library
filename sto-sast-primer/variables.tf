@@ -101,10 +101,34 @@ variable "gitleaks_override_image_name" {
   default     = "skipped"
 }
 
+variable "gitleaks_override_cpu" {
+  type        = string
+  description = "[Optional] Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu."
+  default     = "0.4"
+}
+
+variable "gitleaks_override_mem" {
+  type        = string
+  description = "[Optional] Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi."
+  default     = "600Mi"
+}
+
 variable "osv_override_image_name" {
   type        = string
   description = "[Optional] Enter an existing Container image which to use for OSV scans"
   default     = "skipped"
+}
+
+variable "osv_override_cpu" {
+  type        = string
+  description = "[Optional] Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu."
+  default     = "1"
+}
+
+variable "osv_override_mem" {
+  type        = string
+  description = "[Optional] Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi."
+  default     = "2Gi"
 }
 
 variable "owasp_override_image_name" {
@@ -113,10 +137,34 @@ variable "owasp_override_image_name" {
   default     = "skipped"
 }
 
+variable "owasp_override_cpu" {
+  type        = string
+  description = "[Optional] Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu."
+  default     = "2"
+}
+
+variable "owasp_override_mem" {
+  type        = string
+  description = "[Optional] Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi."
+  default     = "6Gi"
+}
+
 variable "semgrep_override_image_name" {
   type        = string
   description = "[Optional] Enter an existing Container image which to use for Semgrep scans"
   default     = "skipped"
+}
+
+variable "semgrep_override_cpu" {
+  type        = string
+  description = "[Optional] Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu."
+  default     = "2"
+}
+
+variable "semgrep_override_mem" {
+  type        = string
+  description = "[Optional] Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi."
+  default     = "4Gi"
 }
 
 # -> Tools connector for copying binaries for dependency checks

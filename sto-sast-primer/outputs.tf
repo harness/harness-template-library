@@ -10,7 +10,7 @@ locals {
     :
     "Deployed as Account-level Resources"
   )
-  hcr_pipeline_template = var.should_support_hcr ? "${local.tier_handler}${harness_platform_template.pipe_STO_SAST_SCA_Pipeline_HCR[0].id}" : "Not Deployed"
+  hcr_pipeline_template = var.should_support_hcr ? "${local.tier_handler}${harness_platform_template.pipe_STO_SAST_SCA_Pipeline_HCR_v2[0].id}" : "Not Deployed"
 }
 
 output "resource_placement" {
@@ -18,7 +18,7 @@ output "resource_placement" {
 }
 
 output "pipeline_template_id" {
-  value = "${local.tier_handler}${harness_platform_template.pipe_STO_SAST_SCA_Pipeline.id}"
+  value = "${local.tier_handler}${harness_platform_template.pipe_STO_SAST_SCA_Pipeline_v2.id}"
 }
 
 output "pipeline_template_hcr_id" {
