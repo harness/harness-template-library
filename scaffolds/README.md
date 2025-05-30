@@ -8,11 +8,13 @@ Part of maintaining this project will often require enhancements and new feature
 ## Guides
 
 - [Developer Environment Setup](docs/local-developers-lab.md)
-- [Local Testing using make](docs/makefile-commands.md)
+- [Local Testing Using Make](docs/makefile-commands.md)
 - [Naming Convention Guidelines](docs/naming-conventions.md)
-- [How to upgrade your Solutions Factory implementation](docs/upgrading-your-installation.md)
+- [How to Upgrade Your Solutions Factory Implementation](docs/upgrading-your-installation.md)
 - [New Terraform Template](docs/add-terraform-template.md)
 - [Setup Custom Harness Template Library](docs/add-custom-template-library.md)
+- [Configuring Stage Infrastructure](docs/pipeline-infrastructure.md)
+- [Creating Templates with Resource Hierarchy](docs/resource-hierarchy.md)
 
 ## Contributing
 
