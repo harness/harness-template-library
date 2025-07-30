@@ -1,0 +1,34 @@
+apiVersion: harness.io/v1
+kind: resource
+identifier: {{ resource_name | replace(" ","-") | replace("-","_") | lower }}
+name: {{ resource_name }}
+type: hsf_workspace
+owner: {{ owner if owner else "group:account/HSF_Admins"}}
+metadata:
+  description: {{ description if description else "Automatically registered Harness Solutions Factory" }}
+  annotations:
+    {%- if workspace_uri %}
+    harness.io/workspace-url: |
+      IACM: {{ workspace_uri | replace("/$","") }}/resources
+    {%- endif %}
+  hsf:
+    is_managed: true
+    is_drifted: {{ is_resource_drifted }}
+  labels: {{ "" if idp_labels else {} }}
+    {%- if idp_labels %}
+    {%- for label_name, label in idp_labels.items() %}
+    {{ label_name }}: {{ label }}
+    {%- endfor %}
+    {%- endif %}
+  tags: {{ "" if idp_tags else [] }}
+    {%- for item in idp_tags %}
+    - {{ item }}
+    {%- endfor %}
+  links: {{ "" if workspace_uri else [] }}
+    {%- if workspace_uri %}
+    - url: {{ workspace_uri | replace("/$","") }}/variables
+      title: Workspace Variables
+      type: iacm-workspace
+    {%- endif %}
+spec:
+  lifecycle: production

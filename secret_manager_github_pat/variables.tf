@@ -27,5 +27,5 @@ variable "github_api_url" {
 variable "template_version" {
   type        = string
   description = "version of template to publish"
-  default     = "1"
+  default     = "v1"
 }

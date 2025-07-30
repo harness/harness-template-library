@@ -1,0 +1,76 @@
+---
+name: resource-hsf_workspace
+display_name: HSF Workspace
+description: This layout will be applied to all entities of kind resource and type hsf_workspace
+type: EntityLayout
+entity_kind: resource
+entity_type: hsf_workspace
+yaml:
+  page:
+    name: EntityLayout
+    tabs:
+      - name: Overview
+        path: /
+        title: Overview
+        contents:
+          - component: EntityOrphanWarning
+          - component: EntityRelationWarning
+          - component: EntityProcessingErrorsPanel
+          - component: EntityAboutCard
+            specs:
+              props:
+                variant: gridItem
+              gridProps:
+                md: 6
+          - component: EntityScoreCard
+            specs:
+              gridProps:
+                md: 6
+          - component: EntityCatalogGraphCard
+            specs:
+              props:
+                variant: gridItem
+                height: 400
+              gridProps:
+                md: 6
+                xs: 12
+          - component: EntityLinksCard
+            specs:
+              props:
+                variant: gridItem
+                item: 400
+              gridProps:
+                md: 6
+      - name: TechDocs
+        path: /docs
+        title: Docs
+        contents:
+          - component: EntityTechdocsContent
+            specs:
+              children:
+                - component: TechDocsAddons
+                  specs:
+                    children:
+                      - component: ReportIssue
+      - name: Scorecard
+        path: /scorecard
+        title: Scorecard
+        contents:
+          - component: EntityScorecardContent
+      - name: iacm
+        path: /iacm
+        title: Infrastructure
+        contents:
+          - component: EntitySwitch
+            specs:
+              cases:
+                - if: isHarnessIacmAvailable
+                  content:
+                    component: EntityIacmContent
+                - content:
+                    component: EmptyState
+                    specs:
+                      props:
+                        title: No Infrastructure available for this entity
+                        missing: info
+                        description: You need to add an annotation to your component if you want to enable Infrastructure for it. You can read more about annotations in Backstage by clicking the button below.

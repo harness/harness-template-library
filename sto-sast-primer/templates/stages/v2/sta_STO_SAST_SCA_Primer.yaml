@@ -169,39 +169,39 @@ ${STAGE_INFRASTRUCTURE}
         type: String
         description: "Configures the Default number of CPUs to assign to Gitleaks Scanners"
         required: true
-        value: "${GITLEAKS_OVERRIDE_CPU}"
+        value: <+input>.default("${GITLEAKS_OVERRIDE_CPU}")
       - name: GITLEAKS_MEM
         type: String
         description: "Configures the Default amount of Memory to assign to Gitleaks Scanners"
         required: true
-        value: ${GITLEAKS_OVERRIDE_MEM}
+        value: <+input>.default(${GITLEAKS_OVERRIDE_MEM})
       - name: OSV_CPU
         type: String
         description: "Configures the Default number of CPUs to assign to OSV Scanners"
         required: true
-        value: "${OSV_OVERRIDE_CPU}"
+        value: <+input>.default("${OSV_OVERRIDE_CPU}")
       - name: OSV_MEM
         type: String
         description: "Configures the Default amount of Memory to assign to OSV Scanners"
         required: true
-        value: ${OSV_OVERRIDE_MEM}
+        value: <+input>.default(${OSV_OVERRIDE_MEM})
       - name: OWASP_CPU
         type: String
         description: "Configures the Default number of CPUs to assign to OWASP Scanners"
         required: true
-        value: "${OWASP_OVERRIDE_CPU}"
+        value: <+input>.default("${OWASP_OVERRIDE_CPU}")
       - name: OWASP_MEM
         type: String
         description: "Configures the Default amount of Memory to assign to OWASP Scanners"
         required: true
-        value: ${OWASP_OVERRIDE_MEM}
+        value: <+input>.default(${OWASP_OVERRIDE_MEM})
       - name: SEMGREP_CPU
         type: String
         description: "Configures the Default number of CPUs to assign to Semgrep Scanners"
         required: true
-        value: "${SEMGREP_OVERRIDE_CPU}"
+        value: <+input>.default("${SEMGREP_OVERRIDE_CPU}")
       - name: SEMGREP_MEM
         type: String
         description: "Configures the Default amount of Memory to assign to Semgrep Scanners"
         required: true
-        value: ${SEMGREP_OVERRIDE_MEM}
+        value: <+input>.default(${SEMGREP_OVERRIDE_MEM})

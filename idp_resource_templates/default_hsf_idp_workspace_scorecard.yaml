@@ -1,0 +1,24 @@
+scorecard:
+  name: HSF Resource Scorecard
+  identifier: HSF_Resource_Scorecard
+  description: ''
+  filter:
+    kind: resource
+    type: hsf_workspace
+    owners: []
+    tags: []
+    lifecycle: []
+    scopes:
+      - account.*
+  weightage_strategy: EQUAL_WEIGHTS
+  published: true
+  on_demand: false
+  checks_missing: []
+  components: 6
+  percentage: 100
+checks:
+  - identifier: HSF_Drift_Check
+    weightage: 1
+    custom: true
+    name: HSF Drift Check
+    description: Harness Solutions Factory Resource Check

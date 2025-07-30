@@ -1,0 +1,12 @@
+---
+annotations:
+  source: harness-template-library
+  created_by: Harness
+entities:
+  - workflows:
+      - name: rbac-manager-account
+        file_path: additional/catalog_template_account.yaml
+      - name: rbac-manager-org
+        file_path: additional/catalog_template_org.yaml
+      - name: rbac-manager-project
+        file_path: additional/catalog_template_project.yaml

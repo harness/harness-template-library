@@ -8,7 +8,6 @@ metadata:
     - account-management
     - solutions-factory
     - harness
-    - hidden
 spec:
   owner: group:default/HSF_Admins
   type: harness_factory
@@ -753,6 +752,15 @@ spec:
             Solutions Factory Project : <+variable.account.solutions_factory_project>
 
             Template Library Connector : <+variable.account.solutions_factory_template_library_connector>
+          required:
+            - harness_account_url
+            - harness_account_id
+            - harness_org_id
+            - harness_project_id
+            - template_library_connector
+            - template_library_repo
+            - template_library_branch
+            - template_library_directory
           properties:
             harness_account_url:
               type: string
@@ -782,8 +790,42 @@ spec:
               type: string
               default: main
               ui:widget: hidden
+            template_library_directory:
+              type: string
+              default: central-build-farm-setup
+              ui:widget: hidden
+        solutions_factory_opts:
+          title: Solutions Factory Workflow Options
+          type: object
+          required:
+            - repo_source
+            - workspace_type
+          properties:
+            repo_source:
+              type: string
+              # Used to group by source the workspaces for bulk actions
+              default: <+<+variable.account.solutions_factory_template_library_connector>.startsWith("org.Harness_Template_Library_Repo")?"official":"custom">
+              ui:widget: hidden
+            workspace_type:
+              type: string
+              # Used to group by type the workspaces for bulk actions
+              default: central-build-farm-setup
+              ui:widget: hidden
+            is_ephemeral:
+              type: string
+              # Determines if the workflow will trigger a temporary workspace that is
+              # deleted upon completion. Resources will be preserved
+              # Must be "true" or "false" and wrapped in quotes
+              default: "false"
+              ui:widget: hidden
+            requires_approval:
+              type: string
+              # Determines if the workflow will require an Approval before executing
+              # Must be "true" or "false" and wrapped in quotes
+              default: "false"
+              ui:widget: hidden
   steps:
-    - id: trigger
+    - id: configure_workspace
       name: Creating your Harness Resources
       action: trigger:harness-custom-pipeline
       input:
@@ -792,7 +834,7 @@ spec:
           GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
           GIT_REPOSITORY_NAME: ${{ parameters.solutions_factory_details.template_library_repo }}
           GIT_REPOSITORY_BRANCH: ${{ parameters.solutions_factory_details.template_library_branch }}
-          GIT_REPOSITORY_PATH: central-build-farm-setup
+          GIT_REPOSITORY_PATH: ${{ parameters.solutions_factory_details.template_library_directory }}
           RESOURCE_NAME: harness-central-build-farm-setup
           RESOURCE_OWNER: group:default/Account_Admins
           RESOURCE_VARS:
@@ -832,22 +874,16 @@ spec:
           RESOURCE_VARS_ENVS_SECRET: {}
           RESOURCE_VARS_SECRETS: {}
           INCLUDE_HARNESS_ENVS: "true"
+          WORKSPACE_TAGS:
+            source: ${{ parameters.solutions_factory_opts.repo_source }}
+            type: ${{ parameters.solutions_factory_opts.workspace_type }}
+          IS_EPHEMERAL: ${{ parameters.solutions_factory_opts.is_ephemeral }}
+          REQUIRES_APPROVAL: ${{ parameters.solutions_factory_opts.requires_approval }}
         apikey: ${{ parameters.token }}
-    - id: provision_workspace
-      name: Provisioning your Harness Workspace
-      action: trigger:harness-custom-pipeline
-      input:
-        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
-        inputset:
-          workspace: harness-central-build-farm-setup
-        apikey: ${{ parameters.token }}
-        showOutputVariables: true
   output:
     links:
       - title: Harness Workspace Configured - Execution Link
         url: ${{ steps.configure_workspace.output.PipelineUrl }}
-      - title: Harness Workspace Provisioned - Execution Link
-        url: ${{ steps.provision_workspace.output.PipelineUrl }}
     text:
       - title: Next-Steps
         content: |
@@ -870,33 +906,33 @@ spec:
           ## Central Build Farm Connector Details
           {% if parameters.build_infrastructure_type != "cloud" %}
           ### Kubernetes Connector
-          - build_farm_connector: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_connector']}}
+          - build_farm_connector: ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_connector']}}
           {% endif %}
 
           ### Container Registry
           {% if parameters.build_infrastructure_type != "cloud" %}
-          - build_farm_container_registry (Requires Delegate): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_container_registry']}}
+          - build_farm_container_registry (Requires Delegate): ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_container_registry']}}
           {% endif %}
 
           {% if parameters.build_infrastructure_type != "internal" %}
-          - build_farm_container_registry (Used by Harness CI Cloud): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_container_registry_cloud']}}
+          - build_farm_container_registry (Used by Harness CI Cloud): ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_container_registry_cloud']}}
           {% endif %}
           ### Source Code Manager
           {% if parameters.build_infrastructure_type != "cloud" %}
-          - build_farm_source_code_manager (Requires Delegate): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_source_code_manager']}}
+          - build_farm_source_code_manager (Requires Delegate): ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_source_code_manager']}}
           {% endif %}
 
           {% if parameters.build_infrastructure_type != "internal" %}
-          - build_farm_source_code_manager (Used by Harness CI Cloud): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_source_code_manager_cloud']}}
+          - build_farm_source_code_manager (Used by Harness CI Cloud): ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_source_code_manager_cloud']}}
           {% endif %}
 
           {% if parameters.should_setup_artifact_manager %}
           ### Artifact Manager
           {% if parameters.build_infrastructure_type != "cloud" %}
-          - build_farm_artifact_manager (Requires Delegate): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_artifact_manager']}}
+          - build_farm_artifact_manager (Requires Delegate): ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_artifact_manager']}}
           {% endif %}
 
           {% if parameters.build_infrastructure_type != "internal" %}
-          - build_farm_artifact_manager (Used by Harness CI Cloud): ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_artifact_manager_cloud']}}
+          - build_farm_artifact_manager (Used by Harness CI Cloud): ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.build_farm_artifact_manager_cloud']}}
           {% endif %}
           {% endif %}

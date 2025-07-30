@@ -1,0 +1,9 @@
+---
+annotations:
+  source: harness-template-library
+  created_by: Harness
+entities:
+  - workflows:
+      - name: register-repository-security
+        file_path: additional/catalog_template_register_repo.yaml
+        modules: sto

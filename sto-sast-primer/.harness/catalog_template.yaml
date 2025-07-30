@@ -7,7 +7,6 @@ metadata:
   tags:
     - solutions-factory
     - harness
-    - hidden
     - security
 spec:
   owner: group:default/HSF_Admins # Defaults to all users
@@ -97,11 +96,11 @@ spec:
                     description: |
                       This option requires that the `Central Build Farm Setup` factory to already be deployed and configured.
                     type: string
-                    default: no
-                    pattern: yes
+                    default: "no"
+                    pattern: "yes"
                     enum:
-                      - no
-                      - yes
+                      - "no"
+                      - "yes"
                     enumNames:
                       - "No: I need a moment to do this"
                       - "Yes: All set. My Central Build Farm is deployed and configured"
@@ -190,10 +189,10 @@ spec:
                       ---
                       By default, this image is stored in Dockerhub and the default image connector is used.
                     type: string
-                    default: no
+                    default: "no"
                     enum:
-                      - no
-                      - yes
+                      - "no"
+                      - "yes"
                     enumNames:
                       - "Use the default connector - account.harnessImage"
                       - "I would like to provide a custom Container Registry Connector"
@@ -211,11 +210,11 @@ spec:
                     description: |
                       This option requires that the `Central Build Farm Setup` factory to already be deployed and configured.
                     type: string
-                    default: no
-                    pattern: yes
+                    default: "no"
+                    pattern: "yes"
                     enum:
-                      - no
-                      - yes
+                      - "no"
+                      - "yes"
                     enumNames:
                       - "No: I need a moment to do this"
                       - "Yes: All set. My Central Build Farm configuration is ready"
@@ -235,10 +234,10 @@ spec:
                       As part of the solution a custom Harness plugin will be deployed when executed within a pipeline. The image used during this execution would need to
                       be pulled from a Container Registry. By default, this image is stored in Dockerhub and the default image connector is used.
                     type: string
-                    default: no
+                    default: "no"
                     enum:
-                      - no
-                      - yes
+                      - "no"
+                      - "yes"
                     enumNames:
                       - "Use the default connector - account.harnessImage"
                       - "I would like to provide a custom Container Registry Connector"
@@ -278,10 +277,10 @@ spec:
                       As part of the solution a custom Harness plugin will be deployed when executed within a pipeline. The image used during this execution would need to
                       be pulled from a Container Registry. By default, this image is stored in Dockerhub and the default image connector is used.
                     type: string
-                    default: no
+                    default: "no"
                     enum:
-                      - no
-                      - yes
+                      - "no"
+                      - "yes"
                     enumNames:
                       - "Use the default connector - account.harnessImage"
                       - "I would like to provide a custom Container Registry Connector"
@@ -458,6 +457,15 @@ spec:
             Solutions Factory Org : <+variable.account.solutions_factory_org>
 
             Solutions Factory Project : <+variable.account.solutions_factory_project>
+          required:
+            - harness_account_url
+            - harness_account_id
+            - harness_org_id
+            - harness_project_id
+            - template_library_connector
+            - template_library_repo
+            - template_library_branch
+            - template_library_directory
           properties:
             harness_account_url:
               type: string
@@ -487,6 +495,40 @@ spec:
               type: string
               default: main
               ui:widget: hidden
+            template_library_directory:
+              type: string
+              default: sto-sast-primer
+              ui:widget: hidden
+        solutions_factory_opts:
+          title: Solutions Factory Workflow Options
+          type: object
+          required:
+            - repo_source
+            - workspace_type
+          properties:
+            repo_source:
+              type: string
+              # Used to group by source the workspaces for bulk actions
+              default: <+<+variable.account.solutions_factory_template_library_connector>.startsWith("org.Harness_Template_Library_Repo")?"official":"custom">
+              ui:widget: hidden
+            workspace_type:
+              type: string
+              # Used to group by type the workspaces for bulk actions
+              default: sto-sast-primer
+              ui:widget: hidden
+            is_ephemeral:
+              type: string
+              # Determines if the workflow will trigger a temporary workspace that is
+              # deleted upon completion. Resources will be preserved
+              # Must be "true" or "false" and wrapped in quotes
+              default: "false"
+              ui:widget: hidden
+            requires_approval:
+              type: string
+              # Determines if the workflow will require an Approval before executing
+              # Must be "true" or "false" and wrapped in quotes
+              default: "false"
+              ui:widget: hidden
   steps:
     - id: configure_workspace
       name: Configuring Harness Workspace
@@ -497,7 +539,7 @@ spec:
           GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
           GIT_REPOSITORY_NAME: ${{ parameters.solutions_factory_details.template_library_repo }}
           GIT_REPOSITORY_BRANCH: ${{ parameters.solutions_factory_details.template_library_branch }}
-          GIT_REPOSITORY_PATH: sto-sast-primer
+          GIT_REPOSITORY_PATH: ${{ parameters.solutions_factory_details.template_library_directory }}
           RESOURCE_NAME: STO_SCA_SAST_PRIMER
           RESOURCE_OWNER: group:default/HSF_Admins
           # YAML of Terraform variables of type 'String' mapped to their IDP parameters
@@ -572,15 +614,11 @@ spec:
           RESOURCE_VARS_ENVS_SECRET: {}
           # Should the workspace automatically include the default Harness Connector environment variables
           INCLUDE_HARNESS_ENVS: "true"
-        apikey: ${{ parameters.token }}
-        showOutputVariables: true
-    - id: provision_workspace
-      name: Provisioning your Harness Workspace
-      action: trigger:harness-custom-pipeline
-      input:
-        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Execute_IACM_Workspaces/pipeline-studio?storeType=INLINE
-        inputset:
-          workspace: STO_SCA_SAST_PRIMER
+          WORKSPACE_TAGS:
+            source: ${{ parameters.solutions_factory_opts.repo_source }}
+            type: ${{ parameters.solutions_factory_opts.workspace_type }}
+          IS_EPHEMERAL: ${{ parameters.solutions_factory_opts.is_ephemeral }}
+          REQUIRES_APPROVAL: ${{ parameters.solutions_factory_opts.requires_approval }}
         apikey: ${{ parameters.token }}
         showOutputVariables: true
     - id: register-catalogs
@@ -589,9 +627,8 @@ spec:
       input:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Register_IDP_Templates/pipeline-studio?storeType=INLINE
         inputset:
-          hsf_branch: main
+          switch: children
           filter_template: sto-sast-primer
-          include_children: yes
         apikey: ${{ parameters.token }}
         showOutputVariables: true
   output:
@@ -603,10 +640,10 @@ spec:
     text:
       - title: Outputs
         content: |
-          Harness STO Primer templates deployed ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.resource_placement']}}
+          Harness STO Primer templates deployed ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.resource_placement']}}
           ---
-          harness_sto_global_exclusions_repo: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.harness_sto_global_exclusions_repo']}}
+          harness_sto_global_exclusions_repo: ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.harness_sto_global_exclusions_repo']}}
 
-          pipeline_template_id: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.pipeline_template_id']}}
+          pipeline_template_id: ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.pipeline_template_id']}}
 
-          pipeline_template_hcr_id: ${{ steps.provision_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.pipeline_template_hcr_id']}}
+          pipeline_template_hcr_id: ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.pipeline_template_hcr_id']}}

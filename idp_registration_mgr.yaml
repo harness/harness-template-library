@@ -1,0 +1,50 @@
+---
+annotations:
+  source: harness-template-library
+  created_by: Harness
+entities:
+  - org: Harness_Platform_Management
+    workflows:
+      - name: ansible-step-group-template
+        modules: [ci, cd]
+        is_default: false
+      - name: ccm-auto-k8s-connectors
+        modules: ccm
+        is_default: false
+      - name: ccm-autostop-primer
+        modules: ccm
+        is_default: false
+      - name: ccm-cluster-orchestrator-deployment
+        modules: ccm
+        is_default: false
+      - name: ccm-k8s-connectors
+        modules: ccm
+        is_default: false
+      # Skipping this one as it is being deprecated
+      # - name: create_and_push_new_catalog_yaml
+      #   modules: idp
+      - name: harness-organization
+      # Skipping this one as it is being deprecated
+      # - rbac-manager
+      - name: central-build-farm-setup
+        modules: [ci, sto]
+      - name: secret_manager_github_pat
+        is_default: false
+      - name: secret-manager-cyberark-conjur
+        is_default: false
+      - name: sto-sast-primer
+        modules: sto
+  - org: Harness_Platform_Management
+    project: Image_Factory
+    workflows:
+      - name: harness-ci-image-factory
+        modules: ci
+  - org: Harness_Platform_Management
+    project: Delegate_Management
+    workflows:
+      - name: delegate-image-factory
+        modules: ci
+  - org: Harness_Platform_Management
+    project: Solutions_Factory
+    workflows:
+      - name: harness-project

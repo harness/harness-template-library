@@ -1,0 +1,17 @@
+check_details:
+  custom: true
+  name: HSF Drift Check
+  identifier: HSF_Drift_Check
+  description: Harness Solutions Factory Resource Check
+  tags:
+    - hsf
+  default_behaviour: PASS
+  rule_strategy: ALL_OF
+  rules:
+    - input_values:
+        - key: jexl
+          value: '"<+metadata.hsf.is_drifted>"'
+      data_point_identifier: evaluateExpression
+      data_source_identifier: catalog
+      operator: ==
+      value: 'false'

@@ -1,0 +1,9 @@
+---
+annotations:
+  source: harness-template-library
+  created_by: Harness
+entities:
+  - workflows:
+      - name: ccm_autostop_add_service_variables
+        file_path: additional/ccm_autostop_add_service_variables.yaml
+        modules: ccm
