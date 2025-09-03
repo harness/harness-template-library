@@ -1,0 +1,13 @@
+type: Harness
+      spec:
+        type: Push
+        spec:
+          connectorRef: ""
+          autoAbortPreviousExecutions: true
+          payloadConditions:
+            - key: targetBranch
+              operator: Equals
+              value: main
+          headerConditions: []
+          repoName: ${REPOSITORY_PATH}
+          actions: []

@@ -1,0 +1,391 @@
+apiVersion: harness.io/v1
+kind: Workflow
+name: Deploy Harness CI Golden Standard Templates
+identifier: cigoldenstandards
+type: harness_factory
+owner: group:account/HSF_Admins
+metadata:
+  description: Configures and Deploys a comprehensive set of CI templates following golden standards for continuous integration
+  tags:
+    - solutions-factory
+    - harness
+    - ci
+    - golden-standards
+spec:
+  parameters:
+    - title: Configure Build Infrastructure
+      description: |
+        ---
+        The CI Golden Standards Factory will deploy a comprehensive set of CI templates into a Harness account which will provide
+        a standardized mechanism to rapidly onboard new source code repositories into Harness following CI golden standards.
+
+        This includes:
+        - Step Group Templates (Code Smells & Linting, Build & Scan, Supply Chain Security)
+        - Stage Templates (Complete CI Stage)
+        - Pipeline Templates (Golden Standard CI Pipeline)
+
+        ---
+
+        _Note: This Factory requires an existing Build Infrastructure configuration to be in place. This solution will support
+        deployments via Kubernetes or Harness Cloud deployments._
+      properties:
+        # The token property needs to be in the first page of the workflow
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+        build_infrastructure_type:
+          title: Choose your Build Farm Infrastructure configuration
+          type: string
+          default: build_farm
+          enum:
+            - build_farm
+            - cloud
+            - custom
+          enumNames:
+            - Central Build Farm Infrastructure Only
+            - Leverage Harness CI Cloud Infrastructure
+            - Self-Hosted Kubernetes Infrastructure
+        infra_defaults:
+          title: infra_defaults
+          type: object
+          ui:widget: hidden
+          properties:
+            kubernetes_override_image_connector:
+              type: string
+              default: ""
+            kubernetes_connector:
+              type: string
+              default: account.buildfarm_infrastructure
+            kubernetes_namespace:
+              type: string
+              default: default
+            kubernetes_node_selectors:
+              type: string
+              default: ""
+            container_registry_connector_id:
+              type: string
+              default: account.buildfarm_container_registry
+            container_registry_connector_cloud_id:
+              type: string
+              default: account.buildfarm_container_registry_cloud
+      dependencies:
+        build_infrastructure_type:
+          allOf:
+            - if:
+                properties:
+                  build_infrastructure_type:
+                    const: "build_farm"
+              then:
+                required:
+                  - central_build_farm_setup
+                properties:
+                  central_build_farm_setup:
+                    title: Has the Central Build Farm configuration been deployed?
+                    description: |
+                      This option requires that the `Central Build Farm Setup` factory to already be deployed and configured.
+                    type: string
+                    default: "no"
+                    pattern: "yes"
+                    enum:
+                      - "no"
+                      - "yes"
+                    enumNames:
+                      - "No: I need a moment to do this"
+                      - "Yes: All set. My Central Build Farm is deployed and configured"
+                  kubernetes_namespace:
+                    title: Existing Kubernetes Infrastructure Namespace
+                    type: string
+                    description: Enter the existing Kubernetes namespace to be used when running the CI pipelines. Must exist before execution
+                    default: default
+            - if:
+                properties:
+                  build_infrastructure_type:
+                    const: "custom"
+              then:
+                required:
+                  - kubernetes_connector
+                  - kubernetes_namespace
+                properties:
+                  kubernetes_connector:
+                    title: Existing Kubernetes Infrastructure Connector Reference
+                    type: string
+                    description: |
+                      ---
+                      Enter the existing Kubernetes connector if local K8s execution should be used when running the CI pipelines. Must exist before execution.
+
+                      _Note: These templates will be deployed into the root of the chosen Harness Account. When providing a
+                      custom Kubernetes Connector, you must use one available within the list of Account-level connectors._
+                    pattern: '^account.*$'
+                  kubernetes_namespace:
+                    title: Existing Kubernetes Infrastructure Namespace
+                    type: string
+                    description: Enter the existing Kubernetes namespace if local K8s execution should be used when running the CI pipelines. Must exist before execution
+                  kubernetes_override_image_connector:
+                    title: Existing Override Image Container Connector Reference
+                    type: string
+                    description: Enter an existing Container Registry connector to use which overrides the default connector. Must exist before execution
+                  kubernetes_node_selectors:
+                    title: Map of Kubernetes Node Selectors (Must be in key:value JSON)
+                    type: object
+                    description: Optional Kubernetes Node Selectors
+                    additionalProperties:
+                      type: string
+    # - title: Template Deployment Configuration
+    #   description: |
+    #     ### Template Deployment Scope
+
+    #     ---
+    #     Configure where the CI Golden Standard templates should be deployed within your Harness hierarchy.
+    #     Templates can be deployed at Account, Organization, or Project level based on your governance requirements.
+
+    #     ---
+    #     _Note: Account-level templates provide maximum reusability across organizations and projects._
+    #   properties:
+    #     template_deployment_scope:
+    #       title: Template Deployment Scope
+    #       type: string
+    #       default: account
+    #       enum:
+    #         - account
+    #         - organization
+    #         - project
+    #       enumNames:
+    #         - Deploy at Account Level (Maximum Reusability)
+    #         - Deploy at Organization Level (Org-specific Templates)
+    #         - Deploy at Project Level (Project-specific Templates)
+    #   dependencies:
+    #     template_deployment_scope:
+    #       allOf:
+    #         - if:
+    #             properties:
+    #               template_deployment_scope:
+    #                 const: "organization"
+    #           then:
+    #             required:
+    #               - organization_id
+    #             properties:
+    #               organization_id:
+    #                 $ref: "#/hierarchy/organization_id"
+    #         - if:
+    #             properties:
+    #               template_deployment_scope:
+    #                 const: "project"
+    #           then:
+    #             required:
+    #               - organization_id
+    #               - project_id
+    #             properties:
+    #               organization_id:
+    #                 $ref: "#/hierarchy/organization_id"
+    #               project_id:
+    #                 $ref: "#/hierarchy/project_id"
+    #   hierarchy:
+    #     organization_id:
+    #       title: Organization ID for Template Deployment
+    #       type: string
+    #       description: Enter the Organization ID where templates should be deployed
+    #     project_id:
+    #       title: Project ID for Template Deployment
+    #       type: string
+    #       description: Enter the Project ID where templates should be deployed
+    - title: Harness Security Test and SBOM Configuration
+      properties:
+        include_security_testing:
+          title: Include the Harness Security Test Orchestration steps?
+          type: boolean
+          description: "Note: Requires Harness Security Test Orchestration Module"
+          default: true
+        include_supply_chain_security:
+          title: Include the Harness Supply Chain Security steps?
+          description: "Note: Requires Harness Software Supply Chain Assurance Module"
+          type: boolean
+          default: true
+      dependencies:
+        include_security_testing:
+          allOf:
+            - if:
+                properties:
+                  include_security_testing:
+                    const: true
+              then:
+                required:
+                  - sto_anchore_grype_fail_on
+                properties:
+                  sto_anchore_grype_fail_on:
+                    $ref: "#/template_config/sto_anchore_grype_fail_on"
+      template_config:
+        sto_anchore_grype_fail_on:
+          title: What level of vulnerability found in the Container scan should cause the pipeline to fail?
+          type: string
+          description: If the scan finds any vulnerability with the specified severity or higher, the pipeline will fail immediately and not upload the container image to the registry.
+          default: Critical
+          enum:
+            - None
+            - Low
+            - Medium
+            - High
+            - Critical
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          required:
+            - harness_account_url
+            - harness_account_id
+            - harness_org_id
+            - harness_project_id
+            - template_library_connector
+            - template_library_repo
+            - template_library_branch
+            - template_library_directory
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
+            template_library_repo:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_repo>
+              ui:widget: hidden
+            template_library_branch:
+              type: string
+              default: main
+              ui:widget: hidden
+            template_library_directory:
+              type: string
+              default: ci-module-primer
+              ui:widget: hidden
+        solutions_factory_opts:
+          title: Solutions Factory Workflow Options
+          type: object
+          required:
+            - repo_source
+            - workspace_type
+          properties:
+            repo_source:
+              type: string
+              # Used to group by source the workspaces for bulk actions
+              default: <+<+variable.account.solutions_factory_template_library_connector>.startsWith("org.Harness_Template_Library_Repo")?"official":"custom">
+              ui:widget: hidden
+            workspace_type:
+              type: string
+              # Used to group by type the workspaces for bulk actions
+              default: ci-module-primer
+              ui:widget: hidden
+            is_ephemeral:
+              type: string
+              # Determines if the workflow will trigger a temporary workspace that is
+              # deleted upon completion. Resources will be preserved
+              # Must be "true" or "false" and wrapped in quotes
+              default: "false"
+              ui:widget: hidden
+            requires_approval:
+              type: string
+              # Determines if the workflow will require an Approval before executing
+              # Must be "true" or "false" and wrapped in quotes
+              default: "false"
+              ui:widget: hidden
+  steps:
+    - id: configure_workspace
+      name: Configuring Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
+          GIT_REPOSITORY_NAME: ${{ parameters.solutions_factory_details.template_library_repo }}
+          GIT_REPOSITORY_BRANCH: ${{ parameters.solutions_factory_details.template_library_branch }}
+          GIT_REPOSITORY_PATH: ${{ parameters.solutions_factory_details.template_library_directory }}
+          RESOURCE_NAME: CI_GOLDEN_STANDARDS
+          RESOURCE_OWNER: group:default/HSF_Admins
+          # YAML of Terraform variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS:
+            ################################################
+            # Build Infrastructure Configuration
+            # -----------
+            # When the kubernetes_connector value equals "skipped", then the resources
+            # will be deployed configured to support Harness CI Cloud provisioning.
+            ################################################
+            kubernetes_connector: ${{ "skipped" if (parameters.build_infrastructure_type == "cloud") else ( parameters.infra_defaults.kubernetes_connector if (parameters.build_infrastructure_type == "build_farm") else parameters.kubernetes_connector ) }}
+            kubernetes_namespace: ${{ "default" if (parameters.build_infrastructure_type == "cloud") else ( parameters.infra_defaults.kubernetes_namespace if (parameters.build_infrastructure_type == "build_farm") else parameters.kubernetes_namespace ) }}
+            kubernetes_node_selectors: ${{ "{}" if (parameters.build_infrastructure_type == "cloud") else ( parameters.kubernetes_node_selectors if parameters.kubernetes_node_selectors else parameters.infra_defaults.kubernetes_node_selectors ) }}
+            kubernetes_override_image_connector: ${{ "skipped" if (parameters.build_infrastructure_type == "cloud") else ( parameters.kubernetes_override_image_connector if parameters.kubernetes_override_image_connector else parameters.infra_defaults.kubernetes_override_image_connector ) }}
+            ################################################
+            # Template Deployment Configuration
+            # -----------
+            # Controls where templates are deployed in Harness hierarchy
+            ################################################
+            # organization_id: ${{ parameters.organization_id if parameters.template_deployment_scope != "account" else null }}
+            # project_id: ${{ parameters.project_id if parameters.template_deployment_scope == "project" else null }}
+            include_security_testing: ${{ parameters.include_security_testing }}
+            include_supply_chain_security: ${{ parameters.include_supply_chain_security }}
+            sto_anchore_grype_fail_on: ${{ "skipped" if parameters.sto_anchore_grype_fail_on == "None" else parameters.sto_anchore_grype_fail_on }}
+          # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_SECRETS: {}
+          # YAML of Environment variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS_ENVS: {}
+          # YAML of Environment variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_ENVS_SECRET: {}
+          # Should the workspace automatically include the default Harness Connector environment variables
+          INCLUDE_HARNESS_ENVS: "true"
+          WORKSPACE_TAGS:
+            source: ${{ parameters.solutions_factory_opts.repo_source }}
+            type: ${{ parameters.solutions_factory_opts.workspace_type }}
+          IS_EPHEMERAL: ${{ parameters.solutions_factory_opts.is_ephemeral }}
+          REQUIRES_APPROVAL: ${{ parameters.solutions_factory_opts.requires_approval }}
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+    - id: register-catalogs
+      name: Register Pipeline Registration Workflow
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Register_IDP_Templates/pipeline-studio?storeType=INLINE
+        inputset:
+          switch: register
+          filter_template: ci-golden-pipeline
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Deployed Templates
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/settings/templates?page=0&searchTerm=CI_GOLDEN_STANDARDS
+      - title: Create New CI Pipeline
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/module/idp/catalog
+    text:
+      - title: Outputs
+        content: |
+          Harness CI Golden Standards templates deployed ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.resource_placement']}}
+          ---
+          step_group_templates: ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.step_group_templates']}}
+
+          stage_template: ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.stage_template']}}
+
+          pipeline_template: ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.pipeline_template']}}

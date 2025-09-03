@@ -1,0 +1,42 @@
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = # Required
+
+# The Organization ID where the pipeline will be created
+organization_id = # Required
+
+# The Project ID where the pipeline will be created
+project_id = # Required
+
+# The Organization ID where the Template exists
+template_organization_id = null
+
+# The Project ID where the Template exists
+template_project_id = null
+
+# Tags to apply to resources
+tags = {}
+
+# The name of the pipeline to create
+pipeline_name = # Required
+
+# The Docker repository path (registry/image)
+docker_repository_path = # Required
+
+# Provide the repository connector. When 'null', the pipeline will be configured to use Harness Code Repository for the pipeline source code
+repository_connector_ref = "skipped"
+
+# Provide the repository path. This value will be used to configure the source code for pipeline
+repository_path = # Required
+
+# When configured for 'all' or a specific branch, a new pipeline trigger will be added to execute the pipeline when updates are made to branches
+branches = "skipped"
+
+# Provide a supported webhook type
+# Must be one of the following:
+#     - harness
+#     - github
+#     - bitbucket
+webhook_type = # Required

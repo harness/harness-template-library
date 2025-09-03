@@ -1,0 +1,47 @@
+#################################
+# Harness Platform Configuration
+#################################
+
+# Harness Platform URL. Defaults to Harness SaaS gateway endpoint.
+harness_platform_url = "https://app.harness.io/gateway"
+
+# Harness Platform Account ID (Required).
+harness_platform_account = # Required
+
+# Existing Organization ID for use with template. Must exist before execution.
+organization_id = null
+
+# Existing Project ID for use with template. Must exist before execution.
+project_id = null
+
+# Tags to associate with Harness resources.
+tags = {}
+
+# Include the Harness Security Test Orchestration steps
+include_security_testing = true
+
+# Include the Harness Supply Chain Security steps
+include_supply_chain_security = true
+
+#####################################
+# Pipeline Infrastructure Variables
+#####################################
+
+# Kubernetes connector identifier. Must exist before execution.
+kubernetes_connector = "skipped"
+
+# Kubernetes namespace for pipeline execution.
+kubernetes_namespace = "default"
+
+# Kubernetes node selectors for workload scheduling.
+kubernetes_node_selectors = {}
+
+# Container registry connector to override default connector.
+kubernetes_override_image_connector = "skipped"
+
+#####################################
+# Pipeline Security Scan Variables
+#####################################
+
+# If the scan finds any vulnerability with the specified severity or higher, the pipeline fails. Supported values: skipped, none, low, medium, high, critical
+sto_anchore_grype_fail_on = "skipped"

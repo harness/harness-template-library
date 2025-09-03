@@ -1,0 +1,113 @@
+template:
+  name: ${TEMPLATE_NAME}
+  identifier: ${TEMPLATE_IDENTIFIER}
+  %{~ if ORGANIZATION_ID != null ~}
+  orgIdentifier: ${ORGANIZATION_ID}
+  %{~ endif ~}
+  %{~ if PROJECT_ID != null ~}
+  projectIdentifier: ${PROJECT_ID}
+  %{~ endif ~}
+  description: "${TEMPLATE_DESC}"
+  versionLabel: "${TEMPLATE_VERSION}"
+  tags:
+    module: CI
+    extraModule: STO
+    extraMod: SCS
+  type: Stage
+  spec:
+    type: CI
+    spec:
+      cloneCodebase: true
+      caching:
+        enabled: false
+        paths: []
+      buildIntelligence:
+        enabled: false
+      execution:
+        steps:
+          - insert:
+              name: Install Dependency
+              identifier: Install_Dependency
+              steps: <+input>
+          - parallel:
+              %{~ if INCLUDE_STO ~}
+              - stepGroup:
+                  name: Code Smells and Linting
+                  identifier: Code_Smells_and_Linting
+                  template:
+                    templateRef: ${CODE_SMELL_TEMPLATE}
+                    versionLabel: "${CODE_SMELL_TEMPLATE_VERSION}"
+              %{~ endif ~}
+              - insert:
+                  name: Extra Code Scanning Block
+                  identifier: Extra_Code_Scanning_Block
+                  steps: <+input>
+          - insert:
+              name: Run Unit Tests
+              identifier: Test_Block
+              steps: <+input>
+            contextType: StageTemplate
+            canEditInsertSteps: false
+          - stepGroup:
+              name: Build and Scan
+              identifier: Build_and_Scan
+              template:
+                templateRef: ${BUILD_AND_SCAN_TEMPLATE}
+                versionLabel: "${BUILD_AND_SCAN_TEMPLATE_VERSION}"
+                templateInputs:
+                  steps:
+                    - step:
+                        identifier: Build_and_Push_Docker
+                        type: BuildAndPushDockerRegistry
+                        spec:
+                          connectorRef: <+input>
+                    - step:
+                        identifier: Push_to_Docker
+                        type: BuildAndPushDockerRegistry
+                        spec:
+                          connectorRef: <+input>
+                  variables:
+                    - name: DOCKER_REPOSITORY
+                      type: String
+                      value: <+stage.variables.DOCKER_REPOSITORY>
+                    - name: DOCKER_TAG
+                      type: String
+                      value: <+stage.variables.DOCKER_TAG>
+          %{~ if INCLUDE_SCS ~}
+          - stepGroup:
+              name: SCS
+              identifier: SCS
+              template:
+                templateRef: ${SCS_TEMPLATE}
+                versionLabel: "${SCS_TEMPLATE_VERSION}"
+                templateInputs:
+                  steps:
+                    - step:
+                        identifier: ArtifactSigning
+                        type: SscaArtifactSigning
+                        spec:
+                          signing:
+                            type: cosign
+                            spec:
+                              private_key: <+input>
+                              password: <+input>
+                  variables:
+                    - name: DOCKER_REPOSITORY
+                      type: String
+                      value: <+stage.variables.DOCKER_REPOSITORY>
+                    - name: DOCKER_TAG
+                      type: String
+                      value: <+stage.variables.DOCKER_TAG>
+          %{~ endif ~}
+${STAGE_INFRASTRUCTURE}
+    variables:
+      - name: DOCKER_REPOSITORY
+        type: String
+        description: The name of the repo. Use the format <hub-user>/<repo-name>.
+        required: true
+        value: <+input>
+      - name: DOCKER_TAG
+        type: String
+        description: Specify the Tag of the Docker
+        required: true
+        value: <+input>

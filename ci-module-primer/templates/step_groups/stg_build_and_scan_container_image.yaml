@@ -1,0 +1,113 @@
+template:
+  name: ${TEMPLATE_NAME}
+  identifier: ${TEMPLATE_IDENTIFIER}
+  %{~ if ORGANIZATION_ID != null ~}
+  orgIdentifier: ${ORGANIZATION_ID}
+  %{~ endif ~}
+  %{~ if PROJECT_ID != null ~}
+  projectIdentifier: ${PROJECT_ID}
+  %{~ endif ~}
+  description: This step does your build of docker image , followed by scanning and then pushing it
+  icon: data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8IS0tCiAgICBUaGlzIFNWRyBpY29uIHJlcHJlc2VudHMgIkJ1aWxkIGFuZCBTY2FuIENvbnRhaW5lciBJbWFnZSIgZm9yIEhhcm5lc3MgQ0ksCiAgICB3aXRoIGEgZm9jdXMgb24gYSAiZnVua3kgYW5kIGNvb2wiIGFlc3RoZXRpYy4KICAgIC0gVGhlIGNvbnRhaW5lciBpcyByZXByZXNlbnRlZCBieSBhIHN0eWxpemVkIGJveC4KICAgIC0gVGhlIGdlYXIgKGJ1aWxkKSBhbmQgbWFnbmlmeWluZyBnbGFzcyAoc2NhbikgYXJlIHByb21pbmVudC4KICAgIC0gRHluYW1pYyBsaW5lcyBzdWdnZXN0IGNvbnRpbnVvdXMgZmxvdywgZW1ib2R5aW5nIHRoZSBDSSBwaXBlbGluZS4KICAtLT4KCiAgPGxpbmUgeDE9IjIiIHkxPSIxMCIgeDI9IjMwIiB5Mj0iMTAiIHN0cm9rZT0iI0UwRTBFMCIgc3Ryb2tlLXdpZHRoPSIwLjgiIHN0cm9rZS1kYXNoYXJyYXk9IjEgMSIvPgogIDxsaW5lIHgxPSIyIiB5MT0iMjIiIHgyPSIzMCIgeTI9IjIyIiBzdHJva2U9IiNFMEUwRTAiIHN0cm9rZS13aWR0aD0iMC44IiBzdHJva2UtZGFzaGFycmF5PSIxIDEiLz4KCiAgPHJlY3QgeD0iNiIgeT0iOSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjE2IiByeD0iMiIgZmlsbD0iIzQyODVGNCIgc3Ryb2tlPSIjMzM2N0Q2IiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxwYXRoIGQ9Ik02IDkgTDcgNiBMMjUgNiBMMjYgOSBaIiBmaWxsPSIjMzM2N0Q2Ii8+IDxjaXJjbGUgY3g9IjEwIiBjeT0iMTQiIHI9IjQuNSIgZmlsbD0iI0ZGOTgwMCIgc3Ryb2tlPSIjRTY1MTAwIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogIDxwYXRoIGQ9Ik0xMCA5LjUgTDEyIDExIEwxMiAxNyBMMTAgMTguNSBMOCAxNyBMOCAxMSBaIiBmaWxsPSIjRkY5ODAwIi8+CiAgPHBhdGggZD0iTTUuNSAxNCBMNyAxNiBMMTMgMTYgTDE0LjUgMTQgTDEzIDEyIEw3IDEyIFoiIGZpbGw9IiNGRjk4MDAiLz4KCiAgPGNpcmNsZSBjeD0iMjIiIGN5PSIxOSIgcj0iNC41IiBmaWxsPSJ3aGl0ZSIgc3Ryb2tlPSIjRUE0MzM1IiBzdHJva2Utd2lkdGg9IjEuOCIvPgogIDxsaW5lIHgxPSIyNSIgeTE9IjIyIiB4Mj0iMjkiIHkyPSIyNiIgc3Ryb2tlPSIjRUE0MzM1IiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+Cjwvc3ZnPgo=
+  versionLabel: "${TEMPLATE_VERSION}"
+  tags:
+    module: CI
+    extraModule: STO
+    externalDependency: "false"
+    externalVariables: "Yes"
+    independent: "Yes"
+  type: StepGroup
+  spec:
+    stageType: CI
+    steps:
+      %{~ if INCLUDE_STO ~}
+      - step:
+          identifier: Build_and_Push_Docker
+          type: BuildAndPushDockerRegistry
+          name: "Build Docker Image "
+          spec:
+            connectorRef: <+input>
+            repo: <+stepGroup.variables.DOCKER_REPOSITORY>
+            tags:
+              - <+stepGroup.variables.DOCKER_TAG>
+            optimize: true
+            %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
+            envVariables:
+              PLUGIN_NO_PUSH: "true"
+              PLUGIN_TAR_PATH: /opt/docker_cache/image.tar
+            %{~ else ~}
+            caching: true
+            envVariables:
+              PLUGIN_NO_PUSH: "true"
+              PLUGIN_BUILDX_LOAD: "true"
+            %{~ endif ~}
+      - step:
+          identifier: Anchore_Grype
+          type: Grype
+          name: Anchore Grype
+          spec:
+            mode: orchestration
+            config: default
+            target:
+              type: container
+              %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
+              workspace: /opt/docker_cache/image.tar
+              %{~ endif ~}
+              detection: auto
+            advanced:
+              log:
+                level: info
+              %{~ if ANCHORE_GRYPE_FAIL_ON != "skipped" ~}
+              fail_on_severity: ${ANCHORE_GRYPE_FAIL_ON}
+              %{~ endif ~}
+            resources:
+              limits:
+                memory: 2G
+                cpu: 1000m
+            privileged: true
+            image:
+            %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
+              type: local_archive
+              tag: <+stepGroup.variables.DOCKER_TAG>
+            %{~ else ~}
+              type: local_image
+              tag: <+stepGroup.variables.DOCKER_TAG>
+              name: <+stepGroup.variables.DOCKER_REPOSITORY>
+            %{~ endif ~}
+      %{~ endif ~}
+      - step:
+          type: BuildAndPushDockerRegistry
+          %{~ if INCLUDE_STO ~}
+          name: Push Scanned Image to Docker
+          %{~ else ~}
+          name: Build and Push to Docker
+          %{~ endif ~}
+          identifier: Push_to_Docker
+          spec:
+            connectorRef: <+input>
+            repo: <+stepGroup.variables.DOCKER_REPOSITORY>
+            tags:
+              - <+stepGroup.variables.DOCKER_TAG>
+            %{~ if KUBERNETES_CONNECTOR == "skipped" ~}
+            caching: true
+            %{~ endif ~}
+            %{~ if INCLUDE_STO ~}
+            envVariables:
+              %{~ if KUBERNETES_CONNECTOR != "skipped" ~}
+              PLUGIN_SOURCE_TAR_PATH: /opt/docker_cache/image.tar
+              %{~ endif ~}
+              PLUGIN_PUSH_ONLY: "true"
+            %{~ endif ~}
+    when:
+      stageStatus: Success
+    variables:
+      - name: DOCKER_REPOSITORY
+        type: String
+        value: <+input>
+        description: The name of the repo. Use the format <hub-user>/<repo-name>.
+        required: true
+      - name: DOCKER_TAG
+        type: String
+        value: <+input>
+        description: "The tag which you would want to get attached to your image"
+        required: true

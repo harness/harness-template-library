@@ -3,6 +3,10 @@ annotations:
   source: harness-template-library
   created_by: Harness
 entities:
+  - workflows:
+      - name: ci-golden-pipeline
+        modules: ci
+        is_default: false
   - org: Harness_Platform_Management
     workflows:
       - name: ansible-step-group-template
@@ -34,6 +38,8 @@ entities:
         is_default: false
       - name: sto-sast-primer
         modules: sto
+      - name: ci-module-primer
+        modules: ci
   - org: Harness_Platform_Management
     project: Image_Factory
     workflows:

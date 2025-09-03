@@ -1,0 +1,352 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: ci-golden-standards-register-pipeline
+  title: Create CI Pipeline using Golden Standards
+  description: Creates a new CI pipeline using the deployed Golden Standard templates
+  tags:
+    - solutions-factory
+    - harness
+    - ci
+    - pipeline
+spec:
+  owner: group:default/HSF_Admins
+  type: harness_factory
+  parameters:
+    - title: Pipeline Configuration
+      description: |
+        ---
+        Create a new CI pipeline using the Golden Standard templates that have been deployed.
+
+        This workflow will create:
+        - A new CI pipeline using the Golden Standard template
+        - Configured with your repository and organization settings
+        - Ready to run with the standardized CI workflow
+
+        ---
+
+        _Note: This requires that the CI Golden Standards templates have already been deployed._
+      properties:
+        project_id:
+          title: Select the Harness Project into which the pipeline will be deployed
+          type: string
+          description: Harness Project where the pipeline will be created
+          ui:field: HarnessProjectPicker
+        organization_id:
+          title: Organization ID
+          type: string
+          description: Harness Organization where the pipeline will be created
+          ui:widget: hidden
+          ui:field: HarnessAutoOrgPicker
+          dependencies:
+            projectPickerRef:
+              - 'project_id'
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+    - title: Repository Registration
+      properties:
+        source_code_manager_type:
+          title: Choose your Source Code Manager option for the repository
+          type: string
+          default: hcr
+          enum:
+            - hcr
+            - build_farm
+            - custom
+          enumNames:
+            - Use Harness Code Repository?
+            - Use Central Build Farm Source Code Manager?
+            - Bring Your Own Connector?
+      dependencies:
+        source_code_manager_type:
+          allOf:
+            - if:
+                properties:
+                  source_code_manager_type:
+                    const: "hcr"
+              then:
+                required:
+                  - repository_name
+                properties:
+                  repository_name:
+                    $ref: "#/repo_defaults/repo_name"
+                  should_monitor_all_branches:
+                    $ref: "#/repo_defaults/branch_manager"
+            - if:
+                properties:
+                  source_code_manager_type:
+                    const: "build_farm"
+              then:
+                required:
+                  - repository_name
+                  - repository_path
+                properties:
+                  repository_name:
+                    $ref: "#/repo_defaults/repo_name"
+                  repository_path:
+                    $ref: "#/repo_defaults/repo_path"
+                  should_monitor_all_branches:
+                    $ref: "#/repo_defaults/branch_manager"
+            - if:
+                properties:
+                  source_code_manager_type:
+                    const: "custom"
+              then:
+                required:
+                  - repo_connector_ref
+                  - repository_name
+                  - repository_path
+                properties:
+                  repo_connector_ref:
+                    title: Existing GIT Connector Reference
+                    type: string
+                    description: |
+                      ---
+                      Provide an existing Source Code Manager Connector Reference. Must exist before configuring
+
+                      _Note: Account and Organization connectors require the addition of `account.` and `org.` respectively_
+                  repository_name:
+                    $ref: "#/repo_defaults/repo_name"
+                  repository_path:
+                    $ref: "#/repo_defaults/repo_path"
+                  should_monitor_all_branches:
+                    $ref: "#/repo_defaults/branch_manager"
+        should_monitor_all_branches:
+          allOf:
+            - if:
+                properties:
+                  should_monitor_all_branches:
+                    const: "all"
+                  source_code_manager_type:
+                    enum: ["build_farm","custom"]
+              then:
+                required:
+                  - webhook_type
+                properties:
+                  webhook_type:
+                    $ref: "#/repo_defaults/webhook_type"
+            - if:
+                properties:
+                  should_monitor_all_branches:
+                    const: "main_only"
+                  source_code_manager_type:
+                    enum: ["build_farm","custom"]
+              then:
+                required:
+                  - webhook_type
+                  - primary_branch
+                properties:
+                  webhook_type:
+                    $ref: "#/repo_defaults/webhook_type"
+                  primary_branch:
+                    title: Enter the primary branch to monitor for changes
+                    type: string
+                    default: main
+            - if:
+                properties:
+                  should_monitor_all_branches:
+                    const: "main_only"
+                  source_code_manager_type:
+                    enum: ["hcr"]
+              then:
+                required:
+                  - primary_branch
+                properties:
+                  primary_branch:
+                    title: Enter the primary branch to monitor for changes
+                    type: string
+                    default: main
+      repo_defaults:
+        repo_name:
+          title: What is the name of the repository?
+          description: A new pipeline will be created based on this name
+          type: string
+        repository_connector_ref:
+          title: Repository Connector Reference
+          type: string
+          description: |
+            Git connector reference for your repository.
+            Must be an account-level connector (e.g., account.my_git_connector)
+          pattern: '^account\.'
+        repo_path:
+          title: What is the path of the repository based on the connector root path?
+          type: string
+          description: Full path to your repository (e.g., organization/repository-name)
+        branch_manager:
+          title: Configure Pipeline to execute for all branches?
+          description: |
+            ---
+            _Note: Configuring this option will configure Harness Triggers to watch for changes to branches and trigger automatic execution of the pipeline_
+          type: string
+          default: all
+          enum:
+            - all
+            - main_only
+            - "no"
+          enumNames:
+            - Configure Harness Triggers to monitor all branches
+            - Only Run the Main Branch
+            - No Automated Runs. Does not configure Harness Triggers
+        webhook_type:
+          title: Choose your SCM Provider
+          description: |
+            This value should match your chosen Source Code Manager type.  For webhook triggers, the API authentication needs to be enabled on the connector.
+          type: string
+          enum:
+            - github
+            - bitbucket
+          enumNames:
+            - Github
+            - Bitbucket
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          required:
+            - harness_account_url
+            - harness_account_id
+            - harness_org_id
+            - harness_project_id
+            - template_library_connector
+            - template_library_repo
+            - template_library_branch
+            - template_library_directory
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+            buildfarm_connector:
+              type: string
+              default: <+variable.account.CI_Default_Build_Farm_SCM_Connector>
+              ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_connector>
+              ui:widget: hidden
+            template_library_repo:
+              type: string
+              default: <+variable.account.solutions_factory_template_library_repo>
+              ui:widget: hidden
+            template_library_branch:
+              type: string
+              default: main
+              ui:widget: hidden
+            template_library_directory:
+              type: string
+              default: ci-golden-pipeline
+              ui:widget: hidden
+        solutions_factory_opts:
+          title: Solutions Factory Workflow Options
+          type: object
+          required:
+            - repo_source
+            - workspace_type
+          properties:
+            repo_source:
+              type: string
+              default: <+<+variable.account.solutions_factory_template_library_connector>.startsWith("org.Harness_Template_Library_Repo")?"official":"custom">
+              ui:widget: hidden
+            workspace_type:
+              type: string
+              default: ci-golden-pipeline
+              ui:widget: hidden
+            is_ephemeral:
+              type: string
+              default: "true"
+              ui:widget: hidden
+            requires_approval:
+              type: string
+              default: "false"
+              ui:widget: hidden
+  steps:
+    - id: configure_workspace
+      name: Configuring Pipeline Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
+          GIT_REPOSITORY_NAME: ${{ parameters.solutions_factory_details.template_library_repo }}
+          GIT_REPOSITORY_BRANCH: ${{ parameters.solutions_factory_details.template_library_branch }}
+          GIT_REPOSITORY_PATH: ${{ parameters.solutions_factory_details.template_library_directory }}
+          RESOURCE_NAME: CI_PIPELINE_${{ parameters.organization_id }}_${{ parameters.project_id }}_${{ parameters.repository_name|replace(" ","-")|replace("-", "_") }}
+          RESOURCE_OWNER: group:default/HSF_Admins
+          # YAML of Terraform variables mapped to IDP parameters
+          RESOURCE_VARS:
+            organization_id: ${{ parameters.organization_id }}
+            project_id: ${{ parameters.project_id }}
+            pipeline_name: ${{ parameters.repository_name }}
+            repository_connector_ref: ${{ parameters.repo_connector_ref if parameters.source_code_manager_type == "custom" else ( parameters.solutions_factory_details.buildfarm_connector if parameters.source_code_manager_type == "build_farm" else "skipped") }}
+            repository_path: ${{ parameters.repository_name if parameters.source_code_manager_type == "hcr" else parameters.repository_path }}
+            branches: ${{ "all" if parameters.should_monitor_all_branches == "all" else ( parameters.primary_branch if parameters.should_monitor_all_branches == "main_only" else "skipped") }}
+            webhook_type: ${{ "harness" if parameters.source_code_manager_type == "hcr" else parameters.webhook_type }}
+          RESOURCE_VARS_SECRETS: {}
+          RESOURCE_VARS_ENVS: {}
+          RESOURCE_VARS_ENVS_SECRET: {}
+          INCLUDE_HARNESS_ENVS: "true"
+          WORKSPACE_TAGS:
+            source: ${{ parameters.solutions_factory_opts.repo_source }}
+            type: ${{ parameters.solutions_factory_opts.workspace_type }}
+            organization: ${{ parameters.organization_id }}
+            project: ${{ parameters.project_id }}
+            pipeline: ${{ parameters.pipeline_name }}
+          IS_EPHEMERAL: ${{ parameters.solutions_factory_opts.is_ephemeral }}
+          REQUIRES_APPROVAL: ${{ parameters.solutions_factory_opts.requires_approval }}
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Next - Update the Pipeline Input Set
+        url: ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.pipeline_input_set']}}
+    text:
+      - title: Pipeline Created Successfully
+        content: |
+          🎉 **CI Pipeline Created Successfully!**
+
+          Your new CI pipeline has been created using the Golden Standard templates.
+
+          **Pipeline Details:**
+          - **Name**: ${{ parameters.repository_name }}
+          - **Organization**: ${{ parameters.organization_id }}
+          - **Project**: ${{ parameters.project_id }}
+          - **Repository**: ${{ parameters.repository_name if parameters.source_code_manager_type == "hcr" else parameters.repository_path }}
+
+          **What's Included:**
+          - ✅ Code smells and linting checks (If enabled by platform team)
+          - ✅ Container image build and security scanning
+          - ✅ Supply chain security validation (If enabled by platform team)
+          - ✅ Integration with your Git repository
+
+          **Next Steps:**
+          1. Modify the Pipeline Input Set by clicking on the link above
+          2. Configure any repository-specific settings
+          3. Set up or enable triggers as needed (_Note: The trigger created by this process will be configured and disabled by default._)
+          3. Run your first pipeline execution
+
+          Your pipeline is ready to use with all the Golden Standard CI best practices!

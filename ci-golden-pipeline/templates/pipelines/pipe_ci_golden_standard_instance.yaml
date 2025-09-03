@@ -1,0 +1,74 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: "${DESCRIPTION}"
+  tags:
+    ${indent(4, TAGS)}
+  properties:
+    ci:
+      codebase:
+        %{~ if REPOSITORY_CONNECTOR != "skipped" }
+        connectorRef: ${REPOSITORY_CONNECTOR}
+        %{~ endif ~}
+        repoName: ${REPOSITORY_PATH}
+        build: <+input>
+  stages:
+    - stage:
+        name: Build
+        identifier: Build
+        template:
+          templateRef: ${TEMPLATE_ID}
+          versionLabel: ${TEMPLATE_VERSION}
+          templateInputs:
+            type: CI
+            spec:
+              execution:
+                steps:
+                  - insert:
+                      identifier: Install_Dependency
+                      steps: <+input>
+                  - parallel:
+                      - insert:
+                          identifier: Extra_Code_Scanning_Block
+                          steps: <+input>
+                  - insert:
+                      identifier: Test_Block
+                      steps: <+input>
+                  - stepGroup:
+                      identifier: Build_and_Scan
+                      template:
+                        templateInputs:
+                          steps:
+                            - step:
+                                identifier: Build_and_Push_Docker
+                                type: BuildAndPushDockerRegistry
+                                spec:
+                                  connectorRef: <+input>
+                            - step:
+                                identifier: Push_to_Docker
+                                type: BuildAndPushDockerRegistry
+                                spec:
+                                  connectorRef: <+input>
+                  - stepGroup:
+                      identifier: SCS
+                      template:
+                        templateInputs:
+                          steps:
+                            - step:
+                                identifier: ArtifactSigning
+                                type: SscaArtifactSigning
+                                spec:
+                                  signing:
+                                    type: cosign
+                                    spec:
+                                      private_key: <+input>
+                                      password: <+input>
+            variables:
+              - name: DOCKER_REPOSITORY
+                type: String
+                value: <+input>
+              - name: DOCKER_TAG
+                type: String
+                value: <+input>
