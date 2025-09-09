@@ -34,6 +34,7 @@ template:
                   log:
                     level: info
                   fail_on_severity: none
+                connectorRef: ${CONTAINER_REGISTRY_CONNECTOR}
           - step:
               identifier: Semgrep
               type: Semgrep
@@ -48,5 +49,6 @@ template:
                   log:
                     level: info
                   fail_on_severity: none
+                connectorRef: ${CONTAINER_REGISTRY_CONNECTOR}
     when:
       stageStatus: Success

@@ -202,6 +202,11 @@ spec:
           description: "Note: Requires Harness Software Supply Chain Assurance Module"
           type: boolean
           default: true
+        default_container_connector:
+          title: Docker connector identifier to use for STO and SCS Steps. Must exist before execution.
+          type: string
+          description: When the STO and/or the SCS steps run, container images will be deployed.
+          default: account.harnessImage
       dependencies:
         include_security_testing:
           allOf:
@@ -347,6 +352,7 @@ spec:
             # project_id: ${{ parameters.project_id if parameters.template_deployment_scope == "project" else null }}
             include_security_testing: ${{ parameters.include_security_testing }}
             include_supply_chain_security: ${{ parameters.include_supply_chain_security }}
+            default_container_connector: ${{ parameters.default_container_connector }}
             sto_anchore_grype_fail_on: ${{ "skipped" if parameters.sto_anchore_grype_fail_on == "None" else parameters.sto_anchore_grype_fail_on }}
           # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
           RESOURCE_VARS_SECRETS: {}

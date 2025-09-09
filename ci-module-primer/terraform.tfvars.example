@@ -23,6 +23,9 @@ include_security_testing = true
 # Include the Harness Supply Chain Security steps
 include_supply_chain_security = true
 
+# Docker connector identifier to use for STO and SCS Steps. Must exist before execution.
+default_container_connector = "account.harnessImage"
+
 #####################################
 # Pipeline Infrastructure Variables
 #####################################

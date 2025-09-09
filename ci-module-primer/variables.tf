@@ -44,6 +44,12 @@ variable "include_supply_chain_security" {
   default     = true
 }
 
+variable "default_container_connector" {
+  type        = string
+  description = "Optional: Docker connector identifier to use for STO and SCS Steps. Must exist before execution."
+  default     = "account.harnessImage"
+}
+
 # Note: pipeline_name is no longer needed in the main module
 # Individual pipelines are created using the register-pipeline module
 

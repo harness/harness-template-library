@@ -115,16 +115,17 @@ module "my_app_pipeline" {
 |------|-------------|------|---------|:--------:|
 | harness_platform_url | Harness Platform URL. Defaults to Harness SaaS gateway endpoint. | string | https://app.harness.io/gateway | yes |
 | harness_platform_account | Harness Platform Account ID (Required). | string || yes |
-| organization_id | Existing Organization ID for use with template. Must exist before execution. | string | null | yes |
-| project_id | Existing Project ID for use with template. Must exist before execution. | string | null | yes |
-| tags | Tags to associate with Harness resources. | map(any) | {} | yes |
-| include_security_testing | Include the Harness Security Test Orchestration steps | bool | true | yes |
-| include_supply_chain_security | Include the Harness Supply Chain Security steps | bool | true | yes |
-| kubernetes_connector | Required: Kubernetes connector identifier. Must exist before execution. | string | skipped | yes |
-| kubernetes_namespace | Kubernetes namespace for pipeline execution. | string | default | yes |
-| kubernetes_node_selectors | Kubernetes node selectors for workload scheduling. | map(any) | {} | yes |
-| kubernetes_override_image_connector | Container registry connector to override default connector. | string | skipped | yes |
-| sto_anchore_grype_fail_on | If the scan finds any vulnerability with the specified severity or higher, the pipeline fails. Supported values: skipped, none, low, medium, high, critical | string | skipped | yes |
+| organization_id | Existing Organization ID for use with template. Must exist before execution. | string | null | no |
+| project_id | Existing Project ID for use with template. Must exist before execution. | string | null | no |
+| tags | Tags to associate with Harness resources. | map(any) | {} | no |
+| include_security_testing | Include the Harness Security Test Orchestration steps | bool | true | no |
+| include_supply_chain_security | Include the Harness Supply Chain Security steps | bool | true | no |
+| default_container_connector | Docker connector identifier to use for STO and SCS Steps. Must exist before execution. | string | account.harnessImage | no |
+| kubernetes_connector | Required: Kubernetes connector identifier. Must exist before execution. | string | skipped | no |
+| kubernetes_namespace | Kubernetes namespace for pipeline execution. | string | default | no |
+| kubernetes_node_selectors | Kubernetes node selectors for workload scheduling. | map(any) | {} | no |
+| kubernetes_override_image_connector | Container registry connector to override default connector. | string | skipped | no |
+| sto_anchore_grype_fail_on | If the scan finds any vulnerability with the specified severity or higher, the pipeline fails. Supported values: skipped, none, low, medium, high, critical | string | skipped | no |
 
 ## Main Module Outputs
 

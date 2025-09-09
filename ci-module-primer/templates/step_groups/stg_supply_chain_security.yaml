@@ -9,7 +9,7 @@ template:
   %{~ endif ~}
   description: Generate SBOM , SLSA and Artifact Signing . This Template also uses cosign so you have to generate cosign private , public key and password to be stored in Harness
   icon: data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8IS0tCiAgICBUaGlzIFNWRyBsb2dvIHJlcHJlc2VudHMgIlN1cHBseSBDaGFpbiBTZWN1cml0eSIuCiAgICAtIEEgY2VudHJhbCBzaGllbGQgc3ltYm9saXplcyBzZWN1cml0eSBhbmQgcHJvdGVjdGlvbi4KICAgIC0gSW50ZXJsb2NraW5nIGNoYWluIGxpbmtzIG9yIGFycm93cyBhcm91bmQgdGhlIHNoaWVsZCByZXByZXNlbnQgdGhlICJzdXBwbHkgY2hhaW4iCiAgICAgIGFuZCBpdHMgaW50ZXJjb25uZWN0ZWQgbmF0dXJlLgogICAgLSBUaGUgb3ZlcmFsbCBkZXNpZ24gYWltcyBmb3IgYSBjbGVhbiwgbW9kZXJuLCBhbmQgdmlzdWFsbHkgYXBwZWFsaW5nIGFlc3RoZXRpYy4KICAgIC0gVXBkYXRlZCB0byBhbiBvcmFuZ2UgdG9uZSBjb2xvciBzY2hlbWUuCiAgLS0+CgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjMwIiBmaWxsPSIjRkZGOEUxIi8+CgogIDxwYXRoIGQ9Ik0zMiA2IEwxMiAxOCBWMzggQzEyIDQ4IDMyIDU4IDMyIDU4IEMzMiA1OCA1MiA0OCA1MiAzOCBWMTggWiIgZmlsbD0iI0ZGNTcyMiIgc3Ryb2tlPSIjRTY0QTE5IiBzdHJva2Utd2lkdGg9IjIiLz4KICA8cGF0aCBkPSJNMzIgMTggTDMyIDQ4IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxjaXJjbGUgY3g9IjMyIiBjeT0iMjgiIHI9IjUiIGZpbGw9IndoaXRlIi8+CiAgPHJlY3QgeD0iMjkuNSIgeT0iMjUiIHdpZHRoPSI1IiBoZWlnaHQ9IjEwIiBmaWxsPSIjRkY1NzIyIi8+CgogIDxwYXRoIGQ9Ik0xMCAzMiBRMTUgMjAgMzIgMjAgUTQ5IDIwIDU0IDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNGRjk4MDAiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtZGFzaGFycmF5PSI4IDgiLz4KICA8cGF0aCBkPSJNNTQgMzIgUTQ5IDQ0IDMyIDQ0IFExNSA0NCAxMCAzMiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkY3MDQzIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWRhc2hhcnJheT0iOCA4Ii8+CgogIDxwYXRoIGQ9Ik0xNiAyNiBMMTggMjkgTDE2IDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNGRjk4MDAiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPHBhdGggZD0iTTQ4IDM4IEw0NiAzNSBMNDggMzIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZGNzA0MyIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KCjwvc3ZnPgo=
-  versionLabel: "${TEMPLATE_VERSION}"
+  versionLabel: ${TEMPLATE_VERSION}
   tags:
     module: SCS
     externalDependency: "No"
@@ -32,7 +32,7 @@ template:
             source:
               type: docker
               spec:
-                connector: <+stage.variables.DOCKER_CONNECTOR>
+                connector: ${CONTAINER_REGISTRY_CONNECTOR}
                 image: <+stepGroup.variables.DOCKER_REPOSITORY>:<+stepGroup.variables.DOCKER_TAG>
             resources:
               limits:
@@ -46,7 +46,7 @@ template:
             source:
               type: docker
               spec:
-                connector: <+stage.variables.DOCKER_CONNECTOR>
+                connector: ${CONTAINER_REGISTRY_CONNECTOR}
                 repo: <+stepGroup.variables.DOCKER_REPOSITORY>:<+stepGroup.variables.DOCKER_TAG>
       - step:
           identifier: ArtifactSigning
@@ -56,7 +56,7 @@ template:
             source:
               type: docker
               spec:
-                connector: <+stage.variables.DOCKER_CONNECTOR>
+                connector: ${CONTAINER_REGISTRY_CONNECTOR}
                 image: <+stepGroup.variables.DOCKER_REPOSITORY>:<+stepGroup.variables.DOCKER_TAG>
             signing:
               type: cosign
@@ -69,10 +69,10 @@ template:
       - name: DOCKER_REPOSITORY
         type: String
         value: <+input>
-        description: "Specify the repository where the image was pushed"
+        description: Specify the repository where the image was pushed
         required: true
       - name: DOCKER_TAG
         type: String
         value: <+input>
-        description: "Specify the Tag of the built image"
+        description: Specify the Tag of the built image
         required: true

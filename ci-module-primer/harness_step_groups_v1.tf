@@ -33,9 +33,10 @@ resource "harness_platform_template" "stg_code_smells_and_linting_v1" {
   template_yaml = templatefile(
     "${path.module}/templates/step_groups/stg_code_smells_and_linting.yaml",
     merge(local.common_template_vars, {
-      TEMPLATE_IDENTIFIER = "Code_Smells_and_Linting"
-      TEMPLATE_NAME       = "Code Smells and Linting"
-      TEMPLATE_VERSION    = "v1"
+      TEMPLATE_IDENTIFIER          = "Code_Smells_and_Linting"
+      TEMPLATE_NAME                = "Code Smells and Linting"
+      TEMPLATE_VERSION             = "v1"
+      CONTAINER_REGISTRY_CONNECTOR = var.default_container_connector
     })
   )
 
@@ -54,9 +55,10 @@ resource "harness_platform_template" "stg_supply_chain_security_v1" {
   template_yaml = templatefile(
     "${path.module}/templates/step_groups/stg_supply_chain_security.yaml",
     merge(local.common_template_vars, {
-      TEMPLATE_IDENTIFIER = "Supply_Chain_Security"
-      TEMPLATE_NAME       = "Supply Chain Security"
-      TEMPLATE_VERSION    = "v1"
+      TEMPLATE_IDENTIFIER          = "Supply_Chain_Security"
+      TEMPLATE_NAME                = "Supply Chain Security"
+      TEMPLATE_VERSION             = "v1"
+      CONTAINER_REGISTRY_CONNECTOR = var.default_container_connector
     })
   )
 
