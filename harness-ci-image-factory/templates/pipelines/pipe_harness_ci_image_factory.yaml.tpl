@@ -73,7 +73,7 @@ ${STAGE_INFRASTRUCTURE}
                       PLUGIN_HARNESS_URI: <+pipeline.variables.HARNESS_URI>
                       PLUGIN_HARNESS_ACCT: <+pipeline.variables.HARNESS_ACCT>
                       PLUGIN_HARNESS_PLATFORM_API_KEY: <+pipeline.variables.HARNESS_API_KEY>
-                      PLUGIN_IGNORE_LIST: iacmTerraform,iacmOpenTofu,iacmCheckov,iacmTFCompliance,iacmTFLint,iacmTFSec,iacmModuleTest
+                      PLUGIN_IGNORE_LIST: iacmTerraform,iacmOpenTofu,iacmCheckov,iacmTFCompliance,iacmTFLint,iacmTFSec,iacmModuleTest,iacmTerragrunt,iacmAnsible
                     outputVariables:
                       - name: ALL_IMAGES
     - stage:
