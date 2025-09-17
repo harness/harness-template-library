@@ -382,9 +382,9 @@ spec:
   output:
     links:
       - title: Deployed Templates
-        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/settings/templates?page=0&searchTerm=CI_GOLDEN_STANDARDS
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/settings/templates?page=0
       - title: Create New CI Pipeline
-        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/module/idp/catalog
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/module/idp/create/templates/account/cigoldenstandardsregisterpipeline
     text:
       - title: Outputs
         content: |
