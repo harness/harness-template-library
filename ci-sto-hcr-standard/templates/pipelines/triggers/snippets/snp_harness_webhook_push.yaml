@@ -1,0 +1,23 @@
+type: Harness
+      spec:
+        type: Push
+        spec:
+          connectorRef: ""
+          autoAbortPreviousExecutions: true
+          payloadConditions:
+          %{~ if TARGET_BRANCH == "skipped" ~}
+            - key: targetBranch
+              operator: NotEquals
+              value: ${MAIN_BRANCH}
+          %{~ else ~}
+          %{~ if TARGET_BRANCH != "all" ~}
+            - key: targetBranch
+              operator: Equals
+              value: ${TARGET_BRANCH}
+          %{~ else ~}
+            []
+          %{~ endif ~}
+          %{~ endif ~}
+          headerConditions: []
+          repoName: ${REPOSITORY_PATH}
+          actions: []

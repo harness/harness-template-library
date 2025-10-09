@@ -1,0 +1,13 @@
+type: Harness
+      spec:
+        type: PullRequest
+        spec:
+          connectorRef: ""
+          autoAbortPreviousExecutions: true
+          payloadConditions: []
+          headerConditions: []
+          repoName: ${REPOSITORY_PATH}
+          actions:
+            - Create
+            - Reopen
+            - Update

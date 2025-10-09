@@ -1,0 +1,22 @@
+inputSet:
+  identifier: ${INPUTSET_IDENTIFIER}
+  name: ${INPUTSET_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  pipelineIdentifier:
+  description: "${DESCRIPTION}"
+  tags:
+    ${indent(4, TAGS)}
+  pipeline:
+    identifier: ${PIPELINE_IDENTIFIER}
+    properties:
+      ci:
+        codebase:
+        %{~ if TARGET_BRANCH == "skipped" ~}
+          build: <+input>
+        %{~ else ~}
+          build:
+            type: branch
+            spec:
+              branch: ${TARGET_BRANCH}
+        %{~ endif ~}

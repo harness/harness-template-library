@@ -1,0 +1,113 @@
+pipeline:
+  identifier: ${PIPELINE_IDENTIFIER}
+  name: ${PIPELINE_NAME}
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: "${DESCRIPTION}"
+  tags:
+    ${indent(4, TAGS)}
+  properties:
+    ci:
+      codebase:
+        repoName: ${REPOSITORY_PATH}
+        build: <+input>
+  stages:
+    - stage:
+        name: SAST Scans
+        identifier: SAST_Scans
+        template:
+          templateRef: account.sta_STO_SAST_SCA_Primer
+          versionLabel: v2
+          templateInputs:
+            type: SecurityTests
+            variables:
+              - name: SCAN_TARGET
+                type: String
+                value: <+input>.default(<+pipeline.properties.ci.codebase.repoName>)
+              - name: SCAN_VARIANT
+                type: String
+                value: <+input>.default(<+codebase.branch>)
+              - name: SHARED_ARTIFACTS
+                type: String
+                value: <+input>.default(/shared/customer_artifacts)
+              - name: GITLEAKS_CPU
+                type: String
+                value: <+input>.default("0.4")
+              - name: GITLEAKS_MEM
+                type: String
+                value: <+input>.default(600Mi)
+              - name: OSV_CPU
+                type: String
+                value: <+input>.default("1")
+              - name: OSV_MEM
+                type: String
+                value: <+input>.default(2Gi)
+              - name: OWASP_CPU
+                type: String
+                value: <+input>.default("2")
+              - name: OWASP_MEM
+                type: String
+                value: <+input>.default(6Gi)
+              - name: SEMGREP_CPU
+                type: String
+                value: <+input>.default("2")
+              - name: SEMGREP_MEM
+                type: String
+                value: <+input>.default(4Gi)
+    - stage:
+        name: Build
+        identifier: Build
+        template:
+          templateRef: account.CI_GoldenStandard_Container_Template
+          versionLabel: v1
+          templateInputs:
+            type: CI
+            spec:
+              execution:
+                steps:
+                  - insert:
+                      identifier: Install_Dependency
+                      steps: <+input>
+                  - parallel:
+                      - insert:
+                          identifier: Extra_Code_Scanning_Block
+                          steps: <+input>
+                  - insert:
+                      identifier: Test_Block
+                      steps: <+input>
+                  - stepGroup:
+                      identifier: Build_and_Scan
+                      template:
+                        templateInputs:
+                          steps:
+                            - step:
+                                identifier: Build_and_Push_Docker
+                                type: BuildAndPushDockerRegistry
+                                spec:
+                                  connectorRef: <+input>
+                            - step:
+                                identifier: Push_to_Docker
+                                type: BuildAndPushDockerRegistry
+                                spec:
+                                  connectorRef: <+input>
+                  - stepGroup:
+                      identifier: SCS
+                      template:
+                        templateInputs:
+                          steps:
+                            - step:
+                                identifier: ArtifactSigning
+                                type: SscaArtifactSigning
+                                spec:
+                                  signing:
+                                    type: cosign
+                                    spec:
+                                      private_key: <+input>
+                                      password: <+input>
+            variables:
+              - name: DOCKER_REPOSITORY
+                type: String
+                value: <+input>
+              - name: DOCKER_TAG
+                type: String
+                value: <+input>

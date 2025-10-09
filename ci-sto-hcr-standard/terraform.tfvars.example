@@ -1,0 +1,36 @@
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = # Required
+
+# [Optional] Provide a Map of Tags to associate with the resources
+tags = {}
+
+# The Organization ID where the pipeline will be created
+organization_id = # Required
+
+# The Project ID where the pipeline will be created
+project_id = # Required
+
+# Provide the name of the Repository to create
+# Validation: Name must start with a letter or _ and only contain [a-zA-Z0-9-_.]
+repository_name = # Required
+
+# Provide the Description for the Repository
+repository_description = ""
+
+# When 'active' will enforce repository rules preventing changes except by CODEOWNERS
+# Valid Options:
+#   - active
+#   - disabled
+#   - monitor
+repository_rule_is_active = "active"
+
+# Limit which merge strategies are available to merge a pull request
+# Valid Options:
+#   - fast-forward
+#   - merge
+#   - rebase
+#   - squash
+repository_merge_strategies = []
