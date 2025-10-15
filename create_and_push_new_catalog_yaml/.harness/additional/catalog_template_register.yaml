@@ -19,7 +19,7 @@ spec:
           title: Harness Token
           type: string
           ui:widget: password
-          ui:field: HarnessAuthToken   
+          ui:field: HarnessAuthToken
         system:
           title: System
           type: string
@@ -75,7 +75,7 @@ spec:
               ui:widget: hidden
             harness_project_id:
               type: string
-              default: <+variable.account.solutions_factory_project>
+              default: "false"
               ui:widget: hidden
   steps:
     - id: trigger
