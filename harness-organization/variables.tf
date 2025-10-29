@@ -22,8 +22,8 @@ variable "organization_name" {
 
 variable "organization_description" {
   type        = string
-  description = "[Optional] New Organnization Description"
-  default     = "Harness Organnization managed by Solutions Factory"
+  description = "[Optional] New Organization Description"
+  default     = "Harness Organization managed by Solutions Factory"
 }
 
 variable "tags" {

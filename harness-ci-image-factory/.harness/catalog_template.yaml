@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: harnessciimagefactory
+name: Harness CI Image Factory
+owner: group:default/HSF_Admins
+type: harness_factory
 metadata:
-  name: harness-ci-image-factory
-  title: Harness CI Image Factory
   description: |
     The Harness CI Image Factory is a robust Harness pipeline designed to mirror and replicate the lifecycle of images used by Harness CI module steps
   tags:
@@ -12,8 +14,6 @@ metadata:
     - pipeline
     - hidden
 spec:
-  owner: group:default/HSF_Admins
-  type: harness_factory
   parameters:
     - title: Harness CI Image Factory Build Infrastructure
       description: |

@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: secretmanagercyberarkconjur
+name: "Secret Manager: CyberArk Conjur"
+owner: group:default/harness_account_all_users # Defaults to all users
+type:  Secrets Manager
 metadata:
-  name: secret-manager-cyberark-conjur
-  title: "Secret Manager: CyberArk Conjur"
   description: Create a secret manager template for CyberArk Conjur
   tags:
     - solutions-factory
@@ -10,8 +12,6 @@ metadata:
     - secret-manager
     - template
 spec:
-  owner: group:default/harness_account_all_users # Defaults to all users
-  type:  Secrets Manager
   parameters:
     - title: Template Location
       description: Where should the Kubernetes manifests and Step Template be located

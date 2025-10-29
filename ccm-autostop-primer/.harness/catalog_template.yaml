@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: ccmautostopprimer
+name: AutoStopping Step Template Setup
+owner: group:default/harness_account_all_users
+type: Pipeline
 metadata:
-  name: ccm-autostop-primer
-  title: AutoStopping Step Template Setup
   description: Create a step template for creating autostopping rules. Also provide a workflow for users to add required variables to their services.
   tags:
     - solutions-factory
@@ -11,8 +13,6 @@ metadata:
     - autostopping
     - cd
 spec:
-  owner: group:default/harness_account_all_users
-  type: Pipeline
   parameters:
     - title: Template Location
       description: Where should the Kubernetes manifests and Step Template be located

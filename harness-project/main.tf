@@ -28,3 +28,5 @@ data "harness_platform_project" "selected" {
   identifier = harness_platform_project.selected.id
   org_id     = data.harness_platform_organization.selected.id
 }
+
+data "harness_platform_permissions" "current" {}

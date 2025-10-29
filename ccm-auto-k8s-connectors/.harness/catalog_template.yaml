@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: ccmautok8sconnectors
+name: CCM Auto Kubernetes Connectors
+owner: group:default/harness_account_all_users
+type: Pipeline
 metadata:
-  name: ccm-auto-k8s-connectors
-  title: CCM Auto Kubernetes Connectors
   description: A pipeline and plugin to automatically create k8s and ccm k8s connectors based on account level delegates
   tags:
     - solutions-factory
@@ -11,8 +13,6 @@ metadata:
     - connectors
     - k8s
 spec:
-  owner: group:default/harness_account_all_users
-  type: Pipeline
   parameters:
     - title: Pipeline Setup
       required:

@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: ccmk8sconnectors
+name: CCM Kubernetes Connectors
+owner: group:default/harness_account_all_users # Defaults to all users
+type: setup
 metadata:
-  name: ccm-k8s-connectors
-  title: CCM Kubernetes Connectors
   description: Enable CCM for a cluster by creating the necessary Kubernetes connectors
   tags:
     - solutions-factory
@@ -10,8 +12,6 @@ metadata:
     - ccm
     - connectors
 spec:
-  owner: group:default/harness_account_all_users # Defaults to all users
-  type: setup
   parameters:
     - title: Cluster Information
       required:

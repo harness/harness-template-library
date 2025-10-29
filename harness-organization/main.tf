@@ -20,3 +20,5 @@ resource "time_sleep" "org_setup" {
 data "harness_platform_organization" "selected" {
   identifier = harness_platform_organization.selected.id
 }
+
+data "harness_platform_permissions" "current" {}

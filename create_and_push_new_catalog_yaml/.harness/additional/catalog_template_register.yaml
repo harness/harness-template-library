@@ -1,12 +1,12 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: register_new_component
+name: Register New Service Catalog Component
+owner: group:default/HSF_Admins
+type: service
 metadata:
-  name: register_new_component
-  title: Register New Service Catalog Component
   description: Register a new component in Harness IDP
 spec:
-  owner: group:default/HSF_Admins
-  type: service
   parameters:
     - title: Fill in the component details
       required:

@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: registerrepositorysecurity
+name: Register Repository for Scans
+owner: group:default/HSF_Users
+type: harness_factory
 metadata:
-  name: register-repository-security
-  title: Register Repository for Scans
   description: Deploys new pipeline for chosen repository for SCA and SAST scans
   tags:
     - solutions-factory
@@ -10,8 +12,6 @@ metadata:
     - security
     - hidden
 spec:
-  owner: group:default/HSF_Users
-  type: harness_factory
   parameters:
     - title: Harness Pipeline Target Location
       description: |

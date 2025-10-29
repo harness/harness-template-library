@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: ansiblestepgrouptemplate
+name: Ansible Step Group Template
+owner: group:default/harness_account_all_users # Defaults to all users
+type: step-group
 metadata:
-  name: ansible-step-group-template
-  title: Ansible Step Group Template
   description: A step group template to run ansible
   tags:
     - solutions-factory
@@ -11,8 +13,6 @@ metadata:
     - ansible
     - custom
 spec:
-  owner: group:default/harness_account_all_users # Defaults to all users
-  type: step-group
   parameters:
     - title: Template Configuration
       required:

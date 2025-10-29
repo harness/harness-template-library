@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+idnetifier: rbacmanagerproject
+name: Manage Harness Project Group Membership
+owner: group:default/harness_account_all_users # Defaults to all users
+type: harness_factory
 metadata:
-  name: rbac-manager-project
-  title: Manage Harness Project Group Membership
   description: Manage Harness Project UserGroup membership
   tags:
     - solutions-factory
@@ -10,8 +12,6 @@ metadata:
     - hidden
     - project-management
 spec:
-  owner: group:default/harness_account_all_users # Defaults to all users
-  type: harness_factory
   parameters:
     - title: Choose Target Details
       description: ""

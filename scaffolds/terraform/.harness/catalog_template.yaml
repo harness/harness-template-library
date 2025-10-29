@@ -1,8 +1,12 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+name: # Lowercase unique identifier using [a-zA-Z0-9_] format - e.g. harness_project_setup
+title: # Enter a clear title
+owner: group:default/harness_account_all_users # Defaults to all users
+# Refer to Solutions Factory documentation on various type categories. Review the naming conventions standards
+# document located in the scaffolds/docs/naming-conventions.md document in this repository
+type: # Required
 metadata:
-  name: # Lowercase unique identifier using [a-zA-Z0-9-] format - e.g. harness-project-setup
-  title: # Enter a clear title
   description: # Provide a good description
   tags:
     - solutions-factory
@@ -10,10 +14,6 @@ metadata:
     - # Use the `hidden` tag to restrict access for only the Owners of this template
     - # Add additional tags e.g. project or pipeline
 spec:
-  owner: group:default/harness_account_all_users # Defaults to all users
-  # Refer to Solutions Factory documentation on various type categories. Review the naming conventions standards
-  # document located in the scaffolds/docs/naming-conventions.md document in this repository
-  type: # Required
   parameters:
     - title: # Name the Input Page title
       required:

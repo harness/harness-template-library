@@ -1,12 +1,12 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: ccm_autostop_add_service_variables
+name: Add Autostopping Variables to Service
+owner: group:default/HSF_Admins
+type: service
 metadata:
-  name: ccm_autostop_add_service_variables
-  title: Add Autostopping Variables to Service
   description: Add the required service variables to your CD service to enable use of the autostopping step template
 spec:
-  owner: group:default/HSF_Admins
-  type: service
   parameters:
     - title: Fill in the component details
       required:
@@ -16,7 +16,7 @@ spec:
           title: Harness Token
           type: string
           ui:widget: password
-          ui:field: HarnessAuthToken   
+          ui:field: HarnessAuthToken
         project_id:
           title: Project Identifier
           description: Harness Project Identifier, leave blank for org/account level

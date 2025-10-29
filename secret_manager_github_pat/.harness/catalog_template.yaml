@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: secretmanagergithubpat
+name: Secret Manager for GitHub PATs
+owner: group:default/_account_all_users
+type: Secrets Manager
 metadata:
-  name: secret-manager-github-pat
-  title: Secret Manager for GitHub PATs
   description: A custom secrets manager that generate GitHub PATs from a GitHub app
   tags:
     - solutions-factory
@@ -10,8 +12,6 @@ metadata:
     - secret-manager
     - github
 spec:
-  owner: group:default/_account_all_users
-  type: Secrets Manager
   parameters:
     - title: Secret Manager Inputs
       required:

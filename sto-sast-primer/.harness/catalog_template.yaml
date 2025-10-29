@@ -1,16 +1,16 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: stosastscaprimer
+name: Deploy Harness SAST & SCA Templates
+owner: group:default/HSF_Admins # Defaults to all users
+type: harness_factory
 metadata:
-  name: sto-sast-sca-primer
-  title: Deploy Harness SAST & SCA Templates
   description: Configures and Deploys a series of templates for SCA & SAST scanners
   tags:
     - solutions-factory
     - harness
     - security
 spec:
-  owner: group:default/HSF_Admins # Defaults to all users
-  type: harness_factory
   parameters:
     - title: Configure Build Infrastructure
       description: |

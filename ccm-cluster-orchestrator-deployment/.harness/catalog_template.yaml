@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: ccmclusterorchestratordeployment
+name: CCM Cluster Orchestrator Deployment
+owner: group:default/harness_account_all_users # Defaults to all users
+type: service
 metadata:
-  name: ccm-cluster-orchestrator-deployment
-  title: CCM Cluster Orchestrator Deployment
   description: Create a Harness CD service for deploying the CCM cluster orchestrator
   tags:
     - solutions-factory
@@ -12,8 +14,6 @@ metadata:
     - cd
     - service
 spec:
-  owner: group:default/harness_account_all_users # Defaults to all users
-  type: service
   parameters:
     - title: Service Setup
       required:

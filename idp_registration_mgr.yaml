@@ -8,7 +8,7 @@ entities:
         modules: ci
         is_default: false
       - name: ci-sto-hcr-standard
-        modules: ci,sto
+        modules: [ci, sto]
         is_default: false
   - org: Harness_Platform_Management
     workflows:

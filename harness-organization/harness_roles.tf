@@ -15,11 +15,44 @@ locals {
       )
     ]
   ])
+
+  # Valid list of allowed permission statuses
+  permission_statuses = [
+    "ACTIVE",
+    "EXPERIMENTAL"
+  ]
+
+  # Generate Local list of all permissions in this scope
+  organization_permission_identifiers = sort(compact(flatten([
+    for permission in data.harness_platform_permissions.current.permissions : [
+      permission.identifier
+    ] if contains(local.permission_statuses, permission.status) && contains(permission.allowed_scope_levels, "organization")
+  ])))
+
+  # This object will contain keys based on the role name and the value of invalid permissions
+  invalid_organization_permissions = merge({
+    for role in local.roles :
+    (role.name) => flatten([
+      for permission in role.permissions : [
+        permission
+      ] if !contains(local.organization_permission_identifiers, permission)
+    ])
+  })
 }
 
 resource "harness_platform_roles" "role" {
   for_each = {
     for role in local.roles : role.name => role
+  }
+  # Lifecycle hook to prevent errors in planning due to invalid permission sets
+  lifecycle {
+    precondition {
+      condition     = length(local.invalid_organization_permissions[each.key]) == 0
+      error_message = <<EOF
+      [Invalid] The following permissions are invalid for this role - ${each.key}.
+      - ${join("\n      - ", local.invalid_organization_permissions[each.key])}
+      EOF
+    }
   }
 
   identifier = replace(replace(each.value.name, " ", "_"), "-", "_")

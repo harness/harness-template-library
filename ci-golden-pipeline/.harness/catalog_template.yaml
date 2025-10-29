@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: cigoldenstandardsregisterpipeline
+name: Create CI Pipeline using Golden Standards
+owner: group:default/HSF_Admins
+type: harness_factory
 metadata:
-  name: ci-golden-standards-register-pipeline
-  title: Create CI Pipeline using Golden Standards
   description: Creates a new CI pipeline using the deployed Golden Standard templates
   tags:
     - solutions-factory
@@ -10,8 +12,6 @@ metadata:
     - ci
     - pipeline
 spec:
-  owner: group:default/HSF_Admins
-  type: harness_factory
   parameters:
     - title: Pipeline Configuration
       description: |

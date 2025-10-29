@@ -1,16 +1,16 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: harnessorganizationsetup
+name: Harness Organization Setup
+owner: group:default/HSF_Admins
+type: harness_organization
 metadata:
-  name: harness-organization-setup
-  title: Harness Organization Setup
   description: A template to request a new Harness Organization to be created or managed
   tags:
     - account-management
     - solutions-factory
     - harness
 spec:
-  owner: group:default/HSF_Admins
-  type: harness_organization
   parameters:
     - title: Request Harness Organization
       required:

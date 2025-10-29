@@ -1,16 +1,16 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+name: Harness Project Setup
+identifier: harnessprojectsetup
+type: harness_project
+owner: group:default/HSF_Admins
 metadata:
-  name: harness-project-setup
-  title: Harness Project Setup
   description: A template to request a new Harness Project to be created or managed
   tags:
     - account-management
     - solutions-factory
     - harness
 spec:
-  owner: group:default/HSF_Admins
-  type: harness_project
   parameters:
     - title: Request Harness Project
       required:

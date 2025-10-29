@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: harnessdelegateimagefactory
+name: Harness Delegate Image Factory
+owner: group:default/HSF_Admins
+type: harness_factory
 metadata:
-  name: harness-delegate-image-factory
-  title: Harness Delegate Image Factory
   description: |
     The Harness Delegate Images Factory is a robust Harness pipeline designed to create and manage the lifecycle of customized Harness Delegate Images.
 
@@ -16,8 +18,6 @@ metadata:
   # annotations:
   #   backstage.io/techdocs-ref: dir:.
 spec:
-  owner: group:default/HSF_Admins
-  type: harness_factory
   parameters:
     - title: Deploy the Harness Delegate Image Factory
       description: |

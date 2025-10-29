@@ -1,8 +1,10 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: createandpushnewcatalogyaml
+name: Create and Push New Catalog YAML Pipeline and Workflow
+owner: group:default/HSF_Admins
+type: Pipeline
 metadata:
-  name: create-and-push-new-catalog-yaml
-  title: Create and Push New Catalog YAML Pipeline and Workflow
   description: |
     This solution provides a system to enable self-serve application onboarding for Harness IDP service catalog
   tags:
@@ -10,9 +12,6 @@ metadata:
     - harness
     - idp
 spec:
-  owner: group:default/HSF_Admins
-  hidden: true
-  type: Pipeline
   parameters:
     - title: Where should we store the catalog yamls?
       description: |

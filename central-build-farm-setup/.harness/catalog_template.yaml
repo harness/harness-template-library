@@ -1,16 +1,16 @@
-apiVersion: scaffolder.backstage.io/v1beta3
-kind: Template
+apiVersion: harness.io/v1
+kind: Workflow
+identifier: harnesscentralbuildfarmsetup
+name: Harness Central Build Farm Setup
+owner: group:default/HSF_Admins
+type: harness_factory
 metadata:
-  name: harness-central-build-farm-setup
-  title: Harness Central Build Farm Setup
   description: Configures the Connectors for a Centralized Build Farm configuration
   tags:
     - account-management
     - solutions-factory
     - harness
 spec:
-  owner: group:default/HSF_Admins
-  type: harness_factory
   parameters:
     - title: Setup Build Farm Infrastructure
       properties:
