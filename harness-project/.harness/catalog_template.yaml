@@ -30,6 +30,8 @@ spec:
           pattern: '^([a-zA-Z][_a-zA-Z0-9]*)$'
           ui:field: HarnessOrgPicker
           ui:autofocus: true
+          # This option will force the user to select an Organization from the dropdown
+          default: Choose One
         project_name:
           title: "Enter your Harness Project Name"
           type: string
