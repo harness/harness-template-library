@@ -1,14 +1,30 @@
 {
 	"name": "harness-template-library-dev",
-	"image": "goodrumharness/harness-template-library-dev:dev",
+	"image": "harnesssolutionfactory/harness-template-library-dev:latest",
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"gamunu.opentofu",
+				"opentofu.vscode-opentofu",
 				"4ops.terraform",
-				"harness-inc.harness-aida-code-assistant-vsx"
-			]
+				"editorconfig.editorconfig"
+			],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.profiles.linux": {
+                    "zsh": {
+                        "path": "/bin/zsh"
+                    }
+                }
+            }
 		}
 	},
-	"postStartCommand": "sh -c \"$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh)\" -- -p git -t robbyrussell -x"
+	"containerEnv" : {
+		"MISE_AUTO_INSTALL" : "false",
+		"MISE_EXEC_AUTO_INSTALL" : "false",
+		"MISE_CACHE_PRUNE_AGE" : "0s"
+	},
+	"postStartCommand": "sh -c \"$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh)\" -- -p git -t robbyrussell -x",
+	"runArgs": [
+		"--pull=always"
+	]
 }

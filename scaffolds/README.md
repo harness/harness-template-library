@@ -8,6 +8,7 @@ Part of maintaining this project will often require enhancements and new feature
 ## Guides
 
 - [Developer Environment Setup](docs/local-developers-lab.md)
+- [Local Testing Using Mise-en-Place](docs/mise-en-place-commands.md)
 - [Local Testing Using Make](docs/makefile-commands.md)
 - [Naming Convention Guidelines](docs/naming-conventions.md)
 - [How to Upgrade Your Solutions Factory Implementation](docs/upgrading-your-installation.md)

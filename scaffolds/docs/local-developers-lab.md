@@ -21,6 +21,45 @@ Harness supports the use of Cloud Development Environments (Harness Gitspaces) w
 
 ## Local Container Based development
 
+## Mise-en-place
+
+A comprehensive `mise.toml` exists in the root of this repository. The command file contains frequently used shortcuts and commands. To use this solution, you will need to have:
+- A supported version of docker or [docker-compatible](https://code.visualstudio.com/remote/advancedcontainers/docker-options) engine
+- `Mise-en-place` must be installed on your local machine. Learn more at [Mise-en-place](https://mise.jdx.dev/getting-started.html)
+
+Find more information on [Local Testing using Mise-en-Place](../mise-en-place-commands.md) in this repository
+
+To get the current list of available commands, type `mise help` in a Terminal session in this directory.
+```
+Name             Description
+all              End-to-end testing. Runs the commands - deploy, teardown
+apply            Automatically runs a Terraform/Tofu `apply`
+cycle            Idempotency Check. Runs the commands - init, destroy, apply, and plan
+debug            Loads the current directory into the container to allow running commands locally
+deploy           Applies the Terraform template. Runs the commands - init, plan, and apply
+deploy:dryrun    Dry run deployment. Runs init and plan without apply
+destroy          Automatically runs a Terraform/Tofu `destroy`
+docs             Generate readme tables for variables and outputs automatically
+fmt              Formats the Terraform files in the current directory
+fmt:all          Formats all Terraform files in the entire repository
+help             Show available tasks
+init             Executes Terraform/Tofu `init`. Pass `migrate` to delete any local `backend.tf` and a `-migrate-state` will be performed.
+init:migrate     Executes Terraform/Tofu `init` with state migration
+output           Display the Terraform/Tofu outputs | Set RESOURCE env var for a single output
+plan             Executes a Terraform/Tofu `plan`
+plan:init        Idempotency Check. Runs the commands - init, destroy, apply, and plan
+plan:output      Executes a Terraform/Tofu `plan` and saves to file
+plan:show        Shows a saved Terraform/Tofu plan
+plan:show:file   Shows a saved Terraform/Tofu plan and outputs to file
+provider         Add a local provider file in this template directory
+refresh          Refreshes the statefile
+teardown         Full Suite Cleanup. Runs the commands - destroy and testing_cleanup
+template         Generate a new directory using a template type. Must provide the name of the template to create
+testing:cleanup  Removes the local `.terraform`,`.terraform.lock.hcl`, tfstate, and provider files
+```
+
+## Makefile management (Deprecated - 2025-11-07)
+
 A robust `Makefile` configuration is included within this repository. The command file contains frequently used shortcuts and commands. To use this solution, you will need to have:
 - A supported version of docker or [docker-compatible](https://code.visualstudio.com/remote/advancedcontainers/docker-options) engine
 - `Make` installed for your OS [Windows](https://gnuwin32.sourceforge.net/packages/make.htm) or Mac with Xcode Command line tools Installed [or with Homebrew Gnu Make](https://formulae.brew.sh/formula/make)
