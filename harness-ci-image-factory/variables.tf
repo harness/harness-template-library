@@ -96,6 +96,16 @@ variable "should_update_harness_mgr" {
   description = "If 'true' the Harness CI Manager will be updated immediately to change the default behaviour of Harness CI to only pull images from those stored in the target container registry."
   default     = true
 }
+
+variable "modules" {
+  type        = list(string)
+  description = "List of modules to migrate images for"
+  default     = ["ci"]
+  validation {
+    condition     = can([for module in var.modules : contains(["ci", "idp", "iacm-manager"], module)])
+    error_message = "Invalid module specified.  Must be one of: ci, idp, iacm-manager"
+  }
+}
 ################################################
 
 

@@ -54,7 +54,7 @@ ${STAGE_INFRASTRUCTURE}
                       client.set_default_header("x-api-key", harness_key)
 
                       query_string=f"?accountIdentifier={harness_acct}&infra=K8"
-                      base_uri=f"/gateway/ci/execution-config"
+                      base_uri=f"/gateway/<+pipeline.variables.MODULE>/execution-config"
                       uri_default_config = f"{base_uri}/get-default-config{query_string}"
                       uri_customer_config = f"{base_uri}/get-customer-config{query_string}&overridesOnly=true"
 
@@ -161,7 +161,7 @@ ${STAGE_INFRASTRUCTURE}
                             client.set_default_header("x-api-key", harness_key)
 
                             query_string=f"?accountIdentifier={harness_acct}&infra=K8"
-                            base_uri=f"/gateway/ci/execution-config"
+                            base_uri=f"/gateway/<+pipeline.variables.MODULE>/execution-config"
                             uri_default_config = f"{base_uri}/get-default-config{query_string}"
                             uri_customer_config = f"{base_uri}/get-customer-config{query_string}&overridesOnly=true"
 
@@ -279,3 +279,8 @@ ${STAGE_INFRASTRUCTURE}
       description: ""
       required: true
       value: <+input>.default(${SHOULD_UPDATE_HARNESS_MGR}).allowedValues(true,false)
+    - name: MODULE
+      type: String
+      description: ""
+      required: false
+      value: <+input>.default(ci).selectOneFrom(ci,idp,iacm-manager)

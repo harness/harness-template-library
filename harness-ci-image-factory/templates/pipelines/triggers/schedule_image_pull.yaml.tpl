@@ -4,7 +4,7 @@ trigger:
   orgIdentifier: ${ORGANIZATION_ID}
   projectIdentifier: ${PROJECT_ID}
   pipelineIdentifier: ${PIPELINE_IDENTIFIER}
-  enabled: true
+  enabled: ${ENABLED}
   stagesToExecute: []
   tags:
     ${indent(4, TAGS)}
@@ -34,3 +34,6 @@ trigger:
         - name: SHOULD_UPDATE_HARNESS_MGR
           type: String
           value: "${SHOULD_UPDATE_HARNESS_MGR}"
+        - name: MODULE
+          type: String
+          value: "${MODULE}"

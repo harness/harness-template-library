@@ -1,12 +1,12 @@
 apiVersion: harness.io/v1
 kind: Workflow
 identifier: harnessciimagefactory
-name: Harness CI Image Factory
+name: Harness Image Factory
 owner: group:default/HSF_Admins
 type: harness_factory
 metadata:
   description: |
-    The Harness CI Image Factory is a robust Harness pipeline designed to mirror and replicate the lifecycle of images used by Harness CI module steps
+    The Harness Image Factory is a robust Harness pipeline designed to mirror and replicate the lifecycle of images used by Harness module steps
   tags:
     - account-management
     - solutions-factory
@@ -15,10 +15,10 @@ metadata:
     - hidden
 spec:
   parameters:
-    - title: Harness CI Image Factory Build Infrastructure
+    - title: Harness Image Factory Build Infrastructure
       description: |
         ---
-        The Harness CI Image Factory requires an existing Build Infrastructure configuration to be in place. This solution will support
+        The Harness Image Factory requires an existing Build Infrastructure configuration to be in place. This solution will support
         deployments via Kubernetes or Harness Cloud deployments.
       required:
         - build_infrastructure_type
@@ -113,7 +113,24 @@ spec:
                     additionalProperties:
                       type: string
     - title: Pipeline Input Variables
+      required:
+        - modules
       properties:
+        modules:
+          title: Modules to manage
+          description: Select the modules to manage images for
+          type: array
+          items:
+            type: string
+            enum:
+              - ci
+              - idp
+              - iacm-manager
+            enumNames:
+              - CI
+              - IDP
+              - IACM
+          uniqueItems: true
         use_harness_public_gar_registry:
           title: Pull the CI images directly from the Harness GAR Repository
           description: Images will be pulled from the following registry - us-docker.pkg.dev/gar-prod-setup/harness-public/
@@ -389,6 +406,7 @@ spec:
             container_registry_username_ref: ${{ parameters.infra_defaults.container_registry_username_ref if parameters.should_use_build_farm_credentials else parameters.container_registry_username_ref }}
             container_registry_password_ref: ${{ parameters.infra_defaults.container_registry_password_ref if parameters.should_use_build_farm_credentials else parameters.container_registry_password_ref }}
             should_update_harness_mgr: ${{ parameters.should_update_harness_mgr }}
+            modules: ${{ parameters.modules }}
             pipeline_step_connector_ref: ${{ parameters.infra_defaults.pipeline_step_connector_ref if parameters.use_default_configurations else parameters.pipeline_step_connector_ref }}
             harness_image_migration_image: ${{ parameters.infra_defaults.harness_image_migration_image if parameters.use_default_configurations else parameters.harness_image_migration_image }}
             hsf_script_mgr_image: ${{ parameters.infra_defaults.hsf_script_mgr_image if parameters.use_default_configurations else parameters.hsf_script_mgr_image }}
