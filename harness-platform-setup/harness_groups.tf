@@ -33,7 +33,6 @@ locals {
       for binding in lookup(group, "role_bindings", []) : {
         identifier       = "${group.identifier}_${lookup(binding, "role", "MISSING-ROLE-ID")}"
         group_identifier = group.identifier
-        group_name       = group.name
         role             = lookup(binding, "role", "MISSING-ROLE")
         resource_group   = lookup(binding, "resource_group", "MISSING-ROLE")
       }
@@ -47,8 +46,6 @@ data "harness_platform_usergroup" "usergroup" {
     for group in local.existing_groups : group.identifier => group
   }
   identifier = each.value.identifier
-  org_id     = data.harness_platform_organization.selected.id
-  project_id = data.harness_platform_project.selected.id
 }
 
 resource "harness_platform_usergroup" "usergroup" {
@@ -73,9 +70,7 @@ resource "harness_platform_usergroup" "usergroup" {
   identifier = each.value.identifier
 
   name        = each.value.name
-  org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
-  description = lookup(each.value, "description", "Harness UserGroup managed by Solutions Factory")
+  description = "Harness UserGroup managed by Solutions Factory"
   user_emails = []
 
   externally_managed      = false
@@ -86,10 +81,7 @@ resource "harness_platform_usergroup" "usergroup" {
   sso_group_id            = lookup(each.value, "sso_group_id", null)
   sso_group_name          = lookup(each.value, "sso_group_id", null)
 
-  tags = flatten([
-    [for k, v in lookup(each.value, "tags", {}) : "${k}:${v}"],
-    local.common_tags_tuple
-  ])
+  tags = local.common_tags_tuple
 }
 
 resource "harness_platform_role_assignments" "usergroup_bindings" {
@@ -98,16 +90,12 @@ resource "harness_platform_role_assignments" "usergroup_bindings" {
     for group in local.groups_bindings : group.identifier => group
   }
 
-  identifier = each.value.identifier
-
-  org_id                    = data.harness_platform_organization.selected.id
-  project_id                = data.harness_platform_project.selected.id
+  identifier                = each.value.identifier
   resource_group_identifier = each.value.resource_group
   role_identifier           = each.value.role
   principal {
     identifier = try(
       harness_platform_usergroup.usergroup[each.value.group_identifier].id,
-      harness_platform_usergroup.usergroup[each.value.group_name].id,
       data.harness_platform_usergroup.usergroup[each.value.group_identifier].id
     )
     type = "USER_GROUP"

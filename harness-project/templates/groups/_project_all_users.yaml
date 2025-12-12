@@ -4,11 +4,7 @@
 # linked_sso_id: # Required
 # sso_group_id: # Should be the SSO Group ID to map
 tags:
-  purpose: Project-Administrators
+  purpose: Project-Viewers
 role_bindings:
-  - role: _project_viewer
-    resource_group: _all_project_level_resources
-  - role: Developer
-    resource_group: _all_project_level_resources
-  - role: Project_Admin
+  - role: Shared_Resource_Access
     resource_group: _all_project_level_resources

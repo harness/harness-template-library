@@ -1,0 +1,6 @@
+---
+action: onsave
+type: template
+policies:
+  - identifier: enforce_template_version_schema
+    severity: error

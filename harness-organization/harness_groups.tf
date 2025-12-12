@@ -4,20 +4,32 @@ locals {
   group_files = fileset("${local.groups_files_path}/", "*.yaml")
 
 
-  groups = flatten([
+  all_groups = flatten([
     for group_file in local.group_files : [
       merge(
         yamldecode(file("${local.groups_files_path}/${group_file}")),
         {
           identifier = replace(replace(replace(group_file, ".yaml", ""), " ", "_"), "-", "_")
-          name       = replace(group_file, ".yaml", "")
+          name       = replace(replace(replace(group_file, ".yaml", ""), "-", "_"), "_", " ")
         }
       )
     ]
   ])
 
+  groups = flatten([
+    for group in local.all_groups : [
+      group
+    ] if !startswith(group.identifier, "_")
+  ])
+
+  existing_groups = flatten([
+    for group in local.all_groups : [
+      group
+    ] if startswith(group.identifier, "_")
+  ])
+
   groups_bindings = flatten([
-    for group in local.groups : [
+    for group in local.all_groups : [
       for binding in lookup(group, "role_bindings", []) : {
         identifier       = "${group.identifier}_${lookup(binding, "role", "MISSING-ROLE-ID")}"
         group_identifier = group.identifier
@@ -27,6 +39,14 @@ locals {
     ]
 
   ])
+}
+
+data "harness_platform_usergroup" "usergroup" {
+  for_each = {
+    for group in local.existing_groups : group.identifier => group
+  }
+  identifier = each.value.identifier
+  org_id      = data.harness_platform_organization.selected.id
 }
 
 resource "harness_platform_usergroup" "usergroup" {
@@ -45,7 +65,7 @@ resource "harness_platform_usergroup" "usergroup" {
     ]
   }
   for_each = {
-    for group in local.groups : group.name => group
+    for group in local.groups : group.identifier => group
   }
 
   identifier = replace(replace(each.value.name, " ", "_"), "-", "_")
@@ -81,7 +101,10 @@ resource "harness_platform_role_assignments" "usergroup_bindings" {
   resource_group_identifier = each.value.resource_group
   role_identifier           = each.value.role
   principal {
-    identifier = harness_platform_usergroup.usergroup[each.value.group_identifier].id
+    identifier = try(
+      harness_platform_usergroup.usergroup[each.value.group_identifier].id,
+      data.harness_platform_usergroup.usergroup[each.value.group_identifier].id
+    )
     type       = "USER_GROUP"
   }
   disabled = false

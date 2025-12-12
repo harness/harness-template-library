@@ -34,6 +34,7 @@ entities:
       # Skipping this one as it is being deprecated
       # - name: create_and_push_new_catalog_yaml
       #   modules: idp
+      - name: harness-platform-setup
       - name: harness-organization
       # Skipping this one as it is being deprecated
       # - rbac-manager
