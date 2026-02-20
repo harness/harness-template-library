@@ -1,0 +1,196 @@
+pipeline:
+  name: Harness Delegate Image Factory
+  identifier: harnessdelegateimagefactory
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: The Harness Delegate Images Factory is a robust Harness pipeline designed to create and manage the lifecycle of customized Harness Delegate Images.
+  tags: {
+    pipeline_type: platform_setup
+  }
+  stages:
+    - stage:
+        name: Create_Manage_Workspace
+        identifier: Create_Manage_Workspace
+        description: ""
+        type: Pipeline
+        spec:
+          org: ${WORKSPACE_MGMT_ORG_ID}
+          project: ${WORKSPACE_MGMT_PROJECT_ID}
+          pipeline: ${WORKSPACE_MGMT_PIPELINE_ID}
+          inputs:
+            identifier: ${WORKSPACE_MGMT_PIPELINE_ID}
+            variables:
+              - name: RESOURCE_NAME
+                type: String
+                value: harness-delegate-image-factory
+              - name: RESOURCE_OWNER
+                type: String
+                value: user:account/<+pipeline.triggeredBy.email>
+              - name: RESOURCE_VARS
+                type: String
+                # Key:Value pairs of Terraform variables of type 'String' in JSON string format.
+                value: |-
+                  {
+                    "existing_harness_platform_key_ref":"<+pipeline.variables.existing_harness_platform_key_ref>",
+                    "organization_id":"<+pipeline.variables.organization_id>",
+                    "project_id":"<+pipeline.variables.project_id>",
+                    "git_repository_name":"<+pipeline.variables.git_repository_name>",
+                    "git_connector_ref":"<+pipeline.variables.git_connector_ref>",
+                    "kubernetes_connector":"<+pipeline.variables.kubernetes_connector>",
+                    "kubernetes_namespace":"<+pipeline.variables.kubernetes_namespace>",
+                    "kubernetes_node_selectors":"<+pipeline.variables.kubernetes_node_selectors>",
+                    "kubernetes_override_image_connector":"<+pipeline.variables.kubernetes_override_image_connector>",
+                    "container_registry_name":"<+pipeline.variables.container_registry_name>",
+                    "container_registry_connector_id":"<+pipeline.variables.container_registry_connector_id>",
+                    "include_image_test_scan":"<+pipeline.variables.include_image_test_scan>",
+                    "include_image_sbom":"<+pipeline.variables.include_image_sbom>",
+                    "container_registry_type":"<+pipeline.variables.container_registry_type>",
+                    "sto_scanner_type":"<+pipeline.variables.sto_scanner_type>"
+                  }
+              - name: RESOURCE_VARS_SECRETS
+                type: String
+                # Key:Value pairs of Terraform variables of type 'Secret' in JSON string format. Must include hierarchy reference for existing secrets
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS
+                type: String
+                # Key:Value pairs of Terraform variables of type 'String' in JSON string format.
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS_SECRET
+                type: String
+                # Key:Value pairs of Terraform variables of type 'Secret' in JSON string format. Must include hierarchy reference for existing secrets
+                value: "{}"
+              - name: GIT_REPOSITORY_BRANCH
+                type: String
+                value: main
+              - name: GIT_REPOSITORY_CONNECTOR
+                type: String
+                value: <+variable.account.custom_template_library_connector>
+              - name: GIT_REPOSITORY_NAME
+                type: String
+                value: <+variable.account.custom_template_library_repo>
+              - name: GIT_REPOSITORY_PATH
+                type: String
+                value: delegate-image-factory
+              - name: IAC_PROVISIONER_TYPE
+                type: String
+                value: opentofu
+              - name: IAC_PROVISIONER_VERSION
+                type: String
+                value: 1.10.0
+              - name: IAC_PROVIDER_CONNECTOR
+                type: String
+                value: ""
+              - name: INCLUDE_HARNESS_ENVS
+                type: String
+                value: "true"
+              - name: REGISTER_IDP
+                type: String
+                value: "${SHOULD_USE_HARNESS_IDP}"
+              # Determines if the workflow will trigger a temporary workspace that is
+              # deleted upon completion. Resources will be preserved
+              # Must be "true" or "false" and wrapped in quotes
+              - name: IS_EPHEMERAL
+                type: String
+                value: "false"
+              # Determines if the workflow will require an Approval before executing
+              # Must be "true" or "false" and wrapped in quotes
+              - name: REQUIRES_APPROVAL
+                type: String
+                value: "false"
+              - name: WORKSPACE_ORG
+                type: String
+                value: Harness_Platform_Management
+              - name: WORKSPACE_PROJECT
+                type: String
+                value: Solutions_Factory
+              - name: WORKSPACE_TAGS
+                type: String
+                # Used to group by type the workspaces for bulk actions
+                value: |-
+                  {
+                    "source":"custom",
+                    "type": "delegate-image-factory"
+                  }
+  # Pipeline Variables
+  variables:
+    - name: existing_harness_platform_key_ref
+      type: String
+      description: "[Required] Provide an existing Harness Platform key secret reference.  Must exist before execution"
+      required: true
+      value: org.hsf_platform_api_key
+    ## Harness Hierarchy Setup Details
+    - name: organization_id
+      type: String
+      description: "[Required] Provide an existing organization reference ID.  Must exist before execution"
+      required: true
+      value: Harness_Platform_Management
+    - name: project_id
+      type: String
+      description: "[Required] Provide an existing project reference ID.  Must exist before execution"
+      required: true
+      value: Delegate_Management
+    ## Self-Hosted Build Farm Configuration
+    - name: kubernetes_connector
+      type: String
+      description: "[Optional] Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline. Must exist before execution. To not set this, ensure the value is 'skipped'"
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)
+    - name: kubernetes_namespace
+      type: String
+      description: "[Optional] Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline. Must exist before execution"
+      required: false
+      value: <+input>.default(default)
+    - name: kubernetes_node_selectors
+      type: String
+      description: "[Optional] Optional Kubernetes Node Selectors"
+      required: false
+      value: <+input>.default({})
+    - name: kubernetes_override_image_connector
+      type: String
+      description: "[Optional] Enter an existing Container Registry connector to use which overrides the default connector. Must exist before execution. To not set this, ensure the value is 'skipped'"
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)
+    ## CI CodeBase Configuration
+    - name: git_repository_name
+      type: String
+      description: "[Optional] The source CodeBase Repository Name"
+      required: true
+      value: <+input>.default(harness-delegate-setup)
+    - name: git_connector_ref
+      type: String
+      description: "[Optional] When provided, the existing Git connector will be used. When 'skipped' a custom Harness Code Repository will be added into the project."
+      required: true
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)
+    ## Docker Image Regisry Details
+    - name: container_registry_connector_id
+      type: String
+      description: "[Required] Existing Docker Registry Connector Id.  Must exist before execution."
+      required: true
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$)
+    - name: container_registry_name
+      type: String
+      description: "[Required] Docker Registry Name to which the container will be published"
+      required: true
+      value: <+input>
+    ## Pipeline Control Mechanisms
+    - name: include_image_test_scan
+      type: String
+      description: "[Optional] Include the Image Test Scan"
+      required: true
+      value: <+input>.default(false).selectOneFrom(true,false)
+    - name: include_image_sbom
+      type: String
+      description: "[Optional] Include Harness Software Bill of Materials"
+      required: true
+      value: <+input>.default(false).selectOneFrom(true,false)
+    ## Pipeline Step Type Controls
+    - name: container_registry_type
+      type: String
+      description: "[Optional] Container Registry Type"
+      required: true
+      value: <+input>.default(docker)
+    - name: sto_scanner_type
+      type: String
+      description: "[Optional] Harness STO Scanner Type"
+      required: true
+      value: <+input>.default(aqua_trivy)

@@ -1,0 +1,255 @@
+pipeline:
+  name: Deploy Harness SAST and SCA Templates
+  identifier: stosastscaprimer
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: |-
+    The STO SAST & SCA Primer Factory will deploy a fully configured set of templates into a Harness account which will provide a streamlined mechanism
+    to rapidly onboard new source code repositories into Harness to begin static code analysis (SCA) and static application security testing
+    (SAST) monitoring of the source code.
+
+    Note: This Factory requires an existing Build Infrastructure configuration to be in place. This solution will support
+    deployments via Kubernetes or Harness Cloud deployments.
+  tags: {
+    pipeline_type: hsf_primer
+  }
+  stages:
+    - stage:
+        name: Create_Manage_Workspace
+        identifier: Create_Manage_Workspace
+        description: ""
+        type: Pipeline
+        spec:
+          org: ${WORKSPACE_MGMT_ORG_ID}
+          project: ${WORKSPACE_MGMT_PROJECT_ID}
+          pipeline: ${WORKSPACE_MGMT_PIPELINE_ID}
+          inputs:
+            identifier: ${WORKSPACE_MGMT_PIPELINE_ID}
+            variables:
+              - name: RESOURCE_NAME
+                type: String
+                value: STO_SCA_SAST_PRIMER
+              - name: RESOURCE_OWNER
+                type: String
+                value: user:account/<+pipeline.triggeredBy.email>
+              - name: RESOURCE_VARS
+                type: String
+                value: |-
+                  {
+                    "should_support_hcr":"<+pipeline.variables.should_support_hcr>",
+                    "kubernetes_connector":"<+pipeline.variables.kubernetes_connector>",
+                    "kubernetes_namespace":"<+pipeline.variables.kubernetes_namespace>",
+                    "kubernetes_node_selectors":"<+pipeline.variables.kubernetes_node_selectors>",
+                    "kubernetes_override_image_connector":"<+pipeline.variables.kubernetes_override_image_connector>",
+                    "enabled_scanners":"[\"<+pipeline.variables.enabled_scanners.replace(',','\",\"')>\"]",
+                    "scanner_override_image_connector":"<+pipeline.variables.scanner_override_image_connector>",
+                    "gitleaks_override_image_name":"<+pipeline.variables.gitleaks_override_image_name>",
+                    "gitleaks_override_cpu":"<+pipeline.variables.gitleaks_override_cpu>",
+                    "gitleaks_override_mem":"<+pipeline.variables.gitleaks_override_mem>",
+                    "osv_override_image_name":"<+pipeline.variables.osv_override_image_name>",
+                    "osv_override_cpu":"<+pipeline.variables.osv_override_cpu>",
+                    "osv_override_mem":"<+pipeline.variables.osv_override_mem>",
+                    "owasp_override_image_name":"<+pipeline.variables.owasp_override_image_name>",
+                    "owasp_override_cpu":"<+pipeline.variables.owasp_override_cpu>",
+                    "owasp_override_mem":"<+pipeline.variables.owasp_override_mem>",
+                    "semgrep_override_image_name":"<+pipeline.variables.semgrep_override_image_name>",
+                    "semgrep_override_cpu":"<+pipeline.variables.semgrep_override_cpu>",
+                    "semgrep_override_mem":"<+pipeline.variables.semgrep_override_mem>",
+                    "tools_image_connector":"<+pipeline.variables.tools_image_connector>",
+                    "tools_image_name":"<+pipeline.variables.tools_image_name>",
+                    "sto_config_mgr_connector_ref":"<+pipeline.variables.sto_config_mgr_connector_ref>",
+                    "sto_config_mgr_repo":"<+pipeline.variables.sto_config_mgr_repo>",
+                    "sto_config_mgr_connector":"<+pipeline.variables.sto_config_mgr_connector>",
+                    "sto_config_mgr_image":"<+pipeline.variables.sto_config_mgr_image>"
+                  }
+              - name: RESOURCE_VARS_SECRETS
+                type: String
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS
+                type: String
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS_SECRET
+                type: String
+                value: "{}"
+              - name: GIT_REPOSITORY_BRANCH
+                type: String
+                value: main
+              - name: GIT_REPOSITORY_CONNECTOR
+                type: String
+                value: <+variable.account.custom_template_library_connector>
+              - name: GIT_REPOSITORY_NAME
+                type: String
+                value: <+variable.account.custom_template_library_repo>
+              - name: GIT_REPOSITORY_PATH
+                type: String
+                value: sto-sast-primer
+              - name: IAC_PROVISIONER_TYPE
+                type: String
+                value: opentofu
+              - name: IAC_PROVISIONER_VERSION
+                type: String
+                value: 1.10.0
+              - name: IAC_PROVIDER_CONNECTOR
+                type: String
+                value: ""
+              - name: INCLUDE_HARNESS_ENVS
+                type: String
+                value: "true"
+              - name: REGISTER_IDP
+                type: String
+                value: "${SHOULD_USE_HARNESS_IDP}"
+              # Determines if the workflow will trigger a temporary workspace that is
+              # deleted upon completion. Resources will be preserved
+              # Must be "true" or "false" and wrapped in quotes
+              - name: IS_EPHEMERAL
+                type: String
+                value: "false"
+              # Determines if the workflow will require an Approval before executing
+              # Must be "true" or "false" and wrapped in quotes
+              - name: REQUIRES_APPROVAL
+                type: String
+                value: "false"
+              - name: WORKSPACE_ORG
+                type: String
+                value: Harness_Platform_Management
+              - name: WORKSPACE_PROJECT
+                type: String
+                value: Solutions_Factory
+              - name: WORKSPACE_TAGS
+                type: String
+                # Used to group by type the workspaces for bulk actions
+                value: |-
+                  {
+                    "source":"custom",
+                    "type":"sto-sast-primer"
+                  }
+  variables:
+    - name: should_support_hcr
+      type: String
+      description: "[Optional] Should a pipeline template be included which support Harness Code Repository sources"
+      required: false
+      value: <+input>.default(true).selectOneFrom(true,false)
+    ## Self-Hosted Build Farm Configuration
+    - name: kubernetes_connector
+      type: String
+      description: "[Optional] Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline. Must exist before execution. To not set this, ensure the value is 'skipped'"
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)
+    - name: kubernetes_namespace
+      type: String
+      description: "[Optional] Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline. Must exist before execution"
+      required: false
+      value: <+input>.default(default)
+    - name: kubernetes_node_selectors
+      type: String
+      description: "[Optional] Optional Kubernetes Node Selectors"
+      required: false
+      value: <+input>.default({})
+    - name: kubernetes_override_image_connector
+      type: String
+      description: "[Optional] Enter an existing Container Registry connector to use which overrides the default connector. Must exist before execution. To not set this, ensure the value is 'skipped'"
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)
+    ## Harness STO Scanner Configuration
+    - name: enabled_scanners
+      type: String
+      description: "The enabled scanners will be included by default in the templates"
+      required: false
+      value: <+input>.default(gitleaks,osv,owasp,semgrep).selectManyFrom(gitleaks,osv,owasp,semgrep)
+    - name: scanner_override_image_connector
+      type: String
+      description: "[Optional] Provide existing Container Registry connector_id to be used to pull all scanner images."
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)
+    - name: gitleaks_override_image_name
+      type: String
+      description: "[Optional] Provide an override image reference to pull"
+      required: false
+      value: <+input>.default(skipped)
+    - name: gitleaks_override_cpu
+      type: String
+      description: "[Optional] Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu."
+      required: false
+      value: <+input>.default(0.4)
+    - name: gitleaks_override_mem
+      type: String
+      description: "[Optional] Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi."
+      required: false
+      value: <+input>.default(600Mi)
+    - name: osv_override_image_name
+      type: String
+      description: "[Optional] Enter an existing Container image which to use for OSV scans"
+      required: false
+      value: <+input>.default(skipped)
+    - name: osv_override_cpu
+      type: String
+      description: "[Optional] Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu."
+      required: false
+      value: <+input>.default(1)
+    - name: osv_override_mem
+      type: String
+      description: "[Optional] Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi."
+      required: false
+      value: <+input>.default(2Gi)
+    - name: owasp_override_image_name
+      type: String
+      description: "[Optional] Enter an existing Container image which to use for OWASP scans"
+      required: false
+      value: <+input>.default(skipped)
+    - name: owasp_override_cpu
+      type: String
+      description: "[Optional] Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu."
+      required: false
+      value: <+input>.default(2)
+    - name: owasp_override_mem
+      type: String
+      description: "[Optional] Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi."
+      required: false
+      value: <+input>.default(6Gi)
+    - name: semgrep_override_image_name
+      type: String
+      description: "[Optional] Enter an existing Container image which to use for Semgrep scans"
+      required: false
+      value: <+input>.default(skipped)
+    - name: semgrep_override_cpu
+      type: String
+      description: "[Optional] Provide an override step CPU value - You can specify a fraction as well. 0.1 is equivalent to 100m, or 100 millicpu."
+      required: false
+      value: <+input>.default(2)
+    - name: semgrep_override_mem
+      type: String
+      description: "[Optional] Provide an override step MEM value - You can specify an integer or fixed-point value with the suffix G, M, Gi, or Mi."
+      required: false
+      value: <+input>.default(4Gi)
+    - name: tools_image_connector
+      type: String
+      description: "[Optional] Enter an existing Container Registry connector_id which contains build tools image for OWASP scans"
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(account.harnessImage)
+    - name: tools_image_name
+      type: String
+      description: "[Optional] Enter an existing Container image which contains build tools for OWASP scans"
+      required: false
+      value: <+input>.default(node:20.11.0-alpine)
+    ## Harness STO Global Configuration Manager image
+    - name: sto_config_mgr_connector_ref
+      type: String
+      description: "[Optional] When provided, the existing Git connector will be used. When 'skipped' a custom Harness Code Repository will be added into the scope."
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)
+    - name: sto_config_mgr_repo
+      type: String
+      description: "[Required] The source CodeBase Repository Name. If `sto_config_mgr_connector_ref` is set, then provide the full repo details based on the connector type."
+      required: true
+      value: <+input>.default(harness-sto-global-exclusions)
+    - name: sto_config_mgr_connector
+      type: String
+      description: "[Required] Provide Container Registry connector from which the STO Configuration Manager image will be retrieved. Defaults to account.harnessImage"
+      required: true
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(account.harnessImage)
+    - name: sto_config_mgr_image
+      type: String
+      description: "[Required] Provide the Container Registry image name and tag for the STO Configuration Manager image"
+      required: true
+      value: <+input>.default(harnesssolutionfactory/harness-sto-config-manager:latest)
+

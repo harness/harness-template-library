@@ -1,0 +1,5 @@
+---
+role_bindings:
+  - group_id: account.HSF_Admins
+    role: LandingZoneOperator
+    resource_group: harness_platform_management

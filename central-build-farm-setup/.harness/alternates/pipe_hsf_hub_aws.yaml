@@ -1,0 +1,212 @@
+pipeline:
+  name: Harness Central Build Farm Setup
+  identifier: harnesscentralbuildfarmsetup
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: Configures the Connectors for a Centralized Build Farm configuration with support for AWS type container registries
+  tags: {
+    pipeline_type: platform_setup
+  }
+  stages:
+    - stage:
+        name: Create_Manage_Workspace
+        identifier: Create_Manage_Workspace
+        description: ""
+        type: Pipeline
+        spec:
+          org: ${WORKSPACE_MGMT_ORG_ID}
+          project: ${WORKSPACE_MGMT_PROJECT_ID}
+          pipeline: ${WORKSPACE_MGMT_PIPELINE_ID}
+          inputs:
+            identifier: ${WORKSPACE_MGMT_PIPELINE_ID}
+            variables:
+              - name: RESOURCE_NAME
+                type: String
+                value: harness-central-build-farm-setup
+              - name: RESOURCE_OWNER
+                type: String
+                value: user:account/<+pipeline.triggeredBy.email>
+              - name: RESOURCE_VARS
+                type: String
+                # Key:Value pairs of Terraform variables of type 'String' in JSON string format.
+                value: |-
+                  {
+                    "build_infrastructure_type":"<+pipeline.variables.build_infrastructure_type>",
+                    "delegate_selectors":"[\"<+pipeline.variables.delegate_selectors.replace(',','\",\"')>\"]",
+                    "source_code_manager_type":"<+pipeline.variables.source_code_manager_type>",
+                    "source_code_manager_url":"<+pipeline.variables.source_code_manager_url>",
+                    "source_code_manager_validation_repo":"<+pipeline.variables.source_code_manager_validation_repo>",
+                    "source_code_manager_auth_type":"<+pipeline.variables.source_code_manager_auth_type>",
+                    "container_registry_type":"<+pipeline.variables.container_registry_type>",
+                    "authentication_type_self_hosted":"<+pipeline.variables.authentication_type_self_hosted>",
+                    "authentication_type_harness_cloud":"<+pipeline.variables.authentication_type_harness_cloud>",
+                    "region":"<+pipeline.variables.region>",
+                    "iam_role_arn":"<+pipeline.variables.iam_role_arn>",
+                    "aws_cross_account_role_arn":"<+pipeline.variables.aws_cross_account_role_arn>",
+                    "aws_cross_account_external_id":"<+pipeline.variables.aws_cross_account_external_id>",
+                    "artifact_manager_type":"<+pipeline.variables.artifact_manager_type>",
+                    "artifact_manager_url":"<+pipeline.variables.artifact_manager_url>",
+                    "artifact_manager_auth_type":"<+pipeline.variables.artifact_manager_auth_type>",
+                    "artifact_manager_delegate":"[\"<+pipeline.variables.artifact_manager_delegate.replace(',','\",\"')>\"]",
+                    "nexus_version":"<+pipeline.variables.nexus_version>"
+                  }
+              - name: RESOURCE_VARS_SECRETS
+                type: String
+                # Key:Value pairs of Terraform variables of type 'Secret' in JSON string format. Must include hierarchy reference for existing secrets
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS
+                type: String
+                # Key:Value pairs of Terraform variables of type 'String' in JSON string format.
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS_SECRET
+                type: String
+                # Key:Value pairs of Terraform variables of type 'Secret' in JSON string format. Must include hierarchy reference for existing secrets
+                value: "{}"
+              - name: GIT_REPOSITORY_BRANCH
+                type: String
+                value: main
+              - name: GIT_REPOSITORY_CONNECTOR
+                type: String
+                value: <+variable.account.custom_template_library_connector>
+              - name: GIT_REPOSITORY_NAME
+                type: String
+                value: <+variable.account.custom_template_library_repo>
+              - name: GIT_REPOSITORY_PATH
+                type: String
+                value: central-build-farm-setup
+              - name: IAC_PROVISIONER_TYPE
+                type: String
+                value: opentofu
+              - name: IAC_PROVISIONER_VERSION
+                type: String
+                value: 1.10.0
+              - name: IAC_PROVIDER_CONNECTOR
+                type: String
+                value: ""
+              - name: INCLUDE_HARNESS_ENVS
+                type: String
+                value: "true"
+              - name: REGISTER_IDP
+                type: String
+                value: "${SHOULD_USE_HARNESS_IDP}"
+              # Determines if the workflow will trigger a temporary workspace that is
+              # deleted upon completion. Resources will be preserved
+              # Must be "true" or "false" and wrapped in quotes
+              - name: IS_EPHEMERAL
+                type: String
+                value: "false"
+              # Determines if the workflow will require an Approval before executing
+              # Must be "true" or "false" and wrapped in quotes
+              - name: REQUIRES_APPROVAL
+                type: String
+                value: "false"
+              - name: WORKSPACE_ORG
+                type: String
+                value: Harness_Platform_Management
+              - name: WORKSPACE_PROJECT
+                type: String
+                value: Solutions_Factory
+              - name: WORKSPACE_TAGS
+                type: String
+                # Used to group by type the workspaces for bulk actions
+                value: |-
+                  {
+                    "source":"custom",
+                    "type":"central-build-farm-setup"
+                  }
+  # Pipeline Variables
+  variables:
+    # Build Farm Type
+    - name: build_infrastructure_type
+      type: String
+      description: Select the Build infrastructure types to support - internal, cloud, or both
+      required: true
+      value: <+input>.default(internal).selectOneFrom(internal,cloud,both)
+    - name: delegate_selectors
+      type: String
+      description: Delegate selectors
+      required: true
+      value: <+input>.default(build-farm)
+    # SCM Management
+    - name: source_code_manager_type
+      type: String
+      description: What type of Source Code Manager Connector type will be used as the default Build Farm SCM
+      required: true
+      value: <+input>.default(github).selectOneFrom(github,bitbucket,gitlab)
+    - name: source_code_manager_url
+      type: String
+      description: Please provide the default URL for the Connector - e.g. https://github.com
+      required: true
+      value: <+input>
+    - name: source_code_manager_validation_repo
+      type: String
+      description: Please provide the validation URL for the Connector - e.g. harness/terraform-provider-harness
+      required: true
+      value: <+input>
+    - name: source_code_manager_auth_type
+      type: String
+      description: Choose the authentication type for the SCM Connectors. SSH only supported for Gitlab connectors.
+      required: true
+      value: <+input>.default(http).selectOneFrom(http,ssh)
+    # AWS Management
+    - name: container_registry_type
+      type: String
+      description: What type of Container Registry Connector type will be used as the default Build Farm Registry
+      required: true
+      value: aws
+    - name: authentication_type_self_hosted
+      type: String
+      description: Choose the AWS Authentication Type for the Self-Hosted Connectors
+      required: true
+      value: <+input>.default(oidc).selectOneFrom(manual,delegate,irsa,oidc)
+    - name: authentication_type_harness_cloud
+      type: String
+      description: Choose the AWS Authentication Type for the Harness Cloud Connectors
+      required: true
+      value: <+input>.default(oidc).selectOneFrom(manual,oidc)
+    - name: region
+      type: String
+      description: Choose the default AWS Region
+      required: true
+      value: <+input>
+    - name: iam_role_arn
+      type: String
+      description: Required for OIDC - The IAM Role to assume the credentials from
+      required: false
+      value: <+input>.default()
+    - name: aws_cross_account_role_arn
+      type: String
+      description: Required for CrossAccount Access - The Amazon Resource Name (ARN) of the role that you want to assume. This is an IAM role in the target AWS account.
+      required: false
+      value: <+input>.default()
+    - name: aws_cross_account_external_id
+      type: String
+      description: Required for CrossAccount Access - If the administrator of the account to which the role belongs provided you with an external ID, then enter that value.
+      required: false
+      value: <+input>.default()
+    # Artifact Registry Management
+    - name: artifact_manager_url
+      type: String
+      description: Please provide the default URL for the Connector - e.g. https://mycompany.jfrog.io/module_name/. If marked as 'skipped' then no connector will be created.
+      required: false
+      value: <+input>.default(skipped)
+    - name: artifact_manager_type
+      type: String
+      description: What type of Artifact Manager Connector type will be used as the default Build Farm Registry
+      required: true
+      value: <+input>.default(artifactory).selectOneFrom(artifactory,nexus,oci_helm,http_helm)
+    - name: artifact_manager_auth_type
+      type: String
+      description: Choose the authentication type for the Artifact Manager Connectors
+      required: true
+      value: <+input>.default(Anonymous).selectOneFrom(UsernamePassword,Anonymous)
+    - name: artifact_manager_delegate
+      type: String
+      description: Delegate selectors for Artifact Manager
+      required: true
+      value: <+input>.default(build-farm)
+    - name: nexus_version
+      type: String
+      description: Choose the Nexus Version for Nexus Connectors. Must match Nexus version
+      required: true
+      value: <+input>.default(2.x).selectOneFrom(2.x,3.x)

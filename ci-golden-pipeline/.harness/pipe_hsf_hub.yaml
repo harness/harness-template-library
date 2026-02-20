@@ -1,0 +1,145 @@
+pipeline:
+  name: Create CI Pipeline using Golden Standards
+  identifier: cigoldenstandardsregisterpipeline
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: |-
+    Create a new CI pipeline using the Golden Standard templates that have been deployed.
+
+    This workflow will create:
+    - A new CI pipeline using the Golden Standard template
+    - Configured with your repository and organization settings
+    - Ready to run with the standardized CI workflow
+  tags: {
+    pipeline_type: ci
+  }
+  stages:
+    - stage:
+        name: Create_Manage_Workspace
+        identifier: Create_Manage_Workspace
+        description: ""
+        type: Pipeline
+        spec:
+          org: ${WORKSPACE_MGMT_ORG_ID}
+          project: ${WORKSPACE_MGMT_PROJECT_ID}
+          pipeline: ${WORKSPACE_MGMT_PIPELINE_ID}
+          inputs:
+            identifier: ${WORKSPACE_MGMT_PIPELINE_ID}
+            variables:
+              - name: RESOURCE_NAME
+                type: String
+                value: CI_PIPELINE_<+pipeline.variables.organization_id>_<+pipeline.variables.project_id>_<+pipeline.variables.repository_name.replace(" ","-").replace("-", "_")>
+              - name: RESOURCE_OWNER
+                type: String
+                value: user:account/<+pipeline.triggeredBy.email>
+              - name: RESOURCE_VARS
+                type: String
+                value: |-
+                  {
+                    "harness_platform_account":"<+account.identifier>",
+                    "organization_id":"<+pipeline.variables.organization_id>",
+                    "project_id":"<+pipeline.variables.project_id>",
+                    "pipeline_name":"<+pipeline.variables.repository_name>",
+                    "repository_connector_ref":"<+pipeline.variables.repository_connector_ref>",
+                    "repository_path":"<+pipeline.variables.repository_path>",
+                    "branches":"<+pipeline.variables.branches>",
+                    "webhook_type":"<+pipeline.variables.webhook_type>"
+                  }
+              - name: RESOURCE_VARS_SECRETS
+                type: String
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS
+                type: String
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS_SECRET
+                type: String
+                value: "{}"
+              - name: GIT_REPOSITORY_BRANCH
+                type: String
+                value: main
+              - name: GIT_REPOSITORY_CONNECTOR
+                type: String
+                value: <+variable.account.custom_template_library_connector>
+              - name: GIT_REPOSITORY_NAME
+                type: String
+                value: <+variable.account.custom_template_library_repo>
+              - name: GIT_REPOSITORY_PATH
+                type: String
+                value: ci-golden-pipeline
+              - name: IAC_PROVISIONER_TYPE
+                type: String
+                value: opentofu
+              - name: IAC_PROVISIONER_VERSION
+                type: String
+                value: 1.10.0
+              - name: IAC_PROVIDER_CONNECTOR
+                type: String
+                value: ""
+              - name: INCLUDE_HARNESS_ENVS
+                type: String
+                value: "true"
+              - name: REGISTER_IDP
+                type: String
+                value: "${SHOULD_USE_HARNESS_IDP}"
+              # Determines if the workflow will trigger a temporary workspace that is
+              # deleted upon completion. Resources will be preserved
+              # Must be "true" or "false" and wrapped in quotes
+              - name: IS_EPHEMERAL
+                type: String
+                value: "true"
+              # Determines if the workflow will require an Approval before executing
+              # Must be "true" or "false" and wrapped in quotes
+              - name: REQUIRES_APPROVAL
+                type: String
+                value: "false"
+              - name: WORKSPACE_ORG
+                type: String
+                value: Harness_Platform_Management
+              - name: WORKSPACE_PROJECT
+                type: String
+                value: Solutions_Factory
+              - name: WORKSPACE_TAGS
+                type: String
+                # Used to group by type the workspaces for bulk actions
+                value: |-
+                  {
+                    "source":"custom",
+                    "type":"ci-golden-pipeline"
+                  }
+  variables:
+    ## Harness Hierarchy Setup Details
+    - name: organization_id
+      type: String
+      description: "[Required] Provide an existing organization reference ID.  Must exist before execution"
+      required: true
+      value: <+input>.regex(^([a-zA-Z][_a-zA-Z0-9]*)$)
+    - name: project_id
+      type: String
+      description: "[Required] Provide an existing project reference ID.  Must exist before execution"
+      required: true
+      value: <+input>.regex(^([a-zA-Z][_a-zA-Z0-9]*)$)
+    - name: repository_name
+      type: String
+      description: What is the name of the repository? A new pipeline will be created based on this name
+      required: true
+      value: <+input>
+    - name: repository_connector_ref
+      type: String
+      description: Required when not using Harness Code Repository. Git connector reference for your repository. Must be an account-level connector (e.g., account.my_git_connector)
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$)
+    - name: repository_path
+      type: String
+      description: Required when not using Harness Code Repository. What is the path of the repository based on the connector root path? Full path to your repository (e.g., organization/repository-name)
+      required: false
+      value: <+input>
+    - name: branches
+      type: String
+      description: Configuring this option will configure Harness Triggers to watch for changes to branches and trigger automatic execution of the pipeline. e.g "all", "skipped", or named_branch
+      required: true
+      value: <+input>.default(main)
+    - name: webhook_type
+      type: String
+      description: Required when not using Harness Code Repository. This value should match your chosen Source Code Manager type.  For webhook triggers, the API authentication needs to be enabled on the connector.
+      required: false
+      value: <+input>.default(harness).selectOneFrom(harness,github,gitlab)

@@ -17,7 +17,7 @@
 # linked_sso_id: # Required
 # sso_group_id: # Should be the SSO Group ID to map
 tags:
-  purpose: ProjectgAdministrators
+  purpose: ProjectTeam
 role_bindings: []
 # List of Key/Value pairs containing a single element per RoleBinding to include.
 # The creation of UserGroups occurs after the creation of Roles and Resource

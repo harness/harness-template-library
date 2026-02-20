@@ -1,0 +1,13 @@
+entities:
+  # - central-build-farm-setup
+  # - ci-golden-pipeline
+  # - ci-module-primer
+  # - ci-sto-hcr-standard
+  # - delegate-image-factory
+  # - harness-ci-image-factory
+  - harness-organization
+  - harness-platform-setup
+  - harness-project
+  # - secret_manager_github_pat
+  # - secret-manager-cyberark-conjur
+  # - sto-sast-primer

@@ -1,0 +1,150 @@
+pipeline:
+  name: Deploy Harness CI Golden Standard Templates
+  identifier: ci_golden_standards
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: |-
+    The CI Golden Standards Factory will deploy a comprehensive set of CI templates into a Harness account which will provide
+    a standardized mechanism to rapidly onboard new source code repositories into Harness following CI golden standards.
+
+    Note: This Factory requires an existing Build Infrastructure configuration to be in place. This solution will support
+    deployments via Kubernetes or Harness Cloud deployments.
+  tags: {
+    pipeline_type: hsf_primer
+  }
+  stages:
+    - stage:
+        name: Create_Manage_Workspace
+        identifier: Create_Manage_Workspace
+        description: ""
+        type: Pipeline
+        spec:
+          org: ${WORKSPACE_MGMT_ORG_ID}
+          project: ${WORKSPACE_MGMT_PROJECT_ID}
+          pipeline: ${WORKSPACE_MGMT_PIPELINE_ID}
+          inputs:
+            identifier: ${WORKSPACE_MGMT_PIPELINE_ID}
+            variables:
+              - name: RESOURCE_NAME
+                type: String
+                value: CI_GOLDEN_STANDARDS
+              - name: RESOURCE_OWNER
+                type: String
+                value: user:account/<+pipeline.triggeredBy.email>
+              - name: RESOURCE_VARS
+                type: String
+                value: |-
+                  {
+                      "harness_platform_account":"<+account.identifier>",
+                      "kubernetes_connector":"<+pipeline.variables.kubernetes_connector>",
+                      "kubernetes_namespace":"<+pipeline.variables.kubernetes_namespace>",
+                      "kubernetes_node_selectors":"<+pipeline.variables.kubernetes_node_selectors>",
+                      "kubernetes_override_image_connector":"<+pipeline.variables.kubernetes_override_image_connector>",
+                      "include_security_testing":"<+pipeline.variables.include_security_testing>",
+                      "include_supply_chain_security":"<+pipeline.variables.include_supply_chain_security>",
+                      "default_container_connector":"<+pipeline.variables.default_container_connector>",
+                      "sto_anchore_grype_fail_on":"<+pipeline.variables.sto_anchore_grype_fail_on>"
+                  }
+              - name: RESOURCE_VARS_SECRETS
+                type: String
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS
+                type: String
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS_SECRET
+                type: String
+                value: "{}"
+              - name: GIT_REPOSITORY_BRANCH
+                type: String
+                value: main
+              - name: GIT_REPOSITORY_CONNECTOR
+                type: String
+                value: <+variable.account.custom_template_library_connector>
+              - name: GIT_REPOSITORY_NAME
+                type: String
+                value: <+variable.account.custom_template_library_repo>
+              - name: GIT_REPOSITORY_PATH
+                type: String
+                value: ci-module-primer
+              - name: IAC_PROVISIONER_TYPE
+                type: String
+                value: opentofu
+              - name: IAC_PROVISIONER_VERSION
+                type: String
+                value: 1.10.0
+              - name: IAC_PROVIDER_CONNECTOR
+                type: String
+                value: ""
+              - name: INCLUDE_HARNESS_ENVS
+                type: String
+                value: "true"
+              - name: REGISTER_IDP
+                type: String
+                value: "${SHOULD_USE_HARNESS_IDP}"
+              # Determines if the workflow will trigger a temporary workspace that is
+              # deleted upon completion. Resources will be preserved
+              # Must be "true" or "false" and wrapped in quotes
+              - name: IS_EPHEMERAL
+                type: String
+                value: "false"
+              # Determines if the workflow will require an Approval before executing
+              # Must be "true" or "false" and wrapped in quotes
+              - name: REQUIRES_APPROVAL
+                type: String
+                value: "false"
+              - name: WORKSPACE_ORG
+                type: String
+                value: Harness_Platform_Management
+              - name: WORKSPACE_PROJECT
+                type: String
+                value: Solutions_Factory
+              - name: WORKSPACE_TAGS
+                type: String
+                # Used to group by type the workspaces for bulk actions
+                value: |-
+                  {
+                    "source":"custom",
+                    "type":"ci-module-primer"
+                  }
+  variables:
+    ## Self-Hosted Build Farm Configuration
+    - name: kubernetes_connector
+      type: String
+      description: "[Optional] Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline. Must exist before execution. To not set this, ensure the value is 'skipped'"
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)
+    - name: kubernetes_namespace
+      type: String
+      description: "[Optional] Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline. Must exist before execution"
+      required: false
+      value: <+input>.default(default)
+    - name: kubernetes_node_selectors
+      type: String
+      description: "[Optional] Optional Kubernetes Node Selectors"
+      required: false
+      value: <+input>.default({})
+    - name: kubernetes_override_image_connector
+      type: String
+      description: "[Optional] Enter an existing Container Registry connector to use which overrides the default connector. Must exist before execution. To not set this, ensure the value is 'skipped'"
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)
+    - name: include_security_testing
+      type: String
+      description: "Include the Harness Security Test Orchestration steps? Note: Requires Harness Security Test Orchestration Module"
+      required: true
+      value: <+input>.default(true).selectOneFrom(true,false)
+    - name: include_supply_chain_security
+      type: String
+      description: "Include the Harness Supply Chain Security steps? Note: Requires Harness Software Supply Chain Assurance Module"
+      required: false
+      value: <+input>.default(true).selectOneFrom(true,false)
+    - name: default_container_connector
+      type: String
+      description: Docker connector identifier to use for STO and SCS Steps. Must exist before execution. When the STO and/or the SCS steps run, container images will be deployed.
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(account.harnessImage)
+    - name: sto_anchore_grype_fail_on
+      type: String
+      description: What level of vulnerability found in the Container scan should cause the pipeline to fail? If the scan finds any vulnerability with the specified severity or higher, the pipeline will fail immediately and not upload the container image to the registry.
+      required: false
+      value: <+input>.default(Critical).selectOneFrom(None,Low,Medium,High,Critical)

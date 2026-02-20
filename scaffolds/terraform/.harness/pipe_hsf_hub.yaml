@@ -1,0 +1,133 @@
+pipeline:
+  name: # Pipeline Display Name
+  identifier: # Lowercase unique identifier using [a-zA-Z0-9_] format - e.g. harness_project_setup
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: # Provide a good description
+  tags: {
+    pipeline_type: # Simple use tag - e.g ci
+    # Add additional tags e.g. project or pipeline
+  }
+  stages:
+    - stage:
+        name: Create_Manage_Workspace
+        identifier: Create_Manage_Workspace
+        description: ""
+        type: Pipeline
+        spec:
+          org: ${WORKSPACE_MGMT_ORG_ID}
+          project: ${WORKSPACE_MGMT_PROJECT_ID}
+          pipeline: ${WORKSPACE_MGMT_PIPELINE_ID}
+          inputs:
+            identifier: ${WORKSPACE_MGMT_PIPELINE_ID}
+            variables:
+              - name: RESOURCE_NAME
+                type: String
+                value: # The RESOURCE_NAME must be unique for each workspace created.
+              - name: RESOURCE_OWNER
+                type: String
+                value: user:account/<+pipeline.triggeredBy.email>
+              - name: RESOURCE_VARS
+                type: String
+                # Key:Value pairs of Terraform variables of type 'String' in JSON string format.
+                value: |-
+                  {
+                  }
+              - name: RESOURCE_VARS_SECRETS
+                type: String
+                # Key:Value pairs of Terraform variables of type 'Secret' in JSON string format. Must include hierarchy reference for existing secrets
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS
+                type: String
+                # Key:Value pairs of Terraform variables of type 'String' in JSON string format.
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS_SECRET
+                type: String
+                # Key:Value pairs of Terraform variables of type 'Secret' in JSON string format. Must include hierarchy reference for existing secrets
+                value: "{}"
+              - name: GIT_REPOSITORY_BRANCH
+                type: String
+                value: main
+              - name: GIT_REPOSITORY_CONNECTOR
+                type: String
+                value: <+variable.account.custom_template_library_connector>
+              - name: GIT_REPOSITORY_NAME
+                type: String
+                value: <+variable.account.custom_template_library_repo>
+              - name: GIT_REPOSITORY_PATH
+                type: String
+                value: # Provide directory path to the Terraform code in this repository e.g. harness-project
+              - name: IAC_PROVISIONER_TYPE
+                type: String
+                value: opentofu
+              - name: IAC_PROVISIONER_VERSION
+                type: String
+                value: 1.10.0
+              - name: IAC_PROVIDER_CONNECTOR
+                type: String
+                value: ""
+              - name: INCLUDE_HARNESS_ENVS
+                type: String
+                value: "true"
+              - name: REGISTER_IDP
+                type: String
+                value: "${SHOULD_USE_HARNESS_IDP}"
+              # Determines if the workflow will trigger a temporary workspace that is
+              # deleted upon completion. Resources will be preserved
+              # Must be "true" or "false" and wrapped in quotes
+              - name: IS_EPHEMERAL
+                type: String
+                value: "false"
+              # Determines if the workflow will require an Approval before executing
+              # Must be "true" or "false" and wrapped in quotes
+              - name: REQUIRES_APPROVAL
+                type: String
+                value: "false"
+              - name: WORKSPACE_ORG
+                type: String
+                value: Harness_Platform_Management
+              - name: WORKSPACE_PROJECT
+                type: String
+                value: Solutions_Factory
+              - name: WORKSPACE_TAGS
+                type: String
+                # Used to group by type the workspaces for bulk actions
+                value: |-
+                  {
+                    "source":"custom",
+                    "type": # Provide directory path to the Terraform code in this repository e.g. harness-project
+                  }
+  # Pipeline Variables
+  variables:
+    ## Harness Hierarchy Setup Details
+    - name: organization_id
+      type: String
+      description: "[Required] Provide an existing organization reference ID.  Must exist before execution"
+      required: true
+      value: <+input>.regex(^([a-zA-Z][_a-zA-Z0-9]*)$)
+    - name: project_id
+      type: String
+      description: "[Required] Provide an existing project reference ID.  Must exist before execution"
+      required: true
+      value: <+input>.regex(^([a-zA-Z][_a-zA-Z0-9]*)$)
+    ## Self-Hosted Build Farm Configuration
+    - name: kubernetes_connector
+      type: String
+      description: "[Optional] Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline. Must exist before execution. To not set this, ensure the value is 'skipped'"
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)
+    - name: kubernetes_namespace
+      type: String
+      description: "[Optional] Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline. Must exist before execution"
+      required: false
+      value: <+input>.default(default)
+    - name: kubernetes_node_selectors
+      type: String
+      description: "[Optional] Optional Kubernetes Node Selectors"
+      required: false
+      value: <+input>.default({})
+    - name: kubernetes_override_image_connector
+      type: String
+      description: "[Optional] Enter an existing Container Registry connector to use which overrides the default connector. Must exist before execution. To not set this, ensure the value is 'skipped'"
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)

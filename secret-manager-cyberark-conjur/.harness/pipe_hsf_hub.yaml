@@ -1,0 +1,120 @@
+pipeline:
+  name: Secret Manager for CyberArk Conjur
+  identifier: secretmanagercyberarkconjur
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: Create a secret manager template for CyberArk Conjur
+  tags: {
+    pipeline_type: platform_management
+  }
+  stages:
+    - stage:
+        name: Create_Manage_Workspace
+        identifier: Create_Manage_Workspace
+        description: ""
+        type: Pipeline
+        spec:
+          org: ${WORKSPACE_MGMT_ORG_ID}
+          project: ${WORKSPACE_MGMT_PROJECT_ID}
+          pipeline: ${WORKSPACE_MGMT_PIPELINE_ID}
+          inputs:
+            identifier: ${WORKSPACE_MGMT_PIPELINE_ID}
+            variables:
+              - name: RESOURCE_NAME
+                type: String
+                value: secret_manager_cyberark_conjur<+pipeline.variables.organization_id><+pipeline.variables.project_id>
+              - name: RESOURCE_OWNER
+                type: String
+                value: user:account/<+pipeline.triggeredBy.email>
+              - name: RESOURCE_VARS
+                type: String
+                value: |-
+                  {
+                    "harness_platform_account":"<+account.identifier>",
+                    "template_name":"<+pipeline.variables.template_name>",
+                    "template_version":"<+pipeline.variables.template_version>",
+                    "organization_id":"<+pipeline.variables.organization_id>",
+                    "project_id":"<+pipeline.variables.project_id>"
+                  }
+              - name: RESOURCE_VARS_SECRETS
+                type: String
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS
+                type: String
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS_SECRET
+                type: String
+                value: "{}"
+              - name: GIT_REPOSITORY_BRANCH
+                type: String
+                value: main
+              - name: GIT_REPOSITORY_CONNECTOR
+                type: String
+                value: <+variable.account.custom_template_library_connector>
+              - name: GIT_REPOSITORY_NAME
+                type: String
+                value: <+variable.account.custom_template_library_repo>
+              - name: GIT_REPOSITORY_PATH
+                type: String
+                value: secret-manager-cyberark-conjur
+              - name: IAC_PROVISIONER_TYPE
+                type: String
+                value: opentofu
+              - name: IAC_PROVISIONER_VERSION
+                type: String
+                value: 1.10.0
+              - name: IAC_PROVIDER_CONNECTOR
+                type: String
+                value: ""
+              - name: INCLUDE_HARNESS_ENVS
+                type: String
+                value: "true"
+              - name: REGISTER_IDP
+                type: String
+                value: "${SHOULD_USE_HARNESS_IDP}"
+              # Determines if the workflow will trigger a temporary workspace that is
+              # deleted upon completion. Resources will be preserved
+              # Must be "true" or "false" and wrapped in quotes
+              - name: IS_EPHEMERAL
+                type: String
+                value: "false"
+              # Determines if the workflow will require an Approval before executing
+              # Must be "true" or "false" and wrapped in quotes
+              - name: REQUIRES_APPROVAL
+                type: String
+                value: "false"
+              - name: WORKSPACE_ORG
+                type: String
+                value: Harness_Platform_Management
+              - name: WORKSPACE_PROJECT
+                type: String
+                value: Solutions_Factory
+              - name: WORKSPACE_TAGS
+                type: String
+                # Used to group by type the workspaces for bulk actions
+                value: |-
+                  {
+                    "source":"custom",
+                    "type":"secret-manager-cyberark-conjur"
+                  }
+  variables:
+    - name: template_name
+      type: String
+      description: What should the "CyberArk Conjur" secret manager template be named
+      required: true
+      value: <+input>.default(CyberArk Conjur)
+    - name: template_version
+      type: String
+      description: What should the step template's initial version be
+      required: true
+      value: <+input>.default(v1).regex(^v[0-9]*$)
+    - name: organization_id
+      type: String
+      description: If the template should be deployed into an Organization or Project, then provide the existing Organization ID here
+      required: false
+      value: <+input>.regex(^([a-zA-Z][_a-zA-Z0-9]*)$)
+    - name: project_id
+      type: String
+      description: If the template should be deployed into a Project, then provide the existing Project ID here
+      required: false
+      value: <+input>.regex(^([a-zA-Z][_a-zA-Z0-9]*)$)

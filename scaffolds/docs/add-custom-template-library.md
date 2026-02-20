@@ -52,9 +52,9 @@ Often, the provided samples and baseline templates do not cover 100% of your use
 
     _**Note**: This file contains the details for the IDP workflow and will need to be adjusted for your SCM repository_
 
-    a. In the yaml, find the property `template_library_connector` and edit the variable.  By default, the value should be adjusted from `<+variable.account.solutions_factory_template_library_connector>` to `<+variable.account.custom_template_library_connector>`
+    a. In the yaml, find the property `template_library_connector` and edit the variable.  By default, the value should be adjusted from `<+variable.account.custom_template_library_connector>` to `<+variable.account.custom_template_library_connector>`
 
-    b. In the yaml, find the property `template_library_repo` and edit the variable.  By default, the value should be adjusted from `<+variable.account.solutions_factory_template_library_repo>` to `<+variable.account.custom_template_library_repo>`
+    b. In the yaml, find the property `template_library_repo` and edit the variable.  By default, the value should be adjusted from `<+variable.account.custom_template_library_repo>` to `<+variable.account.custom_template_library_repo>`
 
     c. **STOP** If you plan first test the template using a feature branch and not using the `main` branch, then you will need to modify the value for the property `template_library_branch` to point to your specific branch. _**Note**: Make sure to follow the steps in the section titled `Production Readiness` to ensure that all adjustments are ready to be merged into the main branch._
 

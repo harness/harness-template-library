@@ -1,0 +1,187 @@
+apiVersion: harness.io/v1
+kind: Workflow
+idnetifier: rbacmanagerproject
+name: Manage Harness Project Group Membership
+owner: group:default/harness_account_all_users # Defaults to all users
+type: harness_factory
+metadata:
+  description: Manage Harness Project UserGroup membership
+  tags:
+    - solutions-factory
+    - harness
+    - hidden
+    - project-management
+spec:
+  parameters:
+    - title: Choose Target Details
+      description: ""
+      required:
+        - organization_id
+        - project_id
+        - harness_group_action
+      properties:
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+        organization_id:
+          title: Harness Organization Name
+          type: string
+          description: Choose the Harness Organization in which you want to manage UserGroup Membership
+          pattern: ^([a-zA-Z][_a-zA-Z0-9]*)$
+          ui:field: HarnessAutoOrgPicker
+          ui:autofocus: true
+          dependencies:
+            projectPickerRef:
+              - 'project_id'
+          ui:widget: hidden
+        project_id:
+          title: Harness Project Name
+          type: string
+          description: Choose the Harness Project in which you want to manage UserGroup Membership
+          pattern: ^([a-zA-Z][_a-zA-Z0-9]*)$
+          ui:field: HarnessProjectPicker
+          ui:autofocus: true
+        harness_group_action:
+          title: What action should be applied
+          type: string
+          description: What action should be applied
+          enum:
+            - add
+            - remove
+            - purge
+          enumNames:
+            - Add users to chosen Harness Groups
+            - Remove users from chosen Harness Groups
+            - Remove users from accessing scope
+      dependencies:
+        harness_group_action:
+          allOf:
+            - if:
+                properties:
+                  harness_group_action:
+                    const: purge
+              then:
+                required:
+                  - approve_purge
+                properties:
+                  approve_purge:
+                    title: Removing a user from a Project will remove all permissions and group
+                      memberships for that user within the project. Resources created by the user(s) will not be removed.
+                    type: string
+                    default: no
+                    pattern: yes
+                    enum:
+                      - no
+                      - yes
+                    enumNames:
+                      - "No: Do not continue this disruptive change"
+                      - "Yes: I understand the risks"
+
+    - title: Manage Memberships
+      description: ""
+      properties:
+        email_addresses:
+          title: Add Email Addresses to manage
+          type: array
+          description: Add Email Addresses to manage
+          ui:options:
+            addable: true
+            orderable: true
+            removable: true
+          items:
+            type: string
+        harness_groups:
+          title: Add Harness Groups to manage
+          type: array
+          description: Add Harness Groups to manage
+          ui:options:
+            addable: true
+            orderable: true
+            removable: true
+          items:
+            type: string
+    - title: Solutions Factory Connection
+      properties:
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+
+            Harness Account : <+account.identifier>
+
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+            harness_pipeline_id:
+              type: string
+              default: RBAC_Management
+              ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.custom_template_library_connector>
+              ui:widget: hidden
+  steps:
+    - id: rbac-manager
+      name: Modify UserGroup Membership
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/${{ parameters.solutions_factory_details.harness_pipeline_id }}/pipeline-studio?storeType=INLINE
+        inputset:
+          org_id: ${{ parameters.organization_id }}
+          project_id: ${{ parameters.project_id }}
+          email_addresses: ${{ parameters.email_addresses.join(",") }}
+          group_id: ${{ parameters.harness_groups.join(",") }}
+          group_action: ${{ parameters.harness_group_action }}
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    text:
+      - title: Outputs
+        content: |
+          Organization: ${{ parameters.organization_id }}
+
+          Project: ${{ parameters.project_id }}
+
+          {% if parameters.harness_group_action != "purge" %}
+          User Groups Updated
+          ---
+          {% for email_address in parameters.email_addresses %}
+          Email: ${{ email_address }}
+
+          -> Action Taken: ${{ parameters.harness_group_action | title }}
+
+          {% for user_group in parameters.harness_groups %}
+          -> Group: ${{ user_group }}
+          {% endfor %}
+
+          {% endfor %}
+          {% else %}
+          Users Updated
+          ---
+          {% for email_address in parameters.email_addresses %}
+          Email: ${{ email_address }}
+
+          -> Action Taken: ${{ parameters.harness_group_action | title }}
+          {% endfor %}
+          {% endif %}

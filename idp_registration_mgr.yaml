@@ -12,25 +12,6 @@ entities:
         is_default: false
   - org: Harness_Platform_Management
     workflows:
-      - name: ansible-step-group-template
-        modules: [ci, cd]
-        is_default: false
-      - name: ccm-auto-k8s-connectors
-        # CCM module license name == "ce"
-        modules: ce
-        is_default: false
-      - name: ccm-autostop-primer
-        # CCM module license name == "ce"
-        modules: ce
-        is_default: false
-      - name: ccm-cluster-orchestrator-deployment
-        # CCM module license name == "ce"
-        modules: ce
-        is_default: false
-      - name: ccm-k8s-connectors
-        # CCM module license name == "ce"
-        modules: ce
-        is_default: false
       # Skipping this one as it is being deprecated
       # - name: create_and_push_new_catalog_yaml
       #   modules: idp

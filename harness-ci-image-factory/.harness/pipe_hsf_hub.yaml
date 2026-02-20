@@ -1,0 +1,209 @@
+pipeline:
+  name: Harness Image Factory
+  identifier: Harness_Image_Factory
+  orgIdentifier: ${ORGANIZATION_ID}
+  projectIdentifier: ${PROJECT_ID}
+  description: The Harness Image Factory is a robust Harness pipeline designed to mirror and replicate the lifecycle of images used by Harness module steps
+  tags: {
+    pipeline_type: platform_management
+  }
+  stages:
+    - stage:
+        name: Create_Manage_Workspace
+        identifier: Create_Manage_Workspace
+        description: ""
+        type: Pipeline
+        spec:
+          org: ${WORKSPACE_MGMT_ORG_ID}
+          project: ${WORKSPACE_MGMT_PROJECT_ID}
+          pipeline: ${WORKSPACE_MGMT_PIPELINE_ID}
+          inputs:
+            identifier: ${WORKSPACE_MGMT_PIPELINE_ID}
+            variables:
+              - name: RESOURCE_NAME
+                type: String
+                value: harness_ci_image_factory
+              - name: RESOURCE_OWNER
+                type: String
+                value: user:account/<+pipeline.triggeredBy.email>
+              - name: RESOURCE_VARS
+                type: String
+                value: |-
+                  {
+                    "harness_platform_account":"<+account.identifier>",
+                    "organization_id": "<+pipeline.variables.organization_id>",
+                    "project_id": "<+pipeline.variables.project_id>",
+                    "kubernetes_connector": "<+pipeline.variables.kubernetes_connector>",
+                    "kubernetes_namespace": "<+pipeline.variables.kubernetes_namespace>",
+                    "kubernetes_node_selectors": "<+pipeline.variables.kubernetes_node_selectors>",
+                    "kubernetes_override_image_connector": "<+pipeline.variables.kubernetes_override_image_connector>",
+                    "harness_ci_image_source_repository": "<+pipeline.variables.harness_ci_image_source_repository>",
+                    "customer_image_target_repository": "<+pipeline.variables.customer_image_target_repository>",
+                    "container_registry_username_ref": "<+pipeline.variables.container_registry_username_ref>",
+                    "container_registry_password_ref": "<+pipeline.variables.container_registry_password_ref>",
+                    "should_update_harness_mgr": "<+pipeline.variables.should_update_harness_mgr>",
+                    "modules": "[\"<+pipeline.variables.modules.replace(',','\",\"')>\"]",
+                    "pipeline_step_connector_ref": "<+pipeline.variables.pipeline_step_connector_ref>",
+                    "harness_image_migration_image": "<+pipeline.variables.harness_image_migration_image>",
+                    "hsf_script_mgr_image": "<+pipeline.variables.hsf_script_mgr_image>",
+                    "max_concurrency": "<+pipeline.variables.max_concurrency>",
+                    "should_trigger_pipeline_on_schedule": "<+pipeline.variables.should_trigger_pipeline_on_schedule>",
+                    "scheduled_pipeline_execution_frequency": "<+pipeline.variables.scheduled_pipeline_execution_frequency>"
+                  }
+              - name: RESOURCE_VARS_SECRETS
+                type: String
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS
+                type: String
+                value: "{}"
+              - name: RESOURCE_VARS_ENVS_SECRET
+                type: String
+                value: "{}"
+              - name: GIT_REPOSITORY_BRANCH
+                type: String
+                value: main
+              - name: GIT_REPOSITORY_CONNECTOR
+                type: String
+                value: <+variable.account.custom_template_library_connector>
+              - name: GIT_REPOSITORY_NAME
+                type: String
+                value: <+variable.account.custom_template_library_repo>
+              - name: GIT_REPOSITORY_PATH
+                type: String
+                value: harness-ci-image-factory
+              - name: IAC_PROVISIONER_TYPE
+                type: String
+                value: opentofu
+              - name: IAC_PROVISIONER_VERSION
+                type: String
+                value: 1.10.0
+              - name: IAC_PROVIDER_CONNECTOR
+                type: String
+                value: ""
+              - name: INCLUDE_HARNESS_ENVS
+                type: String
+                value: "true"
+              - name: REGISTER_IDP
+                type: String
+                value: "${SHOULD_USE_HARNESS_IDP}"
+              # Determines if the workflow will trigger a temporary workspace that is
+              # deleted upon completion. Resources will be preserved
+              # Must be "true" or "false" and wrapped in quotes
+              - name: IS_EPHEMERAL
+                type: String
+                value: "false"
+              # Determines if the workflow will require an Approval before executing
+              # Must be "true" or "false" and wrapped in quotes
+              - name: REQUIRES_APPROVAL
+                type: String
+                value: "true"
+              - name: WORKSPACE_ORG
+                type: String
+                value: Harness_Platform_Management
+              - name: WORKSPACE_PROJECT
+                type: String
+                value: Solutions_Factory
+              - name: WORKSPACE_TAGS
+                type: String
+                # Used to group by type the workspaces for bulk actions
+                value: |-
+                  {
+                    "source":"custom",
+                    "type":"harness-ci-image-factory"
+                  }
+  variables:
+    ## Harness Hierarchy Setup Details
+    - name: organization_id
+      type: String
+      description: "[Required] Provide an existing organization reference ID.  Must exist before execution"
+      required: true
+      value: <+variable.account.solutions_factory_org>
+    - name: project_id
+      type: String
+      description: "[Required] Provide an existing project reference ID.  Must exist before execution"
+      required: true
+      value: Image_Factory
+    ## Self-Hosted Build Farm Configuration
+    - name: kubernetes_connector
+      type: String
+      description: "[Optional] Enter the existing Kubernetes connector if local K8s execution should be used when running the Execution pipeline. Must exist before execution. To not set this, ensure the value is 'skipped'"
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)
+    - name: kubernetes_namespace
+      type: String
+      description: "[Optional] Enter the existing Kubernetes namespace if local K8s execution should be used when running the Execution pipeline. Must exist before execution"
+      required: false
+      value: <+input>.default(default)
+    - name: kubernetes_node_selectors
+      type: String
+      description: "[Optional] Optional Kubernetes Node Selectors"
+      required: false
+      value: <+input>.default({})
+    - name: kubernetes_override_image_connector
+      type: String
+      description: "[Optional] Enter an existing Container Registry connector to use which overrides the default connector. Must exist before execution. To not set this, ensure the value is 'skipped'"
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(skipped)
+    ## Pipeline Input Variables Controls
+    - name: harness_ci_image_source_repository
+      type: String
+      description: Must be a valid source containing current versions of the Harness CI images. More information can be found in the documentation - https://developer.harness.io/docs/continuous-integration/use-ci/set-up-build-infrastructure/harness-ci/#harness-ci-images-list
+      required: false
+      value: <+input>.default(us-docker.pkg.dev/gar-prod-setup/harness-public/)
+    - name: customer_image_target_repository
+      type: String
+      description: Provide the Custom Container Registry under which all images will be replicated
+      required: true
+      value: <+input>
+    - name: container_registry_username_ref
+      type: String
+      description: Reference to Harness Secret containing the Container Registry Username. Defaults to Central Build Farm Container Registry Credentials
+      required: false
+      value: <+input>.default(account.buildfarm_container_registry_username)
+    - name: container_registry_password_ref
+      type: String
+      description: Reference to Harness Secret containing the Container Registry Password. Defaults to Central Build Farm Container Registry Credentials
+      required: false
+      value: <+input>.default(account.buildfarm_container_registry_password)
+    - name: should_update_harness_mgr
+      type: String
+      description: Should the default images be updated to point to the target container registry?
+      required: false
+      value: <+input>.default(true).selectOneFrom(true,false)
+    - name: modules
+      type: String
+      description: Select the modules to manage images for
+      required: false
+      value: <+input>.default(ci).selectManyFrom(ci,idp,iacm-manager)
+    ## Pipeline Image and Connector Controls
+    - name: pipeline_step_connector_ref
+      type: String
+      description: Provide a valid connector with upstream access to Dockerhub. Configures the connector from which the Pipeline Step images will be pulled
+      required: false
+      value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$).default(org.hsf_dockerhub_connector)
+    - name: harness_image_migration_image
+      type: String
+      description: Provide a valid Harness Container Image Migration image. Harness Container Image Migration tool. Path should be relative to the connector chosen above
+      required: false
+      value: <+input>.default(plugins/image-migration)
+    - name: hsf_script_mgr_image
+      type: String
+      description: Provide a valid Harness Solutions Factory Script Manager image. Harness Solutions Factory Script Manager Image. Path should be relative to the connector chosen above
+      required: false
+      value: <+input>.default(harnesssolutionfactory/harness-python-api-sdk:latest)
+    - name: max_concurrency
+      type: Number
+      description: How many parallel replications should be run at once? Determines the maximum number of concurrent images that should be migrated in parallel
+      required: false
+      value: <+input>.default(5)
+    ## Scheduled Execution Management
+    - name: should_trigger_pipeline_on_schedule
+      type: String
+      description: When enabled, a new trigger will be scheduled to execution and update the pipeline at a regular frequency
+      required: false
+      value: <+input>.default(true).selectOneFrom(true,false)
+    - name: scheduled_pipeline_execution_frequency
+      type: String
+      description: Cron Format schedule for when and how frequently to schedule this pipeline. Default is daily at 2am
+      required: false
+      value: <+input>.default(0 2 * * *)

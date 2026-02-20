@@ -43,6 +43,7 @@ spec:
           pattern: ^([a-zA-Z][_a-zA-Z0-9]*)$
           ui:field: HarnessProjectPicker
           ui:autofocus: true
+          default: Choose One
     - title: Repository Registration
       properties:
         source_code_manager_type:
@@ -234,7 +235,7 @@ spec:
               ui:widget: hidden
             template_library_connector:
               type: string
-              default: <+variable.account.solutions_factory_template_library_connector>
+              default: <+variable.account.custom_template_library_connector>
               ui:widget: hidden
             buildfarm_connector:
               type: string
@@ -242,7 +243,7 @@ spec:
               ui:widget: hidden
             template_library_repo:
               type: string
-              default: <+variable.account.solutions_factory_template_library_repo>
+              default: <+variable.account.custom_template_library_repo>
               ui:widget: hidden
             template_library_branch:
               type: string
@@ -262,7 +263,7 @@ spec:
             repo_source:
               type: string
               # Used to group by source the workspaces for bulk actions
-              default: <+<+variable.account.solutions_factory_template_library_connector>.startsWith("org.Harness_Template_Library_Repo")?"official":"custom">
+              default: custom
               ui:widget: hidden
             workspace_type:
               type: string
