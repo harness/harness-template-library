@@ -631,7 +631,7 @@ spec:
       name: Register Repository Registration Workflow
       action: trigger:harness-custom-pipeline
       input:
-        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Register_IDP_Templates/pipeline-studio?storeType=INLINE
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Register_Custom_IDP_Templates/pipeline-studio?storeType=INLINE
         inputset:
           switch: children
           filter_template: sto-sast-primer
