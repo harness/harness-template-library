@@ -10,9 +10,11 @@ This workflow will establish a few baseline standards for your Harness Account. 
 - Shared Resource Access role granting 'access' privileges to account level shared resources
 - Harness Account Admins user group with _account_admin role binding
 - All Account Users group will be updated to include the new role binding with Shared Resource Access
-- Two new Harness OPA governance policies and policy_sets will be included
+- Two new Harness OPA governance policies and policy_sets will be included and enforced
     - Enforce Template Version Schema: The policy requires that all Harness Templates have a version starting with a 'v' followed by a whole number.
     - Enforce Harness API Token Age: This policy will enforce that all Harness API Tokens created will adhere to a strict max age policy (30days).
+- Extra OPA policies for common enforcement activities will also be included, but not enforced
+  - Enforce Allowed Connector Types:  This policy will allow you to limit the connector types users are alloewd to create, with an exception path for admin users/groups.
 
 ## Providers
 This template is designed to be used as a Terraform Module. To leverage this module, an Harness provider configuration must be added to the calling template as defined by the [Harness Provider - Docs](https://registry.terraform.io/providers/harness/harness/latest/docs).
