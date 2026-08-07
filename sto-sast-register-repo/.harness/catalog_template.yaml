@@ -2,7 +2,7 @@ apiVersion: harness.io/v1
 kind: Workflow
 identifier: registerrepositorysecurity
 name: Register Repository for Scans
-owner: group:default/HSF_Users
+owner: group:default/HSF_Admins
 type: harness_factory
 metadata:
   description: Deploys new pipeline for chosen repository for SCA and SAST scans
@@ -10,8 +10,11 @@ metadata:
     - solutions-factory
     - harness
     - security
-    - hidden
 spec:
+  presentation:
+    customTitle: Deploys new pipeline for chosen repository for SCA and SAST scans
+    customSubTitle: Creates a new STO pipeline using best practice templates
+    customCreateButtonText: Create my pipeline
   parameters:
     - title: Harness Pipeline Target Location
       description: |

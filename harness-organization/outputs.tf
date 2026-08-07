@@ -6,7 +6,7 @@ locals {
       "account",
       var.harness_platform_account,
       "all/orgs",
-      data.harness_platform_organization.selected.id,
+      harness_platform_organization.selected.id,
       "projects"
     ]
   )
@@ -14,7 +14,7 @@ locals {
 
 output "organization_identifier" {
   description = "Organization Identifier"
-  value       = data.harness_platform_organization.selected.identifier
+  value       = harness_platform_organization.selected.identifier
 }
 
 output "organization_url" {

@@ -105,9 +105,10 @@ pipeline:
       value: <+input>.regex(^[a-zA-Z][_a-zA-Z0-9 ]{1,127}$)
     - name: organization_id
       type: String
-      value: <+pipeline.variables.organization_name.replace(" ","_").replace("-","_")>
+      required: true
+      value: <+input>.regex(^[a-zA-Z][_a-zA-Z0-9]{1,127}$)
     - name: organization_description
       type: String
       description: New Organization Description
       required: false
-      value: <+input>
+      value: <+input>.default(Harness Organization managed by Solutions Factory)

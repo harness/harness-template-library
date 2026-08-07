@@ -41,6 +41,7 @@ locals {
 }
 
 resource "harness_platform_roles" "role" {
+  depends_on = [ time_sleep.org_setup ]
   for_each = {
     for role in local.roles : role.name => role
   }
@@ -58,7 +59,7 @@ resource "harness_platform_roles" "role" {
   identifier = replace(replace(each.value.name, " ", "_"), "-", "_")
 
   name                 = each.value.name
-  org_id               = data.harness_platform_organization.selected.id
+  org_id               = harness_platform_organization.selected.id
   allowed_scope_levels = ["organization"]
 
   # [Optional] (Set of String) List of the permission identifiers

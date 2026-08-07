@@ -104,16 +104,17 @@ pipeline:
       description: "[Required] Provide an existing organization reference ID.  Must exist before execution"
       required: true
       value: <+input>.regex(^([a-zA-Z][_a-zA-Z0-9]*)$)
+    - name: project_id
+      type: String
+      required: true
+      value: <+input>.regex(^[a-zA-Z][_a-zA-Z0-9]{1,127}$)
     - name: project_name
       type: String
       description: New Project Name
       required: true
       value: <+input>.regex(^[a-zA-Z][_a-zA-Z0-9 ]{1,127}$)
-    - name: project_id
-      type: String
-      value: <+pipeline.variables.project_name.replace(" ","_").replace("-","_")>
     - name: project_description
       type: String
       description: New Project Description
       required: false
-      value: <+input>
+      value: <+input>.default(Harness Project managed by Solutions Factory)

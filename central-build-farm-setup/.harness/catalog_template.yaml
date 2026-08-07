@@ -5,12 +5,16 @@ name: Harness Central Build Farm Setup
 owner: group:default/HSF_Admins
 type: harness_factory
 metadata:
-  description: Configures the Connectors for a Centralized Build Farm configuration
+  description: Configures Account Level Connectors for a Centralized Build Farm configuration
   tags:
     - account-management
     - solutions-factory
     - harness
 spec:
+  presentation:
+    customTitle: Harness Central Build Farm Setup
+    customSubTitle: Configures Account Level Connectors for a Centralized Build Farm configuration
+    customCreateButtonText: Create my Connectors
   parameters:
     - title: Setup Build Farm Infrastructure
       properties:
@@ -21,7 +25,7 @@ spec:
           ui:widget: password
           ui:field: HarnessAuthToken
         build_infrastructure_type:
-          title: Configure a Kubernetes Connector for use as a Centralized Build Farm
+          title: Select Your Infrastructure Mode for your Central Build Farm
           type: string
           enum:
             - internal
@@ -29,8 +33,8 @@ spec:
             - both
           enumNames:
             - Self-Hosted Build Infrastructure Only
-            - Leverage Harness CI Cloud Infrastructure
-            - Support both Self-Hosted and Harness CI Cloud
+            - Harness CI Cloud Infrastructure Only
+            - Both Self-Hosted and Harness CI Cloud
       dependencies:
         build_infrastructure_type:
           allOf:

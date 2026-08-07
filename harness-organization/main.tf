@@ -17,8 +17,4 @@ resource "time_sleep" "org_setup" {
   create_duration = "15s"
 }
 
-data "harness_platform_organization" "selected" {
-  identifier = harness_platform_organization.selected.id
-}
-
 data "harness_platform_permissions" "current" {}

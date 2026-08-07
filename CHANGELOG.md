@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.6.4] - 2026-07-31
+
+- UPDATE: harness-organization to include organization_id input in IDP workflow and Hub Pipeline
+- UPDATE: harness-project to include project_id input in IDP workflow and Hub Pipeline
+- ADD: sto-sast-register-repo template split from sto-sast-primer modules
+- UPDATE: Templates to include organization_id and project_id in IDP workflows
+- UPDATE: Multiple templates' catalog configuration files to include IDP organization and project identifiers
+- REMOVED: Legacy register-repo module from sto-sast-primer
+
 ## [v2.6.3] - 2026-05-05
 
 - UPDATE: harness-platform-setup to include new OPA policy examples

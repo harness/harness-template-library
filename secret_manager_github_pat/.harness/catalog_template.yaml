@@ -5,13 +5,17 @@ name: Secret Manager for GitHub PATs
 owner: group:default/_account_all_users
 type: Secrets Manager
 metadata:
-  description: A custom secrets manager that generate GitHub PATs from a GitHub app
+  description: A custom secrets manager template that generate GitHub PATs from a GitHub app
   tags:
     - solutions-factory
     - harness
     - secret-manager
     - github
 spec:
+  presentation:
+    customTitle: Secret Manager for GitHub PATs
+    customSubTitle: A custom secrets manager template that generate GitHub PATs from a GitHub app
+    customCreateButtonText: Create my template
   parameters:
     - title: Secret Manager Inputs
       required:

@@ -43,12 +43,13 @@ locals {
 }
 
 data "harness_platform_usergroup" "usergroup" {
+  depends_on = [ time_sleep.project_setup ]
   for_each = {
     for group in local.existing_groups : group.identifier => group
   }
   identifier = each.value.identifier
   org_id     = data.harness_platform_organization.selected.id
-  project_id = data.harness_platform_project.selected.id
+  project_id = harness_platform_project.selected.id
 }
 
 resource "harness_platform_usergroup" "usergroup" {
@@ -74,7 +75,7 @@ resource "harness_platform_usergroup" "usergroup" {
 
   name        = each.value.name
   org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
+  project_id  = harness_platform_project.selected.id
   description = lookup(each.value, "description", "Harness UserGroup managed by Solutions Factory")
   user_emails = []
 
@@ -101,7 +102,7 @@ resource "harness_platform_role_assignments" "usergroup_bindings" {
   identifier = each.value.identifier
 
   org_id                    = data.harness_platform_organization.selected.id
-  project_id                = data.harness_platform_project.selected.id
+  project_id                = harness_platform_project.selected.id
   resource_group_identifier = each.value.resource_group
   role_identifier           = each.value.role
   principal {

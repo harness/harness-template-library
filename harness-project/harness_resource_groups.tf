@@ -17,6 +17,7 @@ locals {
   ])
 }
 resource "harness_platform_resource_group" "resource_group" {
+  depends_on = [ time_sleep.project_setup ]
   for_each = {
     for resource_group in local.resource_groups : resource_group.name => resource_group
   }
@@ -27,7 +28,7 @@ resource "harness_platform_resource_group" "resource_group" {
   description = lookup(each.value, "description", "Harness ResourceGroup managed by Solutions Factory")
   account_id  = var.harness_platform_account
   org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
+  project_id  = harness_platform_project.selected.id
 
   tags = flatten([
     [for k, v in lookup(each.value, "tags", {}) : "${k}:${v}"],
@@ -39,7 +40,7 @@ resource "harness_platform_resource_group" "resource_group" {
     filter     = "EXCLUDING_CHILD_SCOPES"
     account_id = var.harness_platform_account
     org_id     = data.harness_platform_organization.selected.id
-    project_id = data.harness_platform_project.selected.id
+    project_id = harness_platform_project.selected.id
   }
   resource_filter {
     include_all_resources = lookup(each.value, "resource_filters", null) != null ? false : true

@@ -11,11 +11,15 @@ metadata:
     - harness
     - security
 spec:
+  presentation:
+    customTitle: Deploy Harness SAST & SCA Templates
+    customSubTitle: Configures and Deploys a series of templates for SCA & SAST scanners
+    customCreateButtonText: Create my templates
   parameters:
     - title: Configure Build Infrastructure
       description: |
         ---
-        The STO SAST & SCA Primer Factory will deploy a fully configured set of templates into a Harness account which will provide a streamlined mechanism
+        This workflow will deploy a fully configured set of templates into a Harness account which will provide a streamlined mechanism
         to rapidly onboard new source code repositories into Harness to begin static code analysis (SCA) and static application security testing
         (SAST) monitoring of the source code.
 
@@ -633,8 +637,8 @@ spec:
       input:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Register_Custom_IDP_Templates/pipeline-studio?storeType=INLINE
         inputset:
-          switch: children
-          filter_template: sto-sast-primer
+          switch: register
+          filter_template: sto-sast-register-repo
         apikey: ${{ parameters.token }}
         showOutputVariables: true
   output:

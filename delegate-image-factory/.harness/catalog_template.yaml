@@ -18,6 +18,10 @@ metadata:
   # annotations:
   #   backstage.io/techdocs-ref: dir:.
 spec:
+  presentation:
+    customTitle: Harness Delegate Image Factory
+    customSubTitle: The Harness Delegate Images Factory is a robust Harness pipeline designed to create and manage the lifecycle of customized Harness Delegate Images.
+    customCreateButtonText: Create my pipeline
   parameters:
     - title: Deploy the Harness Delegate Image Factory
       description: |
@@ -40,8 +44,8 @@ spec:
             - cloud
             - custom
           enumNames:
-            - Central Build Farm Infrastructure Only
-            - Leverage Harness CI Cloud Infrastructure
+            - Central Build Farm Infrastructure 
+            - Harness CI Cloud Infrastructure
             - Self-Hosted Kubernetes Infrastructure
         infra_defaults:
           title: infra_defaults

@@ -23,10 +23,4 @@ resource "time_sleep" "project_setup" {
   create_duration = "15s"
 }
 
-data "harness_platform_project" "selected" {
-  depends_on = [time_sleep.project_setup]
-  identifier = harness_platform_project.selected.id
-  org_id     = data.harness_platform_organization.selected.id
-}
-
 data "harness_platform_permissions" "current" {}

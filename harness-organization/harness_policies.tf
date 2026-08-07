@@ -17,6 +17,7 @@ locals {
 
 
 resource "harness_platform_policy" "policies" {
+  depends_on = [ time_sleep.org_setup ]
   lifecycle {
     ignore_changes = [
       git_commit_msg,

@@ -31,6 +31,7 @@ locals {
 }
 
 resource "harness_platform_environment" "environments" {
+  depends_on = [ time_sleep.project_setup ]
   for_each = {
     for environment in local.environments : environment.name => environment
   }
@@ -39,7 +40,7 @@ resource "harness_platform_environment" "environments" {
 
   name        = each.value.name
   org_id      = data.harness_platform_organization.selected.id
-  project_id  = data.harness_platform_project.selected.id
+  project_id  = harness_platform_project.selected.id
   type        = lookup(each.value, "type", "PreProduction")
   description = lookup(each.value, "description", "Harness Environment managed by Solutions Factory")
   tags = flatten([

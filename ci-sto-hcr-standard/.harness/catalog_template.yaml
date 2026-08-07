@@ -1,6 +1,6 @@
 apiVersion: harness.io/v1
 kind: Workflow
-name: Create Repository and Pipeline
+name: Create HCR+CI+SAST/SCA Reference Architecture
 identifier: ci_sto_hcr_standard
 type: harness_factory
 owner: group:account/HSF_Admins
@@ -17,21 +17,25 @@ metadata:
     - ci
     - pipeline
 spec:
+  presentation:
+    customTitle: Create HCR+CI+SAST/SCA Reference Architecture
+    customSubTitle: Creates a new Harness Code Repository and CI pipeline with SAST and SCA scans
+    customCreateButtonText: Create my repo and pipeline
   parameters:
     - title: Pipeline Configuration
       description: |
         ---
-        Create a new CI pipeline using the Golden Standard templates that have been deployed.
+        Create a new CI pipeline using the reference architecture templates that have been deployed.
 
         This workflow will create:
         - A new Harness Code Repository with Security Rules
-        - A new CI pipeline using the Golden Standard template with SAST and SCA scans
+        - A new CI pipeline using the referenence architecture template with SAST and SCA scans
         - Pre-configured Harness triggers with input sets for each trigger
         - Ready to run with the standardized CI workflow
 
         ---
 
-        _Note: This requires that both the STO SAST/SCA Primer and CI Golden Standards templates have already been deployed._
+        _Note: This requires that both the STO SAST/SCA Primer and CI Reference Architecture templates have already been deployed._
       properties:
         project_id:
           title: Select the Harness Project into which the pipeline will be deployed
@@ -225,7 +229,7 @@ spec:
         content: |
           🎉 **Pipeline Created Successfully!**
 
-          Your new CI pipeline has been created using the Golden Standard templates.
+          Your new CI pipeline has been created using the Reference Architecture templates.
 
           **Pipeline Details:**
           - **Name**: ${{ parameters.repository_name }}
@@ -245,4 +249,4 @@ spec:
           3. Set up or enable triggers as needed
           3. Run your first pipeline execution
 
-          Your pipeline is ready to use with all the Golden Standard CI best practices!
+          Your pipeline is ready to use with CI best practices!

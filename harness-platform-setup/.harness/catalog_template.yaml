@@ -1,7 +1,7 @@
 apiVersion: harness.io/v1
 kind: Workflow
 identifier: harnessplatformsetup
-name: Harness Platform Management
+name: Account Governance Baseline Setup
 owner: group:default/HSF_Admins
 type: harness_platform
 metadata:
@@ -11,8 +11,12 @@ metadata:
     - solutions-factory
     - harness
 spec:
+  presentation:
+    customTitle: Account Governance Baseline Setup
+    customSubTitle: A primer template to bring account-level resources under management of Harness Solutions Factory
+    customCreateButtonText: Create my template
   parameters:
-    - title: Manage Harness Platform
+    - title: Account Governance Baseline Setup
       description: |
         ---
         This workflow will establish a few baseline standards for your Harness Account. The following items are

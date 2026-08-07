@@ -14,6 +14,10 @@ metadata:
     - pipeline
     - hidden
 spec:
+  presentation:
+    customTitle: Harness Image Factory
+    customSubTitle: The Harness Image Factory is a robust Harness pipeline designed to mirror and replicate the lifecycle of images used by Harness module steps
+    customCreateButtonText: Create my pipeline
   parameters:
     - title: Harness Image Factory Build Infrastructure
       description: |
@@ -38,8 +42,8 @@ spec:
             - cloud
             - custom
           enumNames:
-            - Central Build Farm Infrastructure Only
-            - Leverage Harness CI Cloud Infrastructure
+            - Central Build Farm Infrastructure
+            - Harness CI Cloud Infrastructure
             - Self-Hosted Kubernetes Infrastructure
         infra_defaults:
           title: infra_defaults

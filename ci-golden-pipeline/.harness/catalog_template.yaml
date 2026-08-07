@@ -1,25 +1,29 @@
 apiVersion: harness.io/v1
 kind: Workflow
 identifier: cigoldenstandardsregisterpipeline
-name: Create CI Pipeline using Golden Standards
+name: Create CI Reference Architecture Pipeline
 owner: group:default/HSF_Admins
 type: harness_factory
 metadata:
-  description: Creates a new CI pipeline using the deployed Golden Standard templates
+  description: Creates a new CI pipeline using the best practice templates
   tags:
     - solutions-factory
     - harness
     - ci
     - pipeline
 spec:
+  presentation:
+    customTitle: Create CI Reference Architecture Pipeline
+    customSubTitle: Creates a new CI pipeline using best practice templates
+    customCreateButtonText: Create my pipeline
   parameters:
     - title: Pipeline Configuration
       description: |
         ---
-        Create a new CI pipeline using the Golden Standard templates that have been deployed.
+        Create a new CI pipeline using Harness best practices.
 
         This workflow will create:
-        - A new CI pipeline using the Golden Standard template
+        - A new CI pipeline using Harness best practices
         - Configured with your repository and organization settings
         - Ready to run with the standardized CI workflow
 
@@ -58,9 +62,9 @@ spec:
             - build_farm
             - custom
           enumNames:
-            - Use Harness Code Repository?
-            - Use Central Build Farm Source Code Manager?
-            - Bring Your Own Connector?
+            - Use Harness Code Repository
+            - Use Central Build Farm Source Code Manager Connector
+            - Use my own connector
       dependencies:
         source_code_manager_type:
           allOf:

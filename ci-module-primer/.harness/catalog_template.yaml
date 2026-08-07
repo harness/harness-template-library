@@ -1,28 +1,32 @@
 apiVersion: harness.io/v1
 kind: Workflow
-name: Deploy Harness CI Golden Standard Templates
+name: Deploy Harness CI Reference Architecture Templates
 identifier: cigoldenstandards
 type: harness_factory
 owner: group:account/HSF_Admins
 metadata:
-  description: Configures and Deploys a comprehensive set of CI templates following golden standards for continuous integration
+  description: Configure and deploy a comprehensive set of CI templates following best practices
   tags:
     - solutions-factory
     - harness
     - ci
     - golden-standards
 spec:
+  presentation:
+    customTitle: Deploy Harness CI Reference Architecture Templates
+    customSubTitle: Configure and deploy a comprehensive set of CI templates following best practices
+    customCreateButtonText: Create my templates
   parameters:
     - title: Configure Build Infrastructure
       description: |
         ---
-        The CI Golden Standards Factory will deploy a comprehensive set of CI templates into a Harness account which will provide
-        a standardized mechanism to rapidly onboard new source code repositories into Harness following CI golden standards.
+        The CI Reference Architectures Factory will deploy a comprehensive set of CI templates into a Harness account which will provide
+        a standardized mechanism to rapidly onboard new source code repositories into Harness following best practices.
 
         This includes:
         - Step Group Templates (Code Smells & Linting, Build & Scan, Supply Chain Security)
         - Stage Templates (Complete CI Stage)
-        - Pipeline Templates (Golden Standard CI Pipeline)
+        - Pipeline Templates (Reference Architecture CI Pipeline)
 
         ---
 
@@ -44,8 +48,8 @@ spec:
             - cloud
             - custom
           enumNames:
-            - Central Build Farm Infrastructure Only
-            - Leverage Harness CI Cloud Infrastructure
+            - Central Build Farm Infrastructure 
+            - Harness CI Cloud Infrastructure
             - Self-Hosted Kubernetes Infrastructure
         infra_defaults:
           title: infra_defaults
@@ -394,7 +398,7 @@ spec:
     text:
       - title: Outputs
         content: |
-          Harness CI Golden Standards templates deployed ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.resource_placement']}}
+          Harness CI Reference Architecture templates deployed ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.resource_placement']}}
           ---
           step_group_templates: ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.step_group_templates']}}
 

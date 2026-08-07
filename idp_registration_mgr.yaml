@@ -10,6 +10,9 @@ entities:
       - name: ci-sto-hcr-standard
         modules: [ci, sto]
         is_default: false
+      - name: sto-sast-register-repo
+        modules: sto
+        is_default: false
   - org: Harness_Platform_Management
     workflows:
       # Skipping this one as it is being deprecated

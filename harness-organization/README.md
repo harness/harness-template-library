@@ -58,7 +58,7 @@ _Note: When providing `_ref` values, please ensure that these are prefixed with 
 | harness_platform_account | X | Enter the Harness Platform Account Number | string ||
 | organization_id || New Organization Identifier. If not provided, then the organization_name will be formatted to replace spaces and dashes with underscores | string | null |
 | organization_name | X | New Organization Name | string ||
-| organization_description || New Organnization Description | string | "Harness Organnization managed by Solutions Factory" |
+| organization_description || New Organization Description | string | "Harness Organization managed by Solutions Factory" |
 | tags | | Provide a Map of Tags to associate with the resources | map(any) |{}|
 
 
