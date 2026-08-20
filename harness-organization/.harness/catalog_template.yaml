@@ -187,7 +187,7 @@ spec:
         url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ parameters.solutions_factory_details.harness_project_id }}/pipelines/Deploy_Factory_Floors/pipeline-studio?storeType=INLINE
         inputset:
           Organization_ID: ${{ parameters.solutions_factory_details.harness_org_id }}
-          Project_ID: hws_${{ parameters.organization_id }}
+          Project_ID: hws_${{ parameters.organization_id if parameters.should_customize_organization_id else parameters.organization_name|replace(" ","-")|replace("-","_")}}
           Deployment_Type: mini-factory
         apikey: ${{ parameters.token }}
         showOutputVariables: true
