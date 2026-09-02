@@ -65,6 +65,11 @@ spec:
             - Use Harness Code Repository
             - Use Central Build Farm Source Code Manager Connector
             - Use my own connector
+        dockerfile_path:
+          title: Dockerfile path
+          type: string
+          description: Path to the Dockerfile, relative to the repository root
+          default: Dockerfile
       dependencies:
         source_code_manager_type:
           allOf:
@@ -322,6 +327,7 @@ spec:
             pipeline_name: ${{ parameters.repository_name }}
             repository_connector_ref: ${{ parameters.repo_connector_ref if parameters.source_code_manager_type == "custom" else ( parameters.solutions_factory_details.buildfarm_connector if parameters.source_code_manager_type == "build_farm" else "skipped") }}
             repository_path: ${{ parameters.repository_name if parameters.source_code_manager_type == "hcr" else parameters.repository_path }}
+            dockerfile_path: ${{ parameters.dockerfile_path }}
             branches: ${{ "all" if parameters.should_monitor_all_branches == "all" else ( parameters.primary_branch if parameters.should_monitor_all_branches == "main_only" else "skipped") }}
             webhook_type: ${{ "harness" if parameters.source_code_manager_type == "hcr" else parameters.webhook_type }}
           RESOURCE_VARS_SECRETS: {}

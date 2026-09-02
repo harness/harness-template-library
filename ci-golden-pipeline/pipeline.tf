@@ -21,6 +21,7 @@ resource "harness_platform_pipeline" "pipeline" {
       # Source Code Details
       REPOSITORY_CONNECTOR : var.repository_connector_ref
       REPOSITORY_PATH : var.repository_path
+      DOCKERFILE_PATH : var.dockerfile_path
 
       TAGS : yamlencode(local.common_tags)
     }

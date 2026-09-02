@@ -31,6 +31,9 @@ repository_connector_ref = "skipped"
 # Provide the repository path. This value will be used to configure the source code for pipeline
 repository_path = # Required
 
+# Path to the Dockerfile, relative to the repository root
+dockerfile_path = "Dockerfile"
+
 # When configured for 'all' or a specific branch, a new pipeline trigger will be added to execute the pipeline when updates are made to branches
 branches = "skipped"
 

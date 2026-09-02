@@ -67,6 +67,9 @@ template:
                         spec:
                           connectorRef: <+input>
                   variables:
+                    - name: DOCKERFILE_PATH
+                      type: String
+                      value: <+stage.variables.DOCKERFILE_PATH>
                     - name: DOCKER_REPOSITORY
                       type: String
                       value: <+stage.variables.DOCKER_REPOSITORY>
@@ -101,6 +104,11 @@ template:
           %{~ endif ~}
 ${STAGE_INFRASTRUCTURE}
     variables:
+      - name: DOCKERFILE_PATH
+        type: String
+        description: Path to the Dockerfile, relative to the repository root.
+        required: false
+        value: <+input>.default(Dockerfile)
       - name: DOCKER_REPOSITORY
         type: String
         description: The name of the repo. Use the format <hub-user>/<repo-name>.

@@ -32,6 +32,7 @@ module "my_pipeline" {
   pipeline_name            = "My Application Pipeline"
   repository_connector_ref = "account.my_git_connector"
   repository_path          = "my-org/my-app"
+  dockerfile_path           = "packages/app/Dockerfile"
   branches                 = "all"
   webhook_type             = "github"
 
@@ -56,6 +57,7 @@ module "my_pipeline" {
 | pipeline_name | The name of the pipeline to create | string || yes |
 | repository_connector_ref | Provide the repository connector. When 'skipped', the pipeline will be configured to use Harness Code Repository for the pipeline source code | string | skipped | no |
 | repository_path | Provide the repository path. This value will be used to configure the source code for pipeline | string || yes |
+| dockerfile_path | Path to the Dockerfile, relative to the repository root | string | Dockerfile | no |
 | branches | When configured for 'all' or a specific branch, a new pipeline trigger will be added to execute the pipeline when updates are made to branches | string | skipped | no |
 | webhook_type | Provide a supported webhook type. Provide a supported webhook type. Must be one of the following: harness, github, or bitbucket | string || yes |
 

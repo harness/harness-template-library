@@ -56,6 +56,7 @@ Streamlines Docker image building, vulnerability scanning, and registry push wit
 
 | Variable Name | Required | Description | Default Value |
 |---------------|----------|-------------|---------------|
+| `DOCKERFILE_PATH` | No | Dockerfile path relative to the repository root | `Dockerfile` |
 | `DOCKER_REPOSITORY` | Yes | Repository name in format `<hub-user>/<repo-name>` | `<+input>` |
 | `DOCKER_TAG` | Yes | Tag to assign to the Docker image | `<+input>` |
 
@@ -138,6 +139,8 @@ stepGroup:
     versionLabel: "1.0"
     templateInputs:
       variables:
+        - name: DOCKERFILE_PATH
+          value: packages/app/Dockerfile
         - name: DOCKER_REPOSITORY
           value: myorg/myapp
         - name: DOCKER_TAG

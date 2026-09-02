@@ -66,6 +66,9 @@ pipeline:
                                       private_key: <+input>
                                       password: <+input>
             variables:
+              - name: DOCKERFILE_PATH
+                type: String
+                value: ${DOCKERFILE_PATH}
               - name: DOCKER_REPOSITORY
                 type: String
                 value: <+input>

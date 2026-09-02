@@ -27,6 +27,7 @@ template:
           name: "Build Docker Image "
           spec:
             connectorRef: <+input>
+            dockerfile: <+stepGroup.variables.DOCKERFILE_PATH>
             repo: <+stepGroup.variables.DOCKER_REPOSITORY>
             tags:
               - <+stepGroup.variables.DOCKER_TAG>
@@ -85,6 +86,7 @@ template:
           identifier: Push_to_Docker
           spec:
             connectorRef: <+input>
+            dockerfile: <+stepGroup.variables.DOCKERFILE_PATH>
             repo: <+stepGroup.variables.DOCKER_REPOSITORY>
             tags:
               - <+stepGroup.variables.DOCKER_TAG>
@@ -101,6 +103,11 @@ template:
     when:
       stageStatus: Success
     variables:
+      - name: DOCKERFILE_PATH
+        type: String
+        value: <+input>.default(Dockerfile)
+        description: Path to the Dockerfile, relative to the repository root.
+        required: false
       - name: DOCKER_REPOSITORY
         type: String
         value: <+input>

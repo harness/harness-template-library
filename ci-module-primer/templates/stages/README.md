@@ -35,6 +35,7 @@ CI Stage Template
 | Variable Name | Required | Description | Default Value |
 |---------------|----------|-------------|---------------|
 | `PYTHON_IMAGE` | Yes | Python image with tag for build process | `<+input>.default(python:3.10.6)` |
+| `DOCKERFILE_PATH` | No | Dockerfile path relative to the repository root | `Dockerfile` |
 | `DOCKER_REPOSITORY` | Yes | Repository name in format `<hub-user>/<repo-name>` | `<+input>` |
 | `DOCKER_CONNECTOR` | Yes | Identifier of the Docker connector | `<+input>` |
 | `DOCKER_TAG` | Yes | Tag of the Docker image | `<+input>` |
@@ -123,6 +124,8 @@ stage:
     templateInputs:
       type: CI
       variables:
+        - name: DOCKERFILE_PATH
+          value: packages/app/Dockerfile
         - name: PYTHON_IMAGE
           value: python:3.11-slim
         - name: DOCKER_REPOSITORY

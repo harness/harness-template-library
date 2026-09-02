@@ -54,6 +54,12 @@ variable "repository_path" {
   description = "[Required] Provide the repository path. This value will be used to configure the source code for pipeline"
 }
 
+variable "dockerfile_path" {
+  type        = string
+  description = "[Optional] Path to the Dockerfile, relative to the repository root"
+  default     = "Dockerfile"
+}
+
 variable "branches" {
   type        = string
   description = "[Optional] When configured for 'all' or a specific branch, a new pipeline trigger will be added to execute the pipeline when updates are made to branches"
