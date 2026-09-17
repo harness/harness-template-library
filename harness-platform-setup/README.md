@@ -17,6 +17,7 @@ This workflow will establish a few baseline standards for your Harness Account. 
   - Enforce Allowed Connector Types:  This policy will allow you to limit the connector types users are alloewd to create, with an exception path for admin users/groups.
   - Deny Shell Script Steps: This policy can be used to deny any steps of the type `ShellScript`, to prevent delegate based Shell Script steps from being included in pipeline configurations.
   - Require Source Image Repo:  This policy can be used to require that images used in a `Run` step are sourced from a specific Docker repository location.
+  - Enforce Required Namespace:  This policy can be used to enforce a standard namespace (such as `<+org.name>`) is used in all CI stages and Container StepGroups.
 
 ## Providers
 This template is designed to be used as a Terraform Module. To leverage this module, an Harness provider configuration must be added to the calling template as defined by the [Harness Provider - Docs](https://registry.terraform.io/providers/harness/harness/latest/docs).
