@@ -1,5 +1,5 @@
 resource "harness_platform_template" "pipe_STO_SAST_SCA_Pipeline_HCR_v2" {
-  depends_on = [time_sleep.stages]
+  depends_on = [harness_time_sleep.stages]
   count      = var.should_support_hcr ? 1 : 0
   identifier = "pipe_STO_SAST_SCA_Pipeline_HCR"
   name       = "STO SAST SCA Pipeline - HCR"
@@ -35,7 +35,7 @@ resource "harness_platform_template" "pipe_STO_SAST_SCA_Pipeline_HCR_v2" {
 }
 
 resource "harness_platform_template" "pipe_STO_SAST_SCA_Pipeline_v2" {
-  depends_on = [time_sleep.stages]
+  depends_on = [harness_time_sleep.stages]
   identifier = "pipe_STO_SAST_SCA_Pipeline"
   name       = "STO SAST SCA Pipeline"
   org_id     = var.organization_id

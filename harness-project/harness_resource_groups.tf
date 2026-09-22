@@ -17,7 +17,7 @@ locals {
   ])
 }
 resource "harness_platform_resource_group" "resource_group" {
-  depends_on = [ time_sleep.project_setup ]
+  depends_on = [harness_time_sleep.project_setup]
   for_each = {
     for resource_group in local.resource_groups : resource_group.name => resource_group
   }

@@ -31,7 +31,7 @@ locals {
 }
 
 resource "harness_platform_environment" "environments" {
-  depends_on = [ time_sleep.project_setup ]
+  depends_on = [harness_time_sleep.project_setup]
   for_each = {
     for environment in local.environments : environment.name => environment
   }

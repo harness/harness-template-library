@@ -1,7 +1,7 @@
 resource "harness_platform_template" "sta_STO_SAST_SCA_Primer_v2" {
   depends_on = [
-    time_sleep.steps,
-    time_sleep.step_groups
+    harness_time_sleep.steps,
+    harness_time_sleep.step_groups
   ]
   identifier = "sta_STO_SAST_SCA_Primer"
   name       = "STO SAST SCA Primer"

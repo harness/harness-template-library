@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.6.6] - 2026-09-15
+
+- UPDATE: All templates to remove dependency on `hashicorp.time_sleep` in favor of `harness.harness_time_sleep`
+- UPDATE: harness-organization to support mapping existing Account groups as template yaml without recreating the group
+- UPDATE: harness-project to support mapping existing Account and Org groups as template yaml without recreating the group
+
+> _Note: harness-organization and harness-project contain updated role-binding identifiers, requiring these resources to be recreated (a delete followed by a create). This should be seamless, but is called out for visibility. It resolves an issue where ABAC binding management fails when a group+role is applied across multiple resourceGroups._
+
 ## [v2.6.5] - 2026-08-19
 
 - UPDATE: harness-organization to fix an error in how the mini-factory ID is generated when using the IDP workflow

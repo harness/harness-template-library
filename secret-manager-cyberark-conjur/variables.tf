@@ -39,5 +39,5 @@ variable "template_name" {
 variable "template_version" {
   type        = string
   description = "[Required] Version strings for the template"
-  default     = "1.0"
+  default     = "v1"
 }

@@ -32,10 +32,12 @@ _**Note**: The gitignore file in this repository explicitly ignores any file cal
 
 ```
 terraform {
+  required_version = ">= 1.10.0, < 2.0.0"
   required_providers {
+    // Harness provider for platform resource management
     harness = {
       source  = "harness/harness"
-      version = ">= 0.24"
+      version = ">= 0.45"
     }
   }
 }

@@ -18,7 +18,7 @@ resource "harness_platform_repo" "repository" {
 }
 
 resource "harness_platform_pipeline" "Harness_Delegate_Image_Factory" {
-  depends_on = [time_sleep.stg_template_setup]
+  depends_on = [harness_time_sleep.stg_template_setup]
   identifier = "Harness_Delegate_Image_Factory"
   name       = "Harness Delegate Image Factory"
   org_id     = data.harness_platform_organization.selected.id
@@ -72,7 +72,7 @@ resource "harness_platform_pipeline" "Harness_Delegate_Image_Factory" {
 
 resource "harness_platform_pipeline" "Mirror_Harness_Delegate_Setup" {
   count      = contains([null, "skipped"], var.git_connector_ref) ? 1 : 0
-  depends_on = [time_sleep.stg_template_setup]
+  depends_on = [harness_time_sleep.stg_template_setup]
   identifier = "Mirror_Harness_Delegate_Setup"
   name       = "Mirror Harness Delegate Setup"
   org_id     = data.harness_platform_organization.selected.id

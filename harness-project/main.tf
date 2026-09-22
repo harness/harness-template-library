@@ -15,7 +15,7 @@ resource "harness_platform_project" "selected" {
 # as the project comes up.  This resource will introduce
 # a slight delay in further execution to wait for the resources to
 # complete.
-resource "time_sleep" "project_setup" {
+resource "harness_time_sleep" "project_setup" {
   depends_on = [
     harness_platform_project.selected
   ]

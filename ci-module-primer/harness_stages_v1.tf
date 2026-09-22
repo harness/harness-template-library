@@ -34,6 +34,6 @@ resource "harness_platform_template" "sta_ci_stage_v1" {
   tags = local.common_tags_tuple
 
   depends_on = [
-    time_sleep.step_groups
+    harness_time_sleep.step_groups
   ]
 }

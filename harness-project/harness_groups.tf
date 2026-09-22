@@ -19,7 +19,7 @@ locals {
   groups = flatten([
     for group in local.all_groups : [
       group
-    ] if !startswith(group.identifier, "_")
+    ] if !startswith(group.identifier, "_") && !startswith(group.identifier, "account_") && !startswith(group.identifier, "org_")
   ])
 
   existing_groups = flatten([
@@ -28,22 +28,67 @@ locals {
     ] if startswith(group.identifier, "_")
   ])
 
+  existing_groups_account = flatten([
+    for group in local.all_groups : [
+      {
+        identifier = replace(group.identifier, "account_", "")
+      }
+    ] if startswith(group.identifier, "account_")
+  ])
+
+  existing_groups_org = flatten([
+    for group in local.all_groups : [
+      {
+        identifier = replace(group.identifier, "org_", "")
+      }
+    ] if startswith(group.identifier, "org_")
+  ])
+
   groups_bindings = flatten([
     for group in local.all_groups : [
       for binding in lookup(group, "role_bindings", []) : {
-        identifier       = "${group.identifier}_${lookup(binding, "role", "MISSING-ROLE-ID")}"
-        group_identifier = group.identifier
+        identifier       = "${group.identifier}_${lookup(binding, "role", "MISSING-ROLE-ID")}_${lookup(binding, "resource_group", "MISSING-RESOURCE-GROUP-ID")}"
+        deprecated_id    = "${group.identifier}_${lookup(binding, "role", "MISSING-ROLE-ID")}"
+        group_identifier = replace(replace(group.identifier, "account_", ""), "org_", "")
         group_name       = group.name
         role             = lookup(binding, "role", "MISSING-ROLE")
         resource_group   = lookup(binding, "resource_group", "MISSING-ROLE")
+
+        scope_level = (
+          startswith(group.identifier, "account_")
+          ?
+          "account"
+          :
+          startswith(group.identifier, "org_")
+          ?
+          "organization"
+          :
+          "project"
+        )
       }
     ]
-
   ])
 }
 
+// Fetch existing account-level user groups (reference only)
+data "harness_platform_usergroup" "account_usergroup" {
+  for_each = {
+    for group in local.existing_groups_account : group.identifier => group
+  }
+  identifier = each.value.identifier
+}
+
+// Fetch existing org-level user groups (reference only)
+data "harness_platform_usergroup" "org_usergroup" {
+  for_each = {
+    for group in local.existing_groups_org : group.identifier => group
+  }
+  identifier = each.value.identifier
+  org_id     = data.harness_platform_organization.selected.id
+}
+
+// Fetch existing project-level user groups (reference only)
 data "harness_platform_usergroup" "usergroup" {
-  depends_on = [ time_sleep.project_setup ]
   for_each = {
     for group in local.existing_groups : group.identifier => group
   }
@@ -52,6 +97,7 @@ data "harness_platform_usergroup" "usergroup" {
   project_id = harness_platform_project.selected.id
 }
 
+// Create new user groups for HSF Hub project
 resource "harness_platform_usergroup" "usergroup" {
   depends_on = [harness_platform_roles.role, harness_platform_resource_group.resource_group]
   lifecycle {
@@ -71,8 +117,7 @@ resource "harness_platform_usergroup" "usergroup" {
     for group in local.groups : group.identifier => group
   }
 
-  identifier = each.value.identifier
-
+  identifier  = each.value.identifier
   name        = each.value.name
   org_id      = data.harness_platform_organization.selected.id
   project_id  = harness_platform_project.selected.id
@@ -93,25 +138,29 @@ resource "harness_platform_usergroup" "usergroup" {
   ])
 }
 
+// Assign roles and permissions to user groups
 resource "harness_platform_role_assignments" "usergroup_bindings" {
   depends_on = [harness_platform_usergroup.usergroup]
   for_each = {
     for group in local.groups_bindings : group.identifier => group
   }
 
-  identifier = each.value.identifier
-
+  identifier                = each.value.identifier
   org_id                    = data.harness_platform_organization.selected.id
   project_id                = harness_platform_project.selected.id
   resource_group_identifier = each.value.resource_group
   role_identifier           = each.value.role
+
   principal {
     identifier = try(
       harness_platform_usergroup.usergroup[each.value.group_identifier].id,
       harness_platform_usergroup.usergroup[each.value.group_name].id,
-      data.harness_platform_usergroup.usergroup[each.value.group_identifier].id
+      data.harness_platform_usergroup.usergroup[each.value.group_identifier].id,
+      data.harness_platform_usergroup.org_usergroup[each.value.group_identifier].id,
+      data.harness_platform_usergroup.account_usergroup[each.value.group_identifier].id
     )
-    type = "USER_GROUP"
+    scope_level = each.value.scope_level
+    type        = "USER_GROUP"
   }
   disabled = false
   managed  = false

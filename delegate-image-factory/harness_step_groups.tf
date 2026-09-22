@@ -137,7 +137,7 @@ resource "harness_platform_template" "stg_Publish_Container_Image" {
   ])
 }
 
-resource "time_sleep" "stg_template_setup" {
+resource "harness_time_sleep" "stg_template_setup" {
   depends_on = [
     harness_platform_template.stg_Build_and_Scan_Container_Image,
     harness_platform_template.stg_Publish_Scanned_and_Cached_Container_Image

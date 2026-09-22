@@ -41,7 +41,7 @@ locals {
 }
 
 resource "harness_platform_roles" "role" {
-  depends_on = [ time_sleep.org_setup ]
+  depends_on = [harness_time_sleep.org_setup]
   for_each = {
     for role in local.roles : role.name => role
   }

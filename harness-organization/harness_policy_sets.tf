@@ -16,7 +16,7 @@ locals {
   ])
 }
 resource "harness_platform_policyset" "policy_sets" {
-  depends_on = [ time_sleep.org_setup ]
+  depends_on = [harness_time_sleep.org_setup]
   for_each = {
     for policy_set in local.policy_sets : policy_set.name => policy_set
   }

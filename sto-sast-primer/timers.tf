@@ -1,5 +1,5 @@
 
-resource "time_sleep" "steps" {
+resource "harness_time_sleep" "steps" {
   depends_on = [
     harness_platform_template.stp_STO_ConfigManager_Repo_v1
   ]
@@ -8,7 +8,7 @@ resource "time_sleep" "steps" {
   destroy_duration = "15s"
 }
 
-resource "time_sleep" "step_groups_v2" {
+resource "harness_time_sleep" "step_groups_v2" {
   depends_on = [
     harness_platform_template.stg_Gitleaks_Scans_v2,
     harness_platform_template.stg_OSV_SCA_v2,
@@ -20,15 +20,15 @@ resource "time_sleep" "step_groups_v2" {
   destroy_duration = "15s"
 }
 
-resource "time_sleep" "step_groups" {
+resource "harness_time_sleep" "step_groups" {
   depends_on = [
-    time_sleep.step_groups_v2
+    harness_time_sleep.step_groups_v2
   ]
 
   destroy_duration = "15s"
 }
 
-resource "time_sleep" "stages_v2" {
+resource "harness_time_sleep" "stages_v2" {
   depends_on = [
     harness_platform_template.sta_STO_SAST_SCA_Primer_v2
   ]
@@ -37,17 +37,17 @@ resource "time_sleep" "stages_v2" {
   destroy_duration = "15s"
 }
 
-resource "time_sleep" "stages" {
+resource "harness_time_sleep" "stages" {
   depends_on = [
-    time_sleep.stages_v2
+    harness_time_sleep.stages_v2
   ]
 
   destroy_duration = "15s"
 }
 
-resource "time_sleep" "pipelines_v2" {
+resource "harness_time_sleep" "pipelines_v2" {
   depends_on = [
-    time_sleep.stages,
+    harness_time_sleep.stages,
     harness_platform_template.pipe_STO_SAST_SCA_Pipeline_HCR_v2,
     harness_platform_template.pipe_STO_SAST_SCA_Pipeline_v2
   ]
