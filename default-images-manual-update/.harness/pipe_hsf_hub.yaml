@@ -1,12 +1,11 @@
 pipeline:
-  name: Register Repository for Scans
-  identifier: registerrepositorysecurity
+  name: Default Images Manual Update
+  identifier: defaultimagesmanualupdate
   orgIdentifier: ${ORGANIZATION_ID}
   projectIdentifier: ${PROJECT_ID}
-  description: |-
-    Deploys new pipeline for chosen repository for SCA and SAST scans
+  description: Manually override or reset the default execution images used by Harness pipeline steps
   tags: {
-    pipeline_type: sto
+    pipeline_type: platform_management
   }
   stages:
     - stage:
@@ -23,7 +22,7 @@ pipeline:
             variables:
               - name: RESOURCE_NAME
                 type: String
-                value: <+<+pipeline.variables.organization_id>.toLowerCase()>_<+<+pipeline.variables.project_id>.toLowerCase()>_<+<+pipeline.variables.repository_name>.replace(" ","-").replace("-","_")>
+                value: default_images_manual_update
               - name: RESOURCE_OWNER
                 type: String
                 value: user:account/<+pipeline.triggeredBy.email>
@@ -31,13 +30,11 @@ pipeline:
                 type: String
                 value: |-
                   {
-                    "organization_id":"<+pipeline.variables.organization_id>",
-                    "project_id":"<+pipeline.variables.project_id>",
-                    "repository_name":"<+pipeline.variables.repository_name>",
-                    "repository_path":"<+pipeline.variables.repository_path>",
-                    "repository_connector_ref":"<+pipeline.variables.repository_connector_ref>",
-                    "branches":"<+pipeline.variables.branches>",
-                    "webhook_type":"<+pipeline.variables.webhook_type>"
+                    "harness_platform_account":"<+account.identifier>",
+                    "organization_id": "<+pipeline.variables.organization_id>",
+                    "project_id": "<+pipeline.variables.project_id>",
+                    "harness_api_key_secret_ref": "<+pipeline.variables.harness_api_key_secret_ref>",
+                    "modules": "[\"<+pipeline.variables.modules.replace(',','\",\"')>\"]"
                   }
               - name: RESOURCE_VARS_SECRETS
                 type: String
@@ -59,7 +56,7 @@ pipeline:
                 value: <+variable.account.custom_template_library_repo>
               - name: GIT_REPOSITORY_PATH
                 type: String
-                value: sto-sast-register-repo
+                value: default-images-manual-update
               - name: IAC_PROVISIONER_TYPE
                 type: String
                 value: opentofu
@@ -80,7 +77,7 @@ pipeline:
               # Must be "true" or "false" and wrapped in quotes
               - name: IS_EPHEMERAL
                 type: String
-                value: "true"
+                value: "false"
               # Determines if the workflow will require an Approval before executing
               # Must be "true" or "false" and wrapped in quotes
               - name: REQUIRES_APPROVAL
@@ -98,7 +95,7 @@ pipeline:
                 value: |-
                   {
                     "source":"custom",
-                    "type":"sto-sast-primer/modules/register-repo"
+                    "type":"default-images-manual-update"
                   }
   variables:
     ## Harness Hierarchy Setup Details
@@ -112,28 +109,14 @@ pipeline:
       description: "[Required] Provide an existing project reference ID.  Must exist before execution"
       required: true
       value: <+input>.regex(^([a-zA-Z][_a-zA-Z0-9]*)$)
-    - name: repository_name
+    ## Pipeline Input Variables Controls
+    - name: harness_api_key_secret_ref
       type: String
-      description: "[Required] Provide the repository name. This value will be used to configure the pipeline"
+      description: "[Required] Reference to a Harness Secret containing a Harness Platform API Key with permission to update default execution images (e.g. account.harness_api_key)"
       required: true
-      value: <+input>
-    - name: repository_path
-      type: String
-      description: "[Required] Provide the repository path. This value will be used to configure the source code for pipeline"
-      required: true
-      value: <+input>
-    - name: repository_connector_ref
-      type: String
-      description: "[Optional] Provide the repository connector. When 'null', the pipeline will be configured to use Harness Code Repository for the pipeline source code"
-      required: false
       value: <+input>.regex(^account.([a-zA-Z][_a-zA-Z0-9]*)$|org.([a-zA-Z][_a-zA-Z0-9]*)$|([a-zA-Z][_a-zA-Z0-9]*)$)
-    - name: branches
+    - name: modules
       type: String
-      description: "[Optional] When configured for 'all' or a specific branches, new pipeline triggers will be added to execute the pipeline when updates are made to branches"
-      required: true
-      value: <+input>.default().selectOneFrom(all,main_only,skipped)
-    - name: webhook_type
-      type: String
-      description: "[Required] Provide a supported webhook type"
-      required: true
-      value: <+input>.default().selectOneFrom(harness,github,bitbucket)
+      description: "[Optional] Modules to create a manual default image update pipeline for"
+      required: false
+      value: <+input>.default(ci).selectManyFrom(ci,idp,iacm)

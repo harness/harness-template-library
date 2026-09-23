@@ -254,7 +254,7 @@ spec:
               ui:widget: hidden
             template_library_directory:
               type: string
-              default: sto-sast-primer/modules/register-repo
+              default: sto-sast-register-repo
               ui:widget: hidden
         solutions_factory_opts:
           title: Solutions Factory Workflow Options
@@ -271,7 +271,7 @@ spec:
             workspace_type:
               type: string
               # Used to group by type the workspaces for bulk actions
-              default: sto-sast-primer/modules/register-repo
+              default: sto-sast-register-repo
               ui:widget: hidden
             is_ephemeral:
               type: string

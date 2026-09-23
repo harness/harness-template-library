@@ -5,6 +5,7 @@ entities:
   # - ci-sto-hcr-standard
   # - delegate-image-factory
   # - harness-ci-image-factory
+  - default-images-manual-update
   - harness-organization
   - harness-platform-setup
   - harness-project

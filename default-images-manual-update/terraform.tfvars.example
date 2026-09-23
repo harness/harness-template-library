@@ -1,0 +1,27 @@
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = # Required
+
+# [Optional] Provide a Map of Tags to associate with the resources
+tags = {}
+
+# [Required] Provide an existing organization reference ID.  Must exist before execution
+organization_id = # Required
+
+# [Required] Provide an existing project reference ID.  Must exist before execution
+project_id = # Required
+
+# [Required] Reference to a Harness Secret containing a Harness Platform API Key with permission to update default execution images (e.g. account.harness_api_key)
+harness_api_key_secret_ref = # Required
+
+################################################
+# Pipeline Configuration
+################################################
+# [Optional] Modules to create a manual default image update pipeline for
+modules = ["ci", "idp", "iacm"]
+
+# [Optional] Default image fields to exclude from the pipeline variables
+exclude_images = ["iacmAnsible", "iacmAwsCdk", "iacmCheckov", "iacmModuleTest", "iacmOpenTofu", "iacmTFCompliance", "iacmTFLint", "iacmTFSec", "iacmTerraform", "iacmTerragrunt"]
+################################################
