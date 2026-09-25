@@ -39,4 +39,4 @@ branches = "skipped"
 #     - harness
 #     - github
 #     - bitbucket
-webhook_type = # Required
+webhook_type = null

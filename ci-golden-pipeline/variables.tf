@@ -63,10 +63,11 @@ variable "branches" {
 variable "webhook_type" {
   type        = string
   description = "[Required] Provide a supported webhook type"
+  default = null
 
   validation {
     condition = (
-      contains(["harness", "github", "bitbucket"], lower(var.webhook_type))
+      var.branches != "skipped" ? contains(["harness", "github", "bitbucket"], lower(var.webhook_type)): true
     )
     error_message = <<EOF
         Validation of Webhook Type Failed.

@@ -57,7 +57,7 @@ module "my_pipeline" {
 | repository_connector_ref | Provide the repository connector. When 'skipped', the pipeline will be configured to use Harness Code Repository for the pipeline source code | string | skipped | no |
 | repository_path | Provide the repository path. This value will be used to configure the source code for pipeline | string || yes |
 | branches | When configured for 'all' or a specific branch, a new pipeline trigger will be added to execute the pipeline when updates are made to branches | string | skipped | no |
-| webhook_type | Provide a supported webhook type. Provide a supported webhook type. Must be one of the following: harness, github, or bitbucket | string || yes |
+| webhook_type | Provide a supported webhook type. Provide a supported webhook type. Must be one of the following: harness, github, or bitbucket | string | null | no |
 
 ## Outputs
 
