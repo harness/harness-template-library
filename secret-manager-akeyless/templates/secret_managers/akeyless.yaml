@@ -1,0 +1,70 @@
+template:
+  name: ${TEMPLATE_NAME}
+  identifier: ${TEMPLATE_IDENTIFIER}
+  versionLabel: "${VERSION_LABEL}"
+%{ if ORGANIZATION_ID != "" }
+  orgIdentifier: ${ORGANIZATION_ID}
+%{ endif ~}
+%{ if PROJECT_ID != "" }
+  projectIdentifier: ${PROJECT_ID}
+%{ endif ~}
+  type: SecretManager
+  tags:
+    ${indent(4, TAGS)}
+  spec:
+    shell: Bash
+    delegateSelectors: []
+    source:
+      type: Inline
+      spec:
+        script: |-
+          set -o pipefail
+          AKEYLESS_API_URL='<+spec.environmentVariables.AKEYLESS_API_URL>'
+          ACCESS_ID='<+secretManager.environmentVariables.ACCESS_ID>'
+          ACCESS_KEY='<+secrets.getValue(<+spec.environmentVariables.ACCESS_KEY_SECRET_ID>)>'
+          IDENTIFIER='<+secretManager.environmentVariables.IDENTIFIER>'
+
+          # Authenticate to Akeyless to obtain a short-lived session token
+          # ref: https://docs.akeyless.io/reference/auth
+          TOKEN=$(curl --silent --request POST \
+            --url "$AKEYLESS_API_URL/auth" \
+            --header 'Content-Type: application/json' \
+            --data "$(jq -n --arg id "$ACCESS_ID" --arg key "$ACCESS_KEY" '{"access-id":$id,"access-type":"api_key","access-key":$key}')" \
+            | jq -r '.token')
+
+          if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+           exit 1
+          fi
+
+          # Use the token to resolve the secret value
+          # ref: https://docs.akeyless.io/reference/getsecretvalue
+          secret=$(curl --silent --request POST \
+            --url "$AKEYLESS_API_URL/get-secret-value" \
+            --header 'Content-Type: application/json' \
+            --data "$(jq -n --arg token "$TOKEN" --arg name "$IDENTIFIER" '{"names":[$name],"token":$token}')" \
+            | jq -r --arg name "$IDENTIFIER" '.[$name]')
+
+          # Check the exit status of the curl command
+          if [ $? -ne 0 ]; then
+           exit 1
+          fi
+
+          if [ -z "$secret" ] || [ "$secret" = "null" ]; then
+           exit 1
+          fi
+
+    environmentVariables:
+      - name: AKEYLESS_API_URL
+        type: String
+        value: <+input>.default(https://api.akeyless.io)
+      - name: ACCESS_ID
+        type: String
+        value: <+input>
+      - name: ACCESS_KEY_SECRET_ID
+        type: String
+        value: <+input>
+      - name: IDENTIFIER
+        type: String
+        value: <+input>
+    outputVariables: []
+    onDelegate: true
