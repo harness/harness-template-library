@@ -1,11 +1,3 @@
 Harness ---
 
-* jeremy.goodrum@harness.io aditya.kashyap@harness.io @org.HSF_Mirror_Reviewers
-
-# solution maintainers
-
-create_and_push_new_catalog_yaml/* riley.snyder@harness.io
-secret_manager_github_pat/* riley.snyder@harness.io
-secret-manager-cyberark-conjur/* riley.snyder@harness.io
-ccm-* riley.snyder@harness.io
-
+* jeremy.goodrum@harness.io @HSF_Code_Owners @org.HSF_Mirror_Reviewers
