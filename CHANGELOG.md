@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.7.0] - 2026-10-15
+
+- ADD: Template secret-manager-akeyless with Akeyless secret manager support
+- UPDATE: secret-manager-cyberark-conjur IDP catalog template configuration
+- UPDATE: secret_manager_github_pat IDP catalog template configuration
+
 ## [v2.6.9] - 2026-10-15
 
 - ADD: Agentic support infrastructure with CLAUDE.md and AGENTS.md for AI-assisted repository management
