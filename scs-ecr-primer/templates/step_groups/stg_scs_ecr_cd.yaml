@@ -1,0 +1,67 @@
+template:
+  name: ${TEMPLATE_NAME}
+  identifier: ${TEMPLATE_IDENTIFIER}
+  %{~ if ORGANIZATION_ID != null ~}
+  orgIdentifier: ${ORGANIZATION_ID}
+  %{~ endif ~}
+  %{~ if PROJECT_ID != null ~}
+  projectIdentifier: ${PROJECT_ID}
+  %{~ endif ~}
+  versionLabel: ${TEMPLATE_VERSION}
+  type: StepGroup
+  description: Verifies the SLSA provenance attestation and artifact signature of a container image deployed from AWS ECR using keyless (OIDC) verification.
+  tags:
+    module: SCS
+    registry: ECR
+    independent: "Yes"
+  spec:
+    stageType: Deployment
+    steps:
+      - parallel:
+          - step:
+              type: SlsaVerification
+              name: SLSA Verification
+              identifier: SLSA_Verification
+              spec:
+                source:
+                  type: Ecr
+                  spec:
+                    connector: <+artifact.connectorRef>
+                    image: <+artifact.imagePath>:<+artifact.tag>
+                    region: <+artifact.region>
+                    account: <+artifact.image.split(".")[0]>
+                verify_attestation:
+                  type: keyless
+                  spec:
+                    oidcProvider: harness
+                resources:
+                  limits:
+                    memory: 4Gi
+                    cpu: "2"
+          - step:
+              type: SscaArtifactVerification
+              name: Artifact Verification
+              identifier: Artifact_Verification
+              spec:
+                source:
+                  type: ecr
+                  spec:
+                    connector: <+artifact.connectorRef>
+                    image: <+artifact.imagePath>:<+artifact.tag>
+                    region: <+artifact.region>
+                    account: <+artifact.image.split(".")[0]>
+                verifySign:
+                  type: keyless
+                  spec:
+                    oidcProvider: harness
+                resources:
+                  limits:
+                    memory: 2Gi
+                    cpu: "1"
+    stepGroupInfra:
+      type: KubernetesDirect
+      spec:
+        connectorRef: <+input>
+        namespace: <+input>
+        serviceAccountName: <+input>
+    variables: []

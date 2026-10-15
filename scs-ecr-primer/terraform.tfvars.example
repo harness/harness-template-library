@@ -1,0 +1,14 @@
+# [Optional] Enter the Harness Platform URL.  Defaults to Harness SaaS URL
+harness_platform_url = "https://app.harness.io/gateway"
+
+# [Required] Enter the Harness Platform Account Number
+harness_platform_account = # Required
+
+# [Optional] Provide a Map of Tags to associate with the resources
+tags = {}
+
+# [Optional] Existing Organization ID to scope the templates to. Leave null for Account-level templates.
+organization_id = null
+
+# [Optional] Existing Project ID to scope the templates to. Requires organization_id to also be set.
+project_id = null

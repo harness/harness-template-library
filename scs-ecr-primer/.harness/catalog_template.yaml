@@ -1,0 +1,261 @@
+apiVersion: harness.io/v1
+kind: Workflow
+name: Deploy SCS ECR Supply Chain Security Templates
+identifier: scsecrsupplychainsecurity
+type: harness_factory
+owner: group:account/HSF_Admins
+metadata:
+  description: Deploy the SCS ECR CI/CD StepGroup templates used to generate, sign, and verify SBOM/SLSA provenance for container artifacts stored in AWS ECR
+  tags:
+    - solutions-factory
+    - harness
+    - scs
+    - ecr
+spec:
+  presentation:
+    customTitle: Deploy SCS ECR Supply Chain Security Templates
+    customSubTitle: Configure and deploy the CI/CD StepGroup templates for AWS ECR supply chain security
+    customCreateButtonText: Create my templates
+  parameters:
+    - title: Template Deployment Configuration
+      description: |
+        ---
+        This Factory deploys two StepGroup templates into a Harness account to standardize Supply Chain Security (SSCA)
+        for container artifacts stored in AWS ECR:
+        - **CI StepGroup**: Generates an SBOM, a SLSA provenance attestation, and signs the built artifact (keyless/OIDC)
+        - **CD StepGroup**: Verifies the SLSA provenance attestation and artifact signature at deploy time (keyless/OIDC)
+        ---
+        _Note: This Factory requires the Harness Software Supply Chain Assurance (SSCA) module to be enabled on the target account._
+      properties:
+        # The token property needs to be in the first page of the workflow
+        token:
+          title: Harness Token
+          type: string
+          ui:widget: password
+          ui:field: HarnessAuthToken
+        template_deployment_scope:
+          title: Template Deployment Scope
+          type: string
+          default: account
+          enum:
+            - account
+            - organization
+            - project
+          enumNames:
+            - Deploy at Account Level (Maximum Reusability)
+            - Deploy at Organization Level (Org-specific Templates)
+            - Deploy at Project Level (Project-specific Templates)
+      dependencies:
+        template_deployment_scope:
+          allOf:
+            - if:
+                properties:
+                  template_deployment_scope:
+                    const: "organization"
+              then:
+                required:
+                  - organization_id
+                properties:
+                  organization_id:
+                    $ref: "#/hierarchy/organization_id"
+            - if:
+                properties:
+                  template_deployment_scope:
+                    const: "project"
+              then:
+                required:
+                  - project_id
+                properties:
+                  project_organization_id:
+                    $ref: "#/hierarchy/project_organization_id"
+                  project_id:
+                    $ref: "#/hierarchy/project_id"
+      hierarchy:
+        organization_id:
+          title: Organization ID for Template Deployment
+          type: string
+          description: Enter the Organization ID where the templates should be deployed
+          ui:field: HarnessOrgPicker
+          default: Choose One
+        project_organization_id:
+          title: Organization ID for Template Deployment (auto-derived)
+          type: string
+          description: Automatically derived from the selected Project. Do not set manually.
+          ui:field: HarnessAutoOrgPicker
+          dependencies:
+            projectPickerRef:
+              - 'project_id'
+        project_id:
+          title: Project ID for Template Deployment
+          type: string
+          description: Enter the Project ID where the templates should be deployed
+          ui:field: HarnessProjectPicker
+          default: Choose One
+    - title: Solutions Factory Connection
+      properties:
+        project_organization_id:
+          title: Project Organization (auto-derived)
+          type: string
+          description: Automatically derived from the selected Project. Do not set manually.
+        #   ui:widget: hidden
+          ui:field: HarnessAutoOrgPicker
+          dependencies:
+            projectPickerRef:
+              - 'project_id'
+        solutions_factory_details:
+          title: Solutions Factory Details
+          type: object
+          description: |
+            ---
+            Harness URL : <+variable.account.solutions_factory_endpoint>
+            Harness Account : <+account.identifier>
+            Solutions Factory Org : <+variable.account.solutions_factory_org>
+            Solutions Factory Project : <+variable.account.solutions_factory_project>
+          required:
+            - harness_account_url
+            - harness_account_id
+            - harness_org_id
+            - harness_project_id
+            - template_library_connector
+            - template_library_repo
+            - template_library_branch
+            - template_library_directory
+          properties:
+            harness_account_url:
+              type: string
+              default: <+variable.account.solutions_factory_endpoint>
+              ui:widget: hidden
+            harness_account_id:
+              type: string
+              default: <+account.identifier>
+              ui:widget: hidden
+            harness_org_id:
+              type: string
+              default: <+variable.account.solutions_factory_org>
+              ui:widget: hidden
+            harness_project_id:
+              type: string
+              default: <+variable.account.solutions_factory_project>
+              ui:widget: hidden
+            template_library_connector:
+              type: string
+              default: <+variable.account.custom_template_library_connector>
+              ui:widget: hidden
+            template_library_repo:
+              type: string
+              default: <+variable.account.custom_template_library_repo>
+              ui:widget: hidden
+            template_library_branch:
+              type: string
+              default: main
+              ui:widget: hidden
+            template_library_directory:
+              type: string
+              default: scs-ecr-primer
+              ui:widget: hidden
+        solutions_factory_opts:
+          title: Solutions Factory Workflow Options
+          type: object
+          required:
+            - repo_source
+            - workspace_type
+          properties:
+            repo_source:
+              type: string
+              # Used to group by source the workspaces for bulk actions
+              default: custom
+              ui:widget: hidden
+            workspace_type:
+              type: string
+              # Used to group by type the workspaces for bulk actions
+              default: scs-ecr-primer
+              ui:widget: hidden
+            is_ephemeral:
+              type: string
+              # Determines if the workflow will trigger a temporary workspace that is
+              # deleted upon completion. Resources will be preserved
+              # Must be "true" or "false" and wrapped in quotes
+              default: "false"
+              ui:widget: hidden
+            requires_approval:
+              type: string
+              # Determines if the workflow will require an Approval before executing
+              # Must be "true" or "false" and wrapped in quotes
+              default: "false"
+              ui:widget: hidden
+            use_mini_factory:
+              type: string
+              # "When enabled, IDP workflows will default to leveraging the mini-factory to distribute workloads
+              # Value must be controlled through variable
+              default: <+variable.account.enable_hsf_mini_factory>
+              ui:widget: hidden
+  steps:
+    - id: configure_workspace
+      name: Configuring Harness Workspace
+      action: trigger:harness-custom-pipeline
+      input:
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all/orgs/${{ parameters.solutions_factory_details.harness_org_id }}/projects/${{ "hws_" if parameters.solutions_factory_opts.use_mini_factory=="true" else "" }}${{ parameters.organization_id if parameters.solutions_factory_opts.use_mini_factory=="true" else parameters.solutions_factory_details.harness_project_id }}/pipelines/Create_and_Manage_IACM_Workspaces/pipeline-studio?storeType=INLINE
+        inputset:
+          GIT_REPOSITORY_CONNECTOR: ${{ parameters.solutions_factory_details.template_library_connector }}
+          GIT_REPOSITORY_NAME: ${{ parameters.solutions_factory_details.template_library_repo }}
+          GIT_REPOSITORY_BRANCH: ${{ parameters.solutions_factory_details.template_library_branch }}
+          GIT_REPOSITORY_PATH: ${{ parameters.solutions_factory_details.template_library_directory }}
+          # The RESOURCE_NAME must be unique for each workspace created.
+          RESOURCE_NAME: ${{ 
+            parameters.project_organization_id + "_" + parameters.project_id 
+            if parameters.template_deployment_scope == "project"
+            else ( 
+                parameters.organization_id 
+                if parameters.template_deployment_scope == "organization" 
+                else 
+                    "Account"
+            )}}_level_SCS_ECR
+          RESOURCE_OWNER: group:default/HSF_Admins
+          # YAML of Terraform variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS:
+            ################################################
+            # Template Deployment Configuration
+            # -----------
+            # Controls where templates are deployed in Harness hierarchy
+            ################################################
+            organization_id: ${{ 
+                parameters.project_organization_id 
+                if parameters.template_deployment_scope == "project" 
+                else ( 
+                    parameters.organization_id 
+                    if parameters.template_deployment_scope == "organization" 
+                    else 
+                        null
+                ) }}
+            project_id: ${{ 
+                parameters.project_id 
+                if parameters.template_deployment_scope == "project" 
+                else null }}
+          # YAML of Terraform variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_SECRETS: {}
+          # YAML of Environment variables of type 'String' mapped to their IDP parameters
+          RESOURCE_VARS_ENVS: {}
+          # YAML of Environment variables of type 'Secret' Reference mapped to their IDP parameters
+          RESOURCE_VARS_ENVS_SECRET: {}
+          # Should the workspace automatically include the default Harness Connector environment variables
+          INCLUDE_HARNESS_ENVS: "true"
+          WORKSPACE_TAGS:
+            source: ${{ parameters.solutions_factory_opts.repo_source }}
+            type: ${{ parameters.solutions_factory_opts.workspace_type }}
+          IS_EPHEMERAL: ${{ parameters.solutions_factory_opts.is_ephemeral }}
+          REQUIRES_APPROVAL: ${{ parameters.solutions_factory_opts.requires_approval }}
+        apikey: ${{ parameters.token }}
+        showOutputVariables: true
+  output:
+    links:
+      - title: Deployed Templates
+        url: ${{ parameters.solutions_factory_details.harness_account_url }}/ng/account/${{ parameters.solutions_factory_details.harness_account_id }}/all${{ ("/orgs/" + (parameters.project_organization_id if parameters.template_deployment_scope == "project" else parameters.organization_id)) if parameters.template_deployment_scope in ["organization", "project"] else "" }}${{ ("/projects/" + parameters.project_id) if parameters.template_deployment_scope == "project" else "" }}/settings/templates?page=0
+      - title: Harness Workspace Configured - Execution Link
+        url: ${{ steps.configure_workspace.output.PipelineUrl }}
+    text:
+      - title: Outputs
+        content: |
+          SCS ECR StepGroup templates deployed
+          ---
+          step_group_templates: ${{ steps.configure_workspace.output['pipeline.stages.Provision.spec.execution.steps.Provision.steps.apply.output.outputVariables.step_group_templates']}}
+

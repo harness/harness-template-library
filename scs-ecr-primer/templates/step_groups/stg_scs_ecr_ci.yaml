@@ -1,0 +1,107 @@
+template:
+  name: ${TEMPLATE_NAME}
+  identifier: ${TEMPLATE_IDENTIFIER}
+  %{~ if ORGANIZATION_ID != null ~}
+  orgIdentifier: ${ORGANIZATION_ID}
+  %{~ endif ~}
+  %{~ if PROJECT_ID != null ~}
+  projectIdentifier: ${PROJECT_ID}
+  %{~ endif ~}
+  versionLabel: ${TEMPLATE_VERSION}
+  type: StepGroup
+  description: Generates an SBOM and SLSA provenance attestation, then signs the built container image stored in AWS ECR using keyless (OIDC) signing.
+  tags:
+    module: SCS
+    registry: ECR
+    independent: "Yes"
+  spec:
+    stageType: CI
+    steps:
+      - step:
+          type: SscaOrchestration
+          name: SBOM Orchestration
+          identifier: SBOM_Orchestration
+          spec:
+            mode: generation
+            tool:
+              type: Syft
+              spec:
+                format: spdx-json
+            source:
+              type: ecr
+              spec:
+                connector: <+stepGroup.variables.ECR_Connector>
+                image: <+stepGroup.variables.ECR_Image>
+                region: <+stepGroup.variables.ECR_Region>
+                account: <+stepGroup.variables.ECR_Account>
+            attestation:
+              type: keyless
+              spec:
+                oidcProvider: harness
+            sbom_drift:
+              base: last_generated_sbom
+            resources:
+              limits:
+                memory: 2Gi
+                cpu: "2"
+      - step:
+          type: SscaArtifactSigning
+          name: Artifact Signing
+          identifier: ArtifactSigning
+          spec:
+            source:
+              type: ecr
+              spec:
+                connector: <+stepGroup.variables.ECR_Connector>
+                image: <+stepGroup.variables.ECR_Image>
+                region: <+stepGroup.variables.ECR_Region>
+                account: <+stepGroup.variables.ECR_Account>
+            signing:
+              type: keyless
+              spec:
+                oidcProvider: harness
+            resources:
+              limits:
+                memory: 4Gi
+                cpu: "2"
+      - step:
+          type: provenance
+          name: SLSA Generation
+          identifier: SLSA_Generation
+          spec:
+            source:
+              type: ecr
+              spec:
+                connector: <+stepGroup.variables.ECR_Connector>
+                image: <+stepGroup.variables.ECR_Image>
+                region: <+stepGroup.variables.ECR_Region>
+                account: <+stepGroup.variables.ECR_Account>
+            attestation:
+              type: keyless
+              spec:
+                oidcProvider: harness
+            resources:
+              limits:
+                memory: 2Gi
+                cpu: "2"
+    variables:
+      - name: ECR_Connector
+        type: String
+        value: <+input>
+        description: AWS connector reference used to authenticate against the ECR registry
+        required: true
+      - name: ECR_Account
+        type: String
+        value: <+input>
+        description: AWS account ID that owns the ECR registry
+        required: true
+      - name: ECR_Region
+        type: String
+        value: <+input>
+        description: AWS region where the ECR registry resides
+        required: true
+      - name: ECR_Image
+        type: String
+        value: <+input>
+        description: Repository/image path of the artifact in ECR, e.g. my-app
+        required: true
