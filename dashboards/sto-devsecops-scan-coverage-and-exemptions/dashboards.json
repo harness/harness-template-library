@@ -1,0 +1,2991 @@
+{
+  "$schema": "https://schemas.harness.io/dashboard/v1.15.0/schema/dashboard.schema.json",
+  "type": "dashboard-container",
+  "title": "STO DevSecOps Scan Coverage & Exemptions",
+  "subtitle": "Operational and compliance view for DevSecOps: scan volume and reliability, scanner and pipeline coverage, stale targets, exemptions in effect and STO usage.",
+  "showTimeRange": true,
+  "timeRangeV2": {
+    "kind": "relative",
+    "direction": "last",
+    "amount": 3,
+    "unit": "month"
+  },
+  "layout": {
+    "type": "grid-container-layout",
+    "items": [
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 1,
+        "widget": {
+          "type": "text-widget-model",
+          "text": "## Scan Operations",
+          "options": {
+            "fontSize": "lg",
+            "bold": true
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 1,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Scans Run",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "valueColumn": "scans_run",
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:scan\" s\n| join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = s.parent_unique_id and h_l.account_identifier = s.account_identifier\n| left join view \"view:sto:account_product\" p on p.id = s.product_id and p.account_identifier = s.account_identifier\n| left join view \"view:sto:target_variant\" tv on tv.id = s.target_variant_id\n| left join view \"view:sto:target\" t on t.id = tv.target_id\n| filter s.is_deleted = false\n    and s.created >= cast(${start_time} as timestamp) and s.created <= cast(${end_time} as timestamp)\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${target_filter_predicate}\n    and ${scanner_filter_predicate}\n    and ${pipeline_filter_predicate}\n| select { count() as scans_run }\n| limit 1"
+              }
+            ]
+          },
+          "subtitle": "STO scan steps executed in the period",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:target"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:account_product"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipeline_identifier",
+              "sourceFilterDatasourceId": "view:sto:scan"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 3,
+        "y": 1,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Scan Success Rate",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "percentage",
+                "options": {
+                  "decimalPlaces": 1
+                }
+              }
+            },
+            "valueColumn": "scan_success_pct",
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:scan\" s\n| join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = s.parent_unique_id and h_l.account_identifier = s.account_identifier\n| left join view \"view:sto:account_product\" p on p.id = s.product_id and p.account_identifier = s.account_identifier\n| left join view \"view:sto:target_variant\" tv on tv.id = s.target_variant_id\n| left join view \"view:sto:target\" t on t.id = tv.target_id\n| filter s.is_deleted = false\n    and s.created >= cast(${start_time} as timestamp) and s.created <= cast(${end_time} as timestamp)\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${target_filter_predicate}\n    and ${scanner_filter_predicate}\n    and ${pipeline_filter_predicate}\n    and s.status != \"Running\"\n| select { round(sum(case when s.status = \"Succeeded\" then 1 else 0 end) * 100.0 / count(), 1) as scan_success_pct }\n| limit 1"
+              }
+            ]
+          },
+          "subtitle": "Completed scans that succeeded",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:target"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:account_product"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipeline_identifier",
+              "sourceFilterDatasourceId": "view:sto:scan"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 6,
+        "y": 1,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Pipelines Running Scans",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "valueColumn": "scanning_pipelines",
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:scan\" s\n| join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = s.parent_unique_id and h_l.account_identifier = s.account_identifier\n| left join view \"view:sto:account_product\" p on p.id = s.product_id and p.account_identifier = s.account_identifier\n| left join view \"view:sto:target_variant\" tv on tv.id = s.target_variant_id\n| left join view \"view:sto:target\" t on t.id = tv.target_id\n| filter s.is_deleted = false\n    and s.created >= cast(${start_time} as timestamp) and s.created <= cast(${end_time} as timestamp)\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${target_filter_predicate}\n    and ${scanner_filter_predicate}\n    and ${pipeline_filter_predicate}\n| select { distinct_count(s.pipeline_identifier) as scanning_pipelines }\n| limit 1"
+              }
+            ]
+          },
+          "subtitle": "Distinct pipelines with at least one security scan step",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:target"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:account_product"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipeline_identifier",
+              "sourceFilterDatasourceId": "view:sto:scan"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 9,
+        "y": 1,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Targets Scanned",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "valueColumn": "targets_scanned",
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:scan\" s\n| join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = s.parent_unique_id and h_l.account_identifier = s.account_identifier\n| left join view \"view:sto:account_product\" p on p.id = s.product_id and p.account_identifier = s.account_identifier\n| left join view \"view:sto:target_variant\" tv on tv.id = s.target_variant_id\n| left join view \"view:sto:target\" t on t.id = tv.target_id\n| filter s.is_deleted = false\n    and s.created >= cast(${start_time} as timestamp) and s.created <= cast(${end_time} as timestamp)\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${target_filter_predicate}\n    and ${scanner_filter_predicate}\n    and ${pipeline_filter_predicate}\n| select { distinct_count(tv.target_id) as targets_scanned }\n| limit 1"
+              }
+            ]
+          },
+          "subtitle": "Distinct repositories, images and instances scanned",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:target"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:account_product"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipeline_identifier",
+              "sourceFilterDatasourceId": "view:sto:scan"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 4,
+        "w": 8,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Scan Volume Trend",
+          "options": {
+            "seriesType": "column",
+            "stacking": true,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true,
+                "unifiedFormat": {
+                  "valueType": "date",
+                  "options": {
+                    "dateDisplayFormat": "date-only"
+                  }
+                }
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [
+              {
+                "name": "Succeeded",
+                "color": "green"
+              },
+              {
+                "name": "Failed",
+                "color": "red"
+              },
+              {
+                "name": "Running",
+                "color": "blue"
+              }
+            ],
+            "seriesMapping": {
+              "xColumn": "scan_week",
+              "yColumns": [
+                "scans"
+              ],
+              "leftYColumn": "scans",
+              "defaultType": "column",
+              "groupByColumns": [
+                "status"
+              ],
+              "groupByColumn": "status"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:scan\" s\n| join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = s.parent_unique_id and h_l.account_identifier = s.account_identifier\n| left join view \"view:sto:account_product\" p on p.id = s.product_id and p.account_identifier = s.account_identifier\n| left join view \"view:sto:target_variant\" tv on tv.id = s.target_variant_id\n| left join view \"view:sto:target\" t on t.id = tv.target_id\n| filter s.is_deleted = false\n    and s.created >= cast(${start_time} as timestamp) and s.created <= cast(${end_time} as timestamp)\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${target_filter_predicate}\n    and ${scanner_filter_predicate}\n    and ${pipeline_filter_predicate}\n| select {\n    date_trunc(\"week\", s.created) as scan_week,\n    s.status as status,\n    count() as scans\n}\n| group_by scan_week, s.status\n| order_by scan_week asc\n| limit 500"
+              }
+            ]
+          },
+          "subtitle": "Weekly scans by outcome",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:target"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:account_product"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipeline_identifier",
+              "sourceFilterDatasourceId": "view:sto:scan"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 8,
+        "y": 4,
+        "w": 4,
+        "h": 6,
+        "widget": {
+          "type": "donut-widget-model",
+          "title": "Scan Outcomes",
+          "options": {
+            "legendPosition": "bottom",
+            "legendFontSize": "extra-small",
+            "alignment": "center-alignment",
+            "showTooltip": true,
+            "displayLegendCounts": true,
+            "formatLegendValue": true,
+            "applyDefaultSorting": true,
+            "showCenterTotal": true,
+            "centerTitle": "Scans",
+            "centerValueType": "auto",
+            "seriesMapping": {
+              "nameColumn": "status",
+              "valueColumn": "scans"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:scan\" s\n| join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = s.parent_unique_id and h_l.account_identifier = s.account_identifier\n| left join view \"view:sto:account_product\" p on p.id = s.product_id and p.account_identifier = s.account_identifier\n| left join view \"view:sto:target_variant\" tv on tv.id = s.target_variant_id\n| left join view \"view:sto:target\" t on t.id = tv.target_id\n| filter s.is_deleted = false\n    and s.created >= cast(${start_time} as timestamp) and s.created <= cast(${end_time} as timestamp)\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${target_filter_predicate}\n    and ${scanner_filter_predicate}\n    and ${pipeline_filter_predicate}\n| select { s.status as status, count() as scans }\n| group_by s.status\n| order_by scans desc\n| limit 10"
+              }
+            ]
+          },
+          "subtitle": "Succeeded vs failed vs running scans",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:target"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:account_product"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipeline_identifier",
+              "sourceFilterDatasourceId": "view:sto:scan"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 10,
+        "w": 6,
+        "h": 7,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Scans by Scanner",
+          "options": {
+            "seriesType": "bar",
+            "stacking": true,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [
+              {
+                "name": "Succeeded",
+                "color": "green"
+              },
+              {
+                "name": "Failed",
+                "color": "red"
+              },
+              {
+                "name": "Running",
+                "color": "blue"
+              }
+            ],
+            "seriesMapping": {
+              "xColumn": "scanner",
+              "yColumns": [
+                "scans"
+              ],
+              "leftYColumn": "scans",
+              "defaultType": "bar",
+              "groupByColumns": [
+                "status"
+              ],
+              "groupByColumn": "status"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:scan\" s\n| join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = s.parent_unique_id and h_l.account_identifier = s.account_identifier\n| left join view \"view:sto:account_product\" p on p.id = s.product_id and p.account_identifier = s.account_identifier\n| left join view \"view:sto:target_variant\" tv on tv.id = s.target_variant_id\n| left join view \"view:sto:target\" t on t.id = tv.target_id\n| filter s.is_deleted = false\n    and s.created >= cast(${start_time} as timestamp) and s.created <= cast(${end_time} as timestamp)\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${target_filter_predicate}\n    and ${scanner_filter_predicate}\n    and ${pipeline_filter_predicate}\n| select {\n    p.pretty_name as scanner,\n    s.status as status,\n    count() as scans\n}\n| group_by p.pretty_name, s.status\n| order_by scans desc\n| limit 500"
+              }
+            ]
+          },
+          "subtitle": "Scanner adoption and reliability, stacked by outcome",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:target"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:account_product"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipeline_identifier",
+              "sourceFilterDatasourceId": "view:sto:scan"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 6,
+        "y": 10,
+        "w": 3,
+        "h": 7,
+        "widget": {
+          "type": "donut-widget-model",
+          "title": "Scans by Target Type",
+          "options": {
+            "legendPosition": "bottom",
+            "legendFontSize": "extra-small",
+            "alignment": "center-alignment",
+            "showTooltip": true,
+            "displayLegendCounts": true,
+            "formatLegendValue": true,
+            "applyDefaultSorting": true,
+            "showCenterTotal": true,
+            "centerTitle": "Scans",
+            "centerValueType": "auto",
+            "seriesMapping": {
+              "nameColumn": "target_type",
+              "valueColumn": "scans"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:scan\" s\n| join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = s.parent_unique_id and h_l.account_identifier = s.account_identifier\n| left join view \"view:sto:account_product\" p on p.id = s.product_id and p.account_identifier = s.account_identifier\n| left join view \"view:sto:target_variant\" tv on tv.id = s.target_variant_id\n| left join view \"view:sto:target\" t on t.id = tv.target_id\n| filter s.is_deleted = false\n    and s.created >= cast(${start_time} as timestamp) and s.created <= cast(${end_time} as timestamp)\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${target_filter_predicate}\n    and ${scanner_filter_predicate}\n    and ${pipeline_filter_predicate}\n| select {\n    (case when t.type is null then \"unknown\" else t.type end) as target_type,\n    count() as scans\n}\n| group_by target_type\n| order_by scans desc\n| limit 10"
+              }
+            ]
+          },
+          "subtitle": "Repository (SAST/SCA/secrets) vs container vs instance scans",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:target"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:account_product"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipeline_identifier",
+              "sourceFilterDatasourceId": "view:sto:scan"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 9,
+        "y": 10,
+        "w": 3,
+        "h": 7,
+        "widget": {
+          "type": "donut-widget-model",
+          "title": "Baseline vs Branch Scans",
+          "options": {
+            "legendPosition": "bottom",
+            "legendFontSize": "extra-small",
+            "alignment": "center-alignment",
+            "showTooltip": true,
+            "displayLegendCounts": true,
+            "formatLegendValue": true,
+            "applyDefaultSorting": true,
+            "showCenterTotal": true,
+            "centerTitle": "Scans",
+            "centerValueType": "auto",
+            "seriesMapping": {
+              "nameColumn": "scan_variant",
+              "valueColumn": "scans"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:scan\" s\n| join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = s.parent_unique_id and h_l.account_identifier = s.account_identifier\n| left join view \"view:sto:account_product\" p on p.id = s.product_id and p.account_identifier = s.account_identifier\n| left join view \"view:sto:target_variant\" tv on tv.id = s.target_variant_id\n| left join view \"view:sto:target\" t on t.id = tv.target_id\n| filter s.is_deleted = false\n    and s.created >= cast(${start_time} as timestamp) and s.created <= cast(${end_time} as timestamp)\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${target_filter_predicate}\n    and ${scanner_filter_predicate}\n    and ${pipeline_filter_predicate}\n| select {\n    (case when t.baseline_variant_id = s.target_variant_id then \"Baseline\" else \"Non-baseline\" end) as scan_variant,\n    count() as scans\n}\n| group_by scan_variant\n| order_by scans desc\n| limit 10"
+              }
+            ]
+          },
+          "subtitle": "Scans against the target's baseline (e.g. main) vs feature branches/tags",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:target"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:account_product"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipeline_identifier",
+              "sourceFilterDatasourceId": "view:sto:scan"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 17,
+        "w": 12,
+        "h": 1,
+        "widget": {
+          "type": "text-widget-model",
+          "text": "## Pipeline & Target Coverage",
+          "options": {
+            "fontSize": "lg",
+            "bold": true
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 18,
+        "w": 7,
+        "h": 8,
+        "widget": {
+          "type": "table-widget-model",
+          "title": "Pipelines Running Security Scans",
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:scan\" s\n| join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = s.parent_unique_id and h_l.account_identifier = s.account_identifier\n| left join view \"view:sto:account_product\" p on p.id = s.product_id and p.account_identifier = s.account_identifier\n| left join view \"view:sto:target_variant\" tv on tv.id = s.target_variant_id\n| left join view \"view:sto:target\" t on t.id = tv.target_id\n| filter s.is_deleted = false\n    and s.created >= cast(${start_time} as timestamp) and s.created <= cast(${end_time} as timestamp)\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${target_filter_predicate}\n    and ${scanner_filter_predicate}\n    and ${pipeline_filter_predicate}\n| select {\n    h_l.project_identifier as project,\n    s.pipeline_identifier as pipeline,\n    count() as scans,\n    distinct_count(s.plan_execution_id) as executions,\n    distinct_count(s.product_id) as scanners,\n    distinct_count(tv.target_id) as targets,\n    round(sum(case when s.status = \"Succeeded\" then 1 else 0 end) * 100.0 / count(), 1) as success_rate,\n    avg(date_diff(s.created, s.last_modified, \"second\")) as avg_scan_duration,\n    max(s.created) as last_scan\n}\n| group_by h_l.project_identifier, s.pipeline_identifier\n| order_by scans desc\n| limit 50"
+              }
+            ]
+          },
+          "options": {
+            "formatting": {
+              "columns": {
+                "success_rate": {
+                  "unifiedFormat": {
+                    "valueType": "percentage",
+                    "options": {
+                      "decimalPlaces": 1
+                    }
+                  }
+                },
+                "avg_scan_duration": {
+                  "unifiedFormat": {
+                    "valueType": "duration",
+                    "options": {
+                      "display": "humanized_short"
+                    }
+                  }
+                },
+                "last_scan": {
+                  "unifiedFormat": {
+                    "valueType": "date",
+                    "options": {
+                      "dateDisplayFormat": "date-only"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "subtitle": "Which pipelines enforce security scanning, with how many scanners and how reliably",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:target"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:account_product"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "p.name",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipeline_identifier",
+              "sourceFilterDatasourceId": "view:sto:scan"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.pipeline_identifier",
+              "filterOperator": "in"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 7,
+        "y": 18,
+        "w": 5,
+        "h": 8,
+        "widget": {
+          "type": "table-widget-model",
+          "title": "Targets Without Recent Scans",
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "with last_scans as (\n  find view \"view:sto:target_variant\" tv\n  | join view \"view:sto:scan\" s on s.target_variant_id = tv.id\n  | filter s.is_deleted = false\n  | select { tv.target_id as target_id, max(s.created) as last_scan }\n  | group_by tv.target_id\n)\nfind view \"view:sto:target\" t\n| join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = t.parent_unique_id and h_l.account_identifier = t.account_identifier\n| join last_scans ls on ls.target_id = t.id\n| filter t.is_deleted = false\n    and ls.last_scan < cast(${start_time} as timestamp)\n    and ls.last_scan <= cast(${end_time} as timestamp)\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${target_filter_predicate}\n| select {\n    t.name as target,\n    t.type as target_type,\n    h_l.project_identifier as project,\n    ls.last_scan as last_scan,\n    date_diff(ls.last_scan, now(), \"second\") as time_since_scan\n}\n| order_by last_scan desc\n| limit 100"
+              }
+            ]
+          },
+          "options": {
+            "formatting": {
+              "columns": {
+                "last_scan": {
+                  "unifiedFormat": {
+                    "valueType": "date",
+                    "options": {
+                      "dateDisplayFormat": "date-only"
+                    }
+                  }
+                },
+                "time_since_scan": {
+                  "unifiedFormat": {
+                    "valueType": "duration",
+                    "options": {
+                      "display": "humanized_short"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "subtitle": "Registered targets with no scan in the selected period (coverage gaps)",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in",
+              "sourceFilterField": "name",
+              "sourceFilterDatasourceId": "view:sto:target"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "t.name",
+              "filterOperator": "in"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 26,
+        "w": 12,
+        "h": 1,
+        "widget": {
+          "type": "text-widget-model",
+          "text": "## Exemptions & STO Usage",
+          "options": {
+            "fontSize": "lg",
+            "bold": true
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 27,
+        "w": 4,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Exemptions In Effect",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "valueColumn": "exemptions_in_effect"
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:exemption\" e\n| left join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = e.parent_unique_id and h_l.account_identifier = e.account_identifier\n| filter e.is_deleted = false\n    and e.created <= cast(${end_time} as timestamp)\n    and (e.expiration is null or e.expiration >= cast(${start_time} as timestamp))\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${severity_filter_predicate}\n| select { count() as exemptions_in_effect }\n| limit 1"
+              }
+            ]
+          },
+          "subtitle": "Approved or pending exemptions active at any point in the period",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "e.issue_severity_code",
+              "filterOperator": "in",
+              "sourceFilterField": "severity_code",
+              "sourceFilterDatasourceId": "view:sto:issue_scan"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "e.issue_severity_code",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 4,
+        "y": 27,
+        "w": 4,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Active STO Users",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "valueColumn": "active_sto_users",
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:usage\" u\n| filter u.created >= cast(${start_time} as timestamp) and u.created <= cast(${end_time} as timestamp)\n    and u.usage_type = \"User\"\n| select { distinct_count(u.resource_id) as active_sto_users }\n| limit 1"
+              }
+            ]
+          },
+          "subtitle": "Distinct users counted toward STO licensing in the period",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 8,
+        "y": 27,
+        "w": 4,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Billable Scan Events",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "valueColumn": "scan_usage_events",
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:usage\" u\n| filter u.created >= cast(${start_time} as timestamp) and u.created <= cast(${end_time} as timestamp)\n    and u.usage_type = \"Scan\"\n| select { count() as scan_usage_events }\n| limit 1"
+              }
+            ]
+          },
+          "subtitle": "Scan usage events recorded for STO licensing",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 30,
+        "w": 4,
+        "h": 6,
+        "widget": {
+          "type": "donut-widget-model",
+          "title": "Exemptions by Status",
+          "options": {
+            "legendPosition": "bottom",
+            "legendFontSize": "extra-small",
+            "alignment": "center-alignment",
+            "showTooltip": true,
+            "displayLegendCounts": true,
+            "formatLegendValue": true,
+            "applyDefaultSorting": true,
+            "showCenterTotal": true,
+            "centerTitle": "Exemptions",
+            "centerValueType": "auto",
+            "seriesMapping": {
+              "nameColumn": "status",
+              "valueColumn": "exemptions"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:exemption\" e\n| left join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = e.parent_unique_id and h_l.account_identifier = e.account_identifier\n| filter e.is_deleted = false\n    and e.created <= cast(${end_time} as timestamp)\n    and (e.expiration is null or e.expiration >= cast(${start_time} as timestamp))\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${severity_filter_predicate}\n| select { e.status as status, count() as exemptions }\n| group_by e.status\n| order_by exemptions desc\n| limit 10"
+              }
+            ]
+          },
+          "subtitle": "Lifecycle state of exemptions in effect during the period",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "e.issue_severity_code",
+              "filterOperator": "in",
+              "sourceFilterField": "severity_code",
+              "sourceFilterDatasourceId": "view:sto:issue_scan"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "e.issue_severity_code",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 4,
+        "y": 30,
+        "w": 4,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Exempted Issues by Severity",
+          "options": {
+            "seriesType": "column",
+            "stacking": true,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [
+              {
+                "name": "Approved",
+                "color": "green"
+              },
+              {
+                "name": "Pending",
+                "color": "orange"
+              },
+              {
+                "name": "Expired",
+                "color": "gray"
+              },
+              {
+                "name": "Rejected",
+                "color": "red"
+              }
+            ],
+            "seriesMapping": {
+              "xColumn": "severity",
+              "yColumns": [
+                "exemptions"
+              ],
+              "leftYColumn": "exemptions",
+              "defaultType": "column",
+              "groupByColumns": [
+                "status"
+              ],
+              "groupByColumn": "status"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:exemption\" e\n| left join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = e.parent_unique_id and h_l.account_identifier = e.account_identifier\n| filter e.is_deleted = false\n    and e.created <= cast(${end_time} as timestamp)\n    and (e.expiration is null or e.expiration >= cast(${start_time} as timestamp))\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${severity_filter_predicate}\n| select {\n    e.issue_severity_code as severity,\n    (case\n        when e.issue_severity_code = \"Critical\" then 5\n        when e.issue_severity_code = \"High\" then 4\n        when e.issue_severity_code = \"Medium\" then 3\n        when e.issue_severity_code = \"Low\" then 2\n        when e.issue_severity_code = \"Info\" then 1\n        else 0\n    end) as severity_order,\n    e.status as status,\n    count() as exemptions\n}\n| group_by e.issue_severity_code, severity_order, e.status\n| order_by severity_order desc\n| limit 100"
+              }
+            ]
+          },
+          "subtitle": "Accepted risk by issue severity, split by exemption status",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "e.issue_severity_code",
+              "filterOperator": "in",
+              "sourceFilterField": "severity_code",
+              "sourceFilterDatasourceId": "view:sto:issue_scan"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "e.issue_severity_code",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 8,
+        "y": 30,
+        "w": 4,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "STO Usage Trend",
+          "options": {
+            "seriesType": "column",
+            "stacking": true,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true,
+                "unifiedFormat": {
+                  "valueType": "date",
+                  "options": {
+                    "dateDisplayFormat": "date-only"
+                  }
+                }
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [],
+            "seriesMapping": {
+              "xColumn": "usage_week",
+              "yColumns": [
+                "events"
+              ],
+              "leftYColumn": "events",
+              "defaultType": "column",
+              "groupByColumns": [
+                "usage_type"
+              ],
+              "groupByColumn": "usage_type"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:usage\" u\n| filter u.created >= cast(${start_time} as timestamp) and u.created <= cast(${end_time} as timestamp)\n| select {\n    date_trunc(\"week\", u.created) as usage_week,\n    u.usage_type as usage_type,\n    count() as events\n}\n| group_by usage_week, u.usage_type\n| order_by usage_week asc\n| limit 500"
+              }
+            ]
+          },
+          "subtitle": "Weekly STO usage events by type (scans, users, AI assists)",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 36,
+        "w": 12,
+        "h": 7,
+        "widget": {
+          "type": "table-widget-model",
+          "title": "Exemption Register",
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:sto:exemption\" e\n| left join view \"view:sto:hierarchy_lookup\" h_l on h_l.parent_unique_id = e.parent_unique_id and h_l.account_identifier = e.account_identifier\n| filter e.is_deleted = false\n    and e.created <= cast(${end_time} as timestamp)\n    and (e.expiration is null or e.expiration >= cast(${start_time} as timestamp))\n    and ${org_filter_predicate}\n    and ${project_filter_predicate}\n    and ${severity_filter_predicate}\n| select {\n    e.issue_title as issue,\n    e.issue_severity_code as severity,\n    e.status as status,\n    e.type as exemption_type,\n    e.reason as reason,\n    (case\n        when e.pipeline_identifier is not null then \"Pipeline\"\n        when e.target_id is not null then \"Target\"\n        when h_l.project_identifier is not null and h_l.project_identifier != \"\" then \"Project\"\n        when h_l.org_identifier is not null and h_l.org_identifier != \"\" then \"Organization\"\n        else \"Account\"\n    end) as scope,\n    h_l.project_identifier as project,\n    (case\n        when e.expiration is null then \"Never expires\"\n        when e.expiration < now() then \"Lapsed\"\n        else \"Time-bound\"\n    end) as expiry,\n    e.created as requested\n}\n| order_by requested desc\n| limit 200"
+              }
+            ]
+          },
+          "options": {
+            "formatting": {
+              "columns": {
+                "severity": {
+                  "cellRenderer": "core.badge",
+                  "cellRendererOptions": {
+                    "display": "solid",
+                    "bgColor": "indigo",
+                    "textColor": "auto",
+                    "enableColorMapping": true,
+                    "colorByValue": [
+                      {
+                        "value": "Critical",
+                        "bgColor": "red",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "High",
+                        "bgColor": "orange",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "Medium",
+                        "bgColor": "yellow",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "Low",
+                        "bgColor": "blue",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "Info",
+                        "bgColor": "gray",
+                        "textColor": "auto"
+                      }
+                    ]
+                  }
+                },
+                "status": {
+                  "cellRenderer": "core.badge",
+                  "cellRendererOptions": {
+                    "display": "solid",
+                    "bgColor": "indigo",
+                    "textColor": "auto",
+                    "enableColorMapping": true,
+                    "colorByValue": [
+                      {
+                        "value": "Approved",
+                        "bgColor": "green",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "Pending",
+                        "bgColor": "orange",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "Expired",
+                        "bgColor": "gray",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "Rejected",
+                        "bgColor": "red",
+                        "textColor": "auto"
+                      }
+                    ]
+                  }
+                },
+                "requested": {
+                  "unifiedFormat": {
+                    "valueType": "date",
+                    "options": {
+                      "dateDisplayFormat": "date-only"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "subtitle": "Audit trail of every exemption in effect: severity, status, justification, scope and expiry",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "org_filter_predicate": "true",
+            "org_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "target_filter_predicate": "true",
+            "target_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "scanner_filter_predicate": "true",
+            "scanner_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "severity_filter_predicate": "true",
+            "severity_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "org_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "org_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "org_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.org_identifier",
+              "filterOperator": "in"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "view:sto:hierarchy_lookup"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "h_l.project_identifier",
+              "filterOperator": "in"
+            },
+            "target_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "target_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "scanner_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "severity_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "e.issue_severity_code",
+              "filterOperator": "in",
+              "sourceFilterField": "severity_code",
+              "sourceFilterDatasourceId": "view:sto:issue_scan"
+            },
+            "severity_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "e.issue_severity_code",
+              "filterOperator": "in"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "schemaVersion": "1.15.0",
+  "dashboardFilters": [
+    {
+      "name": "Organization",
+      "variableName": "org_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "view:sto:hierarchy_lookup",
+        "type": "view"
+      },
+      "valueField": "org_identifier",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "org_filter"
+    },
+    {
+      "name": "Project",
+      "variableName": "project_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "view:sto:hierarchy_lookup",
+        "type": "view"
+      },
+      "valueField": "project_identifier",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "project_filter"
+    },
+    {
+      "name": "Target",
+      "variableName": "target_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "view:sto:target",
+        "type": "view"
+      },
+      "valueField": "name",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "target_filter"
+    },
+    {
+      "name": "Scanner",
+      "variableName": "scanner_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "view:sto:account_product",
+        "type": "view"
+      },
+      "valueField": "name",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "scanner_filter"
+    },
+    {
+      "name": "Pipeline",
+      "variableName": "pipeline_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "view:sto:scan",
+        "type": "view"
+      },
+      "valueField": "pipeline_identifier",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "pipeline_filter"
+    },
+    {
+      "name": "Severity",
+      "variableName": "severity_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "view:sto:issue_scan",
+        "type": "view"
+      },
+      "valueField": "severity_code",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "severity_filter"
+    }
+  ]
+}

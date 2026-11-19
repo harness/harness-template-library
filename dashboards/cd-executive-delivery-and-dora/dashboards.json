@@ -1,0 +1,1889 @@
+{
+  "$schema": "https://schemas.harness.io/dashboard/v1.15.0/schema/dashboard.schema.json",
+  "type": "dashboard-container",
+  "title": "CD Executive Delivery & DORA Overview",
+  "subtitle": "DORA metrics for continuous delivery: deployment frequency, change failure rate, lead time and time to restore, with delivery trends and a per-service scorecard.",
+  "showTimeRange": true,
+  "timeRangeV2": {
+    "kind": "relative",
+    "direction": "last",
+    "amount": 3,
+    "unit": "month"
+  },
+  "layout": {
+    "type": "grid-container-layout",
+    "items": [
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 1,
+        "widget": {
+          "type": "text-widget-model",
+          "text": "## DORA Key Metrics",
+          "options": {
+            "fontSize": "lg",
+            "bold": true
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 1,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Deployments",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate { distinct_count(d.stage_execution_id) as deployments }"
+              }
+            ]
+          },
+          "subtitle": "Service deployment stages executed in the period (deployment frequency)",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 3,
+        "y": 1,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Change Failure Rate",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "percentage"
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": true
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate { 100.0 * count(case when d.stage_status in [\"FAILED\", \"ABORTED\", \"EXPIRED\", \"APPROVAL_REJECTED\", \"APPROVALREJECTED\", \"ERRORED\"] then 1 end) / nullif(count(), 0) as change_failure_rate }"
+              }
+            ]
+          },
+          "subtitle": "Share of deployments that failed, aborted, expired or were rejected",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 6,
+        "y": 1,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Median Lead Time",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "duration",
+                "options": {
+                  "display": "humanized_short"
+                }
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": true
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| filter d.stage_duration > 0\n| aggregate { median(d.stage_duration) / 1000.0 as median_lead_time_s }"
+              }
+            ]
+          },
+          "subtitle": "Median deployment stage duration from start to finish",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 9,
+        "y": 1,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Mean Time to Restore (proxy)",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "duration",
+                "options": {
+                  "display": "humanized_short"
+                }
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": true
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "with f as (\n  find view \"cd:deployment_stage_execution\" d\n  | filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n  | filter d.service_identifier is not null and d.service_identifier != \"\"\n  | filter ${project_filter_predicate} and ${service_filter_predicate}\n  | filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n  | filter d.stage_status in [\"FAILED\", \"ABORTED\", \"EXPIRED\", \"APPROVAL_REJECTED\", \"APPROVALREJECTED\", \"ERRORED\"]\n  | select { d.service_identifier as svc, d.stage_execution_id as fid, d.end_ts as fend }\n),\nr as (\n  find f\n  | join view \"cd:deployment_stage_execution\" s on s.service_identifier = f.svc\n  | filter s.stage_status = \"SUCCESS\" and s.start_ts > f.fend\n  | aggregate { f.fid as fid, min(f.fend) as fend, min(s.end_ts) as restored }\n  | group_by fid\n)\nfind r\n| aggregate { avg(date_diff(r.fend, r.restored, \"second\")) as mttr_s }"
+              }
+            ]
+          },
+          "subtitle": "Avg time from a failed deployment to the next successful deploy of the same service",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 4,
+        "w": 3,
+        "h": 6,
+        "widget": {
+          "type": "gauge-widget-model",
+          "title": "Change Failure Rate vs DORA Bands",
+          "options": {
+            "maxValue": 100,
+            "variant": "segmented",
+            "valueFormatOptions": {
+              "valueType": "percentage",
+              "decimalPlaces": 1
+            },
+            "thresholds": [
+              {
+                "label": "Elite",
+                "start": 0,
+                "end": 5,
+                "color": "green"
+              },
+              {
+                "label": "High",
+                "start": 5,
+                "end": 10,
+                "color": "teal"
+              },
+              {
+                "label": "Medium",
+                "start": 10,
+                "end": 15,
+                "color": "yellow"
+              },
+              {
+                "label": "Low",
+                "start": 15,
+                "end": 100,
+                "color": "red"
+              }
+            ]
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate { 100.0 * count(case when d.stage_status in [\"FAILED\", \"ABORTED\", \"EXPIRED\", \"APPROVAL_REJECTED\", \"APPROVALREJECTED\", \"ERRORED\"] then 1 end) / nullif(count(), 0) as change_failure_rate }"
+              }
+            ]
+          },
+          "subtitle": "DORA bands: Elite <5%, High 5-10%, Medium 10-15%, Low >15%",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 3,
+        "y": 4,
+        "w": 3,
+        "h": 6,
+        "widget": {
+          "type": "gauge-widget-model",
+          "title": "Deployment Success Rate",
+          "options": {
+            "maxValue": 100,
+            "variant": "segmented",
+            "valueFormatOptions": {
+              "valueType": "percentage",
+              "decimalPlaces": 1
+            },
+            "thresholds": [
+              {
+                "label": "At risk",
+                "start": 0,
+                "end": 70,
+                "color": "red"
+              },
+              {
+                "label": "Watch",
+                "start": 70,
+                "end": 90,
+                "color": "yellow"
+              },
+              {
+                "label": "Healthy",
+                "start": 90,
+                "end": 100,
+                "color": "green"
+              }
+            ]
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate { 100.0 * count(case when d.stage_status = \"SUCCESS\" then 1 end) / nullif(count(), 0) as success_rate }"
+              }
+            ]
+          },
+          "subtitle": "Successful deployments as a share of all deployments",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 6,
+        "y": 4,
+        "w": 3,
+        "h": 6,
+        "widget": {
+          "type": "donut-widget-model",
+          "title": "Production vs Non-Production",
+          "options": {
+            "legendPosition": "bottom",
+            "legendFontSize": "extra-small",
+            "alignment": "center-alignment",
+            "showTooltip": true,
+            "displayLegendCounts": true,
+            "formatLegendValue": true,
+            "applyDefaultSorting": true,
+            "showCenterTotal": true,
+            "centerTitle": "Deploys",
+            "centerValueType": "auto",
+            "seriesMapping": {
+              "nameColumn": "env_class",
+              "valueColumn": "deployments"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate {\n    case when d.env_type = \"Production\" then \"Production\"\n         when d.env_type = \"PreProduction\" then \"Non-Production\"\n         else \"Unclassified\" end as env_class,\n    distinct_count(d.stage_execution_id) as deployments\n  }\n| group_by env_class\n| order_by deployments desc"
+              }
+            ]
+          },
+          "subtitle": "Deployments split by environment type",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 9,
+        "y": 4,
+        "w": 3,
+        "h": 6,
+        "widget": {
+          "type": "donut-widget-model",
+          "title": "Deployment Outcomes",
+          "options": {
+            "legendPosition": "bottom",
+            "legendFontSize": "extra-small",
+            "alignment": "center-alignment",
+            "showTooltip": true,
+            "displayLegendCounts": true,
+            "formatLegendValue": true,
+            "applyDefaultSorting": true,
+            "showCenterTotal": true,
+            "centerTitle": "Deploys",
+            "centerValueType": "auto",
+            "seriesMapping": {
+              "nameColumn": "status",
+              "valueColumn": "deployments"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate { d.stage_status as status, distinct_count(d.stage_execution_id) as deployments }\n| group_by status\n| order_by deployments desc"
+              }
+            ]
+          },
+          "subtitle": "Final status of every deployment stage",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 10,
+        "w": 12,
+        "h": 1,
+        "widget": {
+          "type": "text-widget-model",
+          "text": "## Delivery Trends",
+          "options": {
+            "fontSize": "lg",
+            "bold": true
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 11,
+        "w": 6,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Weekly Deployment Frequency",
+          "options": {
+            "seriesType": "column",
+            "stacking": true,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true,
+                "unifiedFormat": {
+                  "valueType": "date",
+                  "options": {
+                    "dateDisplayFormat": "date-only"
+                  }
+                }
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [
+              {
+                "name": "Succeeded",
+                "color": "green"
+              },
+              {
+                "name": "Failed",
+                "color": "red"
+              }
+            ],
+            "seriesMapping": {
+              "xColumn": "week",
+              "yColumns": [
+                "deployments"
+              ],
+              "leftYColumn": "deployments",
+              "defaultType": "column",
+              "groupByColumns": [
+                "outcome"
+              ],
+              "groupByColumn": "outcome"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate {\n    date_trunc(\"week\", d.start_ts) as week,\n    case when d.stage_status in [\"FAILED\", \"ABORTED\", \"EXPIRED\", \"APPROVAL_REJECTED\", \"APPROVALREJECTED\", \"ERRORED\"] then \"Failed\" else \"Succeeded\" end as outcome,\n    distinct_count(d.stage_execution_id) as deployments\n  }\n| group_by week, outcome\n| order_by week asc"
+              }
+            ]
+          },
+          "subtitle": "Deployments per week, stacked by outcome",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 6,
+        "y": 11,
+        "w": 6,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Weekly Success Rate & Change Failure Rate",
+          "options": {
+            "seriesType": "line",
+            "stacking": false,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true,
+                "unifiedFormat": {
+                  "valueType": "date",
+                  "options": {
+                    "dateDisplayFormat": "date-only"
+                  }
+                }
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false,
+                "unifiedFormat": {
+                  "valueType": "percentage"
+                }
+              }
+            ],
+            "seriesOverrides": [
+              {
+                "name": "success_rate",
+                "color": "green"
+              },
+              {
+                "name": "change_failure_rate",
+                "color": "red"
+              }
+            ],
+            "seriesMapping": {
+              "xColumn": "week",
+              "yColumns": [
+                "success_rate",
+                "change_failure_rate"
+              ],
+              "leftYColumn": "success_rate",
+              "defaultType": "line"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate {\n    date_trunc(\"week\", d.start_ts) as week,\n    100.0 * count(case when d.stage_status = \"SUCCESS\" then 1 end) / nullif(count(), 0) as success_rate,\n    100.0 * count(case when d.stage_status in [\"FAILED\", \"ABORTED\", \"EXPIRED\", \"APPROVAL_REJECTED\", \"APPROVALREJECTED\", \"ERRORED\"] then 1 end) / nullif(count(), 0) as change_failure_rate\n  }\n| group_by week\n| order_by week asc"
+              }
+            ]
+          },
+          "subtitle": "Weekly trend of deployment success vs change failure",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 17,
+        "w": 6,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Weekly Lead Time (Median Deployment Duration)",
+          "options": {
+            "seriesType": "area",
+            "stacking": false,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true,
+                "unifiedFormat": {
+                  "valueType": "date",
+                  "options": {
+                    "dateDisplayFormat": "date-only"
+                  }
+                }
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false,
+                "unifiedFormat": {
+                  "valueType": "duration",
+                  "options": {
+                    "display": "humanized_short"
+                  }
+                }
+              }
+            ],
+            "seriesOverrides": [],
+            "seriesMapping": {
+              "xColumn": "week",
+              "yColumns": [
+                "median_lead_time_s",
+                "mean_pipeline_duration_s"
+              ],
+              "leftYColumn": "median_lead_time_s",
+              "defaultType": "area"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| filter d.stage_duration > 0\n| aggregate {\n    date_trunc(\"week\", d.start_ts) as week,\n    median(d.stage_duration) / 1000.0 as median_lead_time_s,\n    avg(d.duration) / 1000.0 as mean_pipeline_duration_s\n  }\n| group_by week\n| order_by week asc"
+              }
+            ]
+          },
+          "subtitle": "Median deployment stage time and mean end-to-end pipeline time per week",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 6,
+        "y": 17,
+        "w": 6,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Top Services by Deployments",
+          "options": {
+            "seriesType": "bar",
+            "stacking": true,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [
+              {
+                "name": "succeeded",
+                "color": "green"
+              },
+              {
+                "name": "failed",
+                "color": "red"
+              }
+            ],
+            "seriesMapping": {
+              "xColumn": "service",
+              "yColumns": [
+                "succeeded",
+                "failed"
+              ],
+              "leftYColumn": "succeeded",
+              "defaultType": "bar"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate {\n    d.service_name as service,\n    count(case when d.stage_status = \"SUCCESS\" then 1 end) as succeeded,\n    count(case when d.stage_status in [\"FAILED\", \"ABORTED\", \"EXPIRED\", \"APPROVAL_REJECTED\", \"APPROVALREJECTED\", \"ERRORED\"] then 1 end) as failed\n  }\n| group_by service\n| order_by succeeded desc\n| limit 10"
+              }
+            ]
+          },
+          "subtitle": "Ten most-deployed services, split by outcome",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 23,
+        "w": 12,
+        "h": 1,
+        "widget": {
+          "type": "text-widget-model",
+          "text": "## Service DORA Scorecard",
+          "options": {
+            "fontSize": "lg",
+            "bold": true
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 24,
+        "w": 12,
+        "h": 8,
+        "widget": {
+          "type": "table-widget-model",
+          "title": "Service DORA Scorecard",
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate {\n    d.service_name as service,\n    d.project_identifier as project,\n    distinct_count(d.stage_execution_id) as deployments,\n    round(100.0 * count(case when d.stage_status = \"SUCCESS\" then 1 end) / nullif(count(), 0), 1) as success_rate,\n    round(100.0 * count(case when d.stage_status in [\"FAILED\", \"ABORTED\", \"EXPIRED\", \"APPROVAL_REJECTED\", \"APPROVALREJECTED\", \"ERRORED\"] then 1 end) / nullif(count(), 0), 1) as change_failure_rate,\n    median(d.stage_duration) / 1000.0 as median_lead_time,\n    max(d.end_ts) as last_deployed\n  }\n| group_by service, project\n| order_by deployments desc\n| limit 50"
+              }
+            ]
+          },
+          "options": {
+            "formatting": {
+              "columns": {
+                "success_rate": {
+                  "unifiedFormat": {
+                    "valueType": "percentage"
+                  }
+                },
+                "change_failure_rate": {
+                  "unifiedFormat": {
+                    "valueType": "percentage"
+                  }
+                },
+                "median_lead_time": {
+                  "unifiedFormat": {
+                    "valueType": "duration",
+                    "options": {
+                      "display": "humanized_short"
+                    }
+                  }
+                },
+                "last_deployed": {
+                  "unifiedFormat": {
+                    "valueType": "date",
+                    "options": {
+                      "dateDisplayFormat": "date-year-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "subtitle": "Per-service DORA view: volume, success, failure rate, lead time and last deployment",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "schemaVersion": "1.15.0",
+  "dashboardFilters": [
+    {
+      "name": "Project",
+      "variableName": "project_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "cd:deployment_stage_execution",
+        "type": "view"
+      },
+      "valueField": "project_identifier",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "project_filter"
+    },
+    {
+      "name": "Service",
+      "variableName": "service_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "cd:deployment_stage_execution",
+        "type": "view"
+      },
+      "valueField": "service_name",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "service_filter"
+    },
+    {
+      "name": "Environment",
+      "variableName": "environment_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "cd:deployment_stage_execution",
+        "type": "view"
+      },
+      "valueField": "env_name",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "environment_filter"
+    },
+    {
+      "name": "Environment Type",
+      "variableName": "env_type_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "cd:deployment_stage_execution",
+        "type": "view"
+      },
+      "valueField": "env_type",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "env_type_filter"
+    }
+  ]
+}

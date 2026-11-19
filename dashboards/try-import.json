@@ -1,0 +1,57 @@
+{
+  "$schema": "https://schemas.harness.io/dashboard/v1.15.0/schema/dashboard.schema.json",
+  "type": "dashboard-container",
+  "title": "Import test",
+  "subtitle": "One metric, no ids. If this opens, the same import works for the other dashboards.",
+  "showTimeRange": true,
+  "timeRangeV2": {
+    "kind": "relative",
+    "direction": "last",
+    "amount": 7,
+    "unit": "day"
+  },
+  "layout": {
+    "type": "grid-container-layout",
+    "items": [
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 4,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "CI Builds",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | aggregate { count() as builds }"
+              }
+            ]
+          },
+          "variables": {
+            "start_time": "",
+            "end_time": ""
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "schemaVersion": "1.15.0"
+}

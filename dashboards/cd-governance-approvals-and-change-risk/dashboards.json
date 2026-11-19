@@ -1,0 +1,2085 @@
+{
+  "$schema": "https://schemas.harness.io/dashboard/v1.15.0/schema/dashboard.schema.json",
+  "type": "dashboard-container",
+  "title": "CD Governance, Approvals & Change Risk",
+  "subtitle": "Change-management view of continuous delivery: approval gates and wait times, change timing, failed/aborted changes and rollbacks, and who initiates changes with which runtime inputs.",
+  "showTimeRange": true,
+  "timeRangeV2": {
+    "kind": "relative",
+    "direction": "last",
+    "amount": 3,
+    "unit": "month"
+  },
+  "layout": {
+    "type": "grid-container-layout",
+    "items": [
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 1,
+        "widget": {
+          "type": "text-widget-model",
+          "text": "## Approval Gates",
+          "options": {
+            "fontSize": "lg",
+            "bold": true
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 1,
+        "w": 4,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Approval Steps",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:pipeline:step_execution\" s\n| filter s.start_ts >= cast(${start_time} as timestamp) and s.start_ts <= cast(${end_time} as timestamp)\n| filter s.step_type in [\"HarnessApproval\", \"JiraApproval\", \"ServiceNowApproval\", \"CustomApproval\"]\n| filter ${project_filter_predicate}\n| aggregate { distinct_count(s.step_execution_id) as approval_steps }"
+              }
+            ]
+          },
+          "subtitle": "Manual approval gates executed in pipelines",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 4,
+        "y": 1,
+        "w": 4,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Avg Approval Wait",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "duration",
+                "options": {
+                  "display": "humanized_short"
+                }
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": true
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:pipeline:step_execution\" s\n| filter s.start_ts >= cast(${start_time} as timestamp) and s.start_ts <= cast(${end_time} as timestamp)\n| filter s.step_type in [\"HarnessApproval\", \"JiraApproval\", \"ServiceNowApproval\", \"CustomApproval\"]\n| filter ${project_filter_predicate}\n| filter s.duration > 0\n| aggregate { avg(s.duration) / 1000.0 as avg_wait_s }"
+              }
+            ]
+          },
+          "subtitle": "Average time a change waited at an approval gate",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 8,
+        "y": 1,
+        "w": 4,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Rejected / Expired / Aborted Approvals",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": true
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:pipeline:step_execution\" s\n| filter s.start_ts >= cast(${start_time} as timestamp) and s.start_ts <= cast(${end_time} as timestamp)\n| filter s.step_type in [\"HarnessApproval\", \"JiraApproval\", \"ServiceNowApproval\", \"CustomApproval\"]\n| filter ${project_filter_predicate}\n| aggregate { count(case when s.status in [\"REJECTED\", \"APPROVAL_REJECTED\", \"EXPIRED\", \"ABORTED\", \"FAILED\"] then 1 end) as not_approved }"
+              }
+            ]
+          },
+          "subtitle": "Approval gates that did not end in an approval",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 4,
+        "w": 4,
+        "h": 6,
+        "widget": {
+          "type": "donut-widget-model",
+          "title": "Approval Outcomes",
+          "options": {
+            "legendPosition": "bottom",
+            "legendFontSize": "extra-small",
+            "alignment": "center-alignment",
+            "showTooltip": true,
+            "displayLegendCounts": true,
+            "formatLegendValue": true,
+            "applyDefaultSorting": true,
+            "showCenterTotal": true,
+            "centerTitle": "Gates",
+            "centerValueType": "auto",
+            "seriesMapping": {
+              "nameColumn": "outcome",
+              "valueColumn": "approvals"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:pipeline:step_execution\" s\n| filter s.start_ts >= cast(${start_time} as timestamp) and s.start_ts <= cast(${end_time} as timestamp)\n| filter s.step_type in [\"HarnessApproval\", \"JiraApproval\", \"ServiceNowApproval\", \"CustomApproval\"]\n| filter ${project_filter_predicate}\n| left join view \"cd:step_execution_summary_harness_approval\" a on a.step_execution_id = s.step_execution_id\n| aggregate {\n    case when a.approval_action = \"APPROVE\" then \"Approved\"\n         when a.approval_action = \"REJECT\" then \"Rejected\"\n         when s.status = \"EXPIRED\" then \"Expired\"\n         when s.status = \"ABORTED\" then \"Aborted\"\n         else s.status end as outcome,\n    distinct_count(s.step_execution_id) as approvals\n  }\n| group_by outcome\n| order_by approvals desc"
+              }
+            ]
+          },
+          "subtitle": "How approval gates were resolved",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 4,
+        "y": 4,
+        "w": 4,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Approvals by Approver",
+          "options": {
+            "seriesType": "bar",
+            "stacking": true,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [
+              {
+                "name": "Approved",
+                "color": "green"
+              },
+              {
+                "name": "Rejected",
+                "color": "red"
+              }
+            ],
+            "seriesMapping": {
+              "xColumn": "approver",
+              "yColumns": [
+                "approvals"
+              ],
+              "leftYColumn": "approvals",
+              "defaultType": "bar",
+              "groupByColumns": [
+                "action"
+              ],
+              "groupByColumn": "action"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:pipeline:step_execution\" s\n| filter s.start_ts >= cast(${start_time} as timestamp) and s.start_ts <= cast(${end_time} as timestamp)\n| filter s.step_type in [\"HarnessApproval\", \"JiraApproval\", \"ServiceNowApproval\", \"CustomApproval\"]\n| filter ${project_filter_predicate}\n| join view \"cd:step_execution_summary_harness_approval\" a on a.step_execution_id = s.step_execution_id\n| aggregate {\n    a.approved_by_name as approver,\n    case when a.approval_action = \"APPROVE\" then \"Approved\" else \"Rejected\" end as action,\n    count() as approvals\n  }\n| group_by approver, action\n| order_by approvals desc"
+              }
+            ]
+          },
+          "subtitle": "Approval actions recorded per approver",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 8,
+        "y": 4,
+        "w": 4,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Weekly Approval Volume & Median Wait",
+          "options": {
+            "seriesType": "column",
+            "stacking": false,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true,
+                "unifiedFormat": {
+                  "valueType": "date",
+                  "options": {
+                    "dateDisplayFormat": "date-only"
+                  }
+                }
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              },
+              {
+                "name": "y-right",
+                "location": 1,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [],
+            "seriesMapping": {
+              "xColumn": "week",
+              "yColumns": [
+                "approvals",
+                "median_wait_s"
+              ],
+              "leftYColumn": "approvals",
+              "defaultType": "column",
+              "rightYColumn": "median_wait_s"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"view:pipeline:step_execution\" s\n| filter s.start_ts >= cast(${start_time} as timestamp) and s.start_ts <= cast(${end_time} as timestamp)\n| filter s.step_type in [\"HarnessApproval\", \"JiraApproval\", \"ServiceNowApproval\", \"CustomApproval\"]\n| filter ${project_filter_predicate}\n| aggregate {\n    date_trunc(\"week\", s.start_ts) as week,\n    distinct_count(s.step_execution_id) as approvals,\n    median(s.duration) / 1000.0 as median_wait_s\n  }\n| group_by week\n| order_by week asc"
+              }
+            ]
+          },
+          "subtitle": "Approval gates per week (bars) and median wait in seconds (right axis)",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "s.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 10,
+        "w": 12,
+        "h": 1,
+        "widget": {
+          "type": "text-widget-model",
+          "text": "## Change Risk",
+          "options": {
+            "fontSize": "lg",
+            "bold": true
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 11,
+        "w": 4,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Changes Deployed",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate { distinct_count(d.stage_execution_id) as changes }"
+              }
+            ]
+          },
+          "subtitle": "Service deployment stages (changes) executed",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 4,
+        "y": 11,
+        "w": 4,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Failed & Aborted Changes",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": true
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate { count(case when d.stage_status in [\"FAILED\", \"ABORTED\", \"EXPIRED\", \"APPROVAL_REJECTED\", \"APPROVALREJECTED\", \"ERRORED\"] then 1 end) as failed_changes }"
+              }
+            ]
+          },
+          "subtitle": "Changes that failed, aborted, expired or were rejected",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 8,
+        "y": 11,
+        "w": 4,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Automated Rollbacks",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": true
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate { count(case when d.is_automated_rollback = true or d.rollback_duration > 0 then 1 end) as rollbacks }"
+              }
+            ]
+          },
+          "subtitle": "Deployments where a rollback was executed",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 14,
+        "w": 3,
+        "h": 6,
+        "widget": {
+          "type": "gauge-widget-model",
+          "title": "Failed Change Rate",
+          "options": {
+            "maxValue": 100,
+            "variant": "segmented",
+            "valueFormatOptions": {
+              "valueType": "percentage",
+              "decimalPlaces": 1
+            },
+            "thresholds": [
+              {
+                "label": "Elite",
+                "start": 0,
+                "end": 5,
+                "color": "green"
+              },
+              {
+                "label": "High",
+                "start": 5,
+                "end": 10,
+                "color": "teal"
+              },
+              {
+                "label": "Medium",
+                "start": 10,
+                "end": 15,
+                "color": "yellow"
+              },
+              {
+                "label": "Low",
+                "start": 15,
+                "end": 100,
+                "color": "red"
+              }
+            ]
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate { 100.0 * count(case when d.stage_status in [\"FAILED\", \"ABORTED\", \"EXPIRED\", \"APPROVAL_REJECTED\", \"APPROVALREJECTED\", \"ERRORED\"] then 1 end) / nullif(count(), 0) as failed_change_rate }"
+              }
+            ]
+          },
+          "subtitle": "Share of changes that did not succeed (DORA bands)",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 3,
+        "y": 14,
+        "w": 5,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Change Volume by Day of Week",
+          "options": {
+            "seriesType": "column",
+            "stacking": true,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [
+              {
+                "name": "Succeeded",
+                "color": "green"
+              },
+              {
+                "name": "Failed",
+                "color": "red"
+              }
+            ],
+            "seriesMapping": {
+              "xColumn": "weekday",
+              "yColumns": [
+                "changes"
+              ],
+              "leftYColumn": "changes",
+              "defaultType": "column",
+              "groupByColumns": [
+                "outcome"
+              ],
+              "groupByColumn": "outcome"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate {\n    case when date_diff(date_trunc(\"week\", d.start_ts), d.start_ts, \"day\") < 1 then \"1 Mon\" when date_diff(date_trunc(\"week\", d.start_ts), d.start_ts, \"day\") < 2 then \"2 Tue\" when date_diff(date_trunc(\"week\", d.start_ts), d.start_ts, \"day\") < 3 then \"3 Wed\"\n         when date_diff(date_trunc(\"week\", d.start_ts), d.start_ts, \"day\") < 4 then \"4 Thu\" when date_diff(date_trunc(\"week\", d.start_ts), d.start_ts, \"day\") < 5 then \"5 Fri\" when date_diff(date_trunc(\"week\", d.start_ts), d.start_ts, \"day\") < 6 then \"6 Sat\"\n         else \"7 Sun\" end as weekday,\n    case when d.stage_status in [\"FAILED\", \"ABORTED\", \"EXPIRED\", \"APPROVAL_REJECTED\", \"APPROVALREJECTED\", \"ERRORED\"] then \"Failed\" else \"Succeeded\" end as outcome,\n    distinct_count(d.stage_execution_id) as changes\n  }\n| group_by weekday, outcome\n| order_by weekday asc"
+              }
+            ]
+          },
+          "subtitle": "When changes happen during the week (UTC), stacked by outcome",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 8,
+        "y": 14,
+        "w": 4,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Change Volume by Hour of Day (UTC)",
+          "options": {
+            "seriesType": "column",
+            "stacking": false,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [],
+            "seriesMapping": {
+              "xColumn": "hour_utc",
+              "yColumns": [
+                "changes"
+              ],
+              "leftYColumn": "changes",
+              "defaultType": "column"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| aggregate {\n    cast(date_diff(date_trunc(\"day\", d.start_ts), d.start_ts, \"hour\") as int) as hour_utc,\n    distinct_count(d.stage_execution_id) as changes\n  }\n| group_by hour_utc\n| order_by hour_utc asc"
+              }
+            ]
+          },
+          "subtitle": "Deployment start hour; spot out-of-hours changes",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 20,
+        "w": 12,
+        "h": 8,
+        "widget": {
+          "type": "table-widget-model",
+          "title": "Failed, Aborted & Rolled-back Changes",
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| filter d.stage_status in [\"FAILED\", \"ABORTED\", \"EXPIRED\", \"APPROVAL_REJECTED\", \"APPROVALREJECTED\", \"ERRORED\"] or d.is_automated_rollback = true or d.rollback_duration > 0\n| select {\n    d.start_ts as started,\n    d.service_name as service,\n    d.env_name as environment,\n    d.env_type as env_type,\n    d.pipeline_name as pipeline,\n    d.stage_status as status,\n    case when d.is_automated_rollback = true or d.rollback_duration > 0 then \"Yes\" else \"No\" end as rolled_back,\n    d.rollback_duration / 1000.0 as rollback_duration,\n    d.failure_message as failure_message\n  }\n| order_by started desc\n| limit 100"
+              }
+            ]
+          },
+          "options": {
+            "formatting": {
+              "columns": {
+                "status": {
+                  "cellRenderer": "core.badge",
+                  "cellRendererOptions": {
+                    "display": "solid",
+                    "bgColor": "indigo",
+                    "textColor": "auto",
+                    "enableColorMapping": true,
+                    "colorByValue": [
+                      {
+                        "value": "SUCCESS",
+                        "bgColor": "green",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "SUCCEEDED",
+                        "bgColor": "green",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "Success",
+                        "bgColor": "green",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "Succeeded",
+                        "bgColor": "green",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "FAILED",
+                        "bgColor": "red",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "Failed",
+                        "bgColor": "red",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "ABORTED",
+                        "bgColor": "orange",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "Aborted",
+                        "bgColor": "orange",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "EXPIRED",
+                        "bgColor": "gray",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "RUNNING",
+                        "bgColor": "blue",
+                        "textColor": "auto"
+                      }
+                    ]
+                  }
+                },
+                "rolled_back": {
+                  "cellRenderer": "core.badge",
+                  "cellRendererOptions": {
+                    "display": "solid",
+                    "bgColor": "indigo",
+                    "textColor": "auto",
+                    "enableColorMapping": true,
+                    "colorByValue": [
+                      {
+                        "value": "Yes",
+                        "bgColor": "orange",
+                        "textColor": "auto"
+                      },
+                      {
+                        "value": "No",
+                        "bgColor": "gray",
+                        "textColor": "auto"
+                      }
+                    ]
+                  }
+                },
+                "started": {
+                  "unifiedFormat": {
+                    "valueType": "date",
+                    "options": {
+                      "dateDisplayFormat": "date-year-time"
+                    }
+                  }
+                },
+                "rollback_duration": {
+                  "unifiedFormat": {
+                    "valueType": "duration",
+                    "options": {
+                      "display": "humanized_short"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "subtitle": "Audit list of changes that failed, were aborted or triggered a rollback",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 28,
+        "w": 12,
+        "h": 1,
+        "widget": {
+          "type": "text-widget-model",
+          "text": "## Change Initiation & Runtime Inputs",
+          "options": {
+            "fontSize": "lg",
+            "bold": true
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 29,
+        "w": 6,
+        "h": 7,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Changes by Trigger Type & User",
+          "options": {
+            "seriesType": "bar",
+            "stacking": true,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [],
+            "seriesMapping": {
+              "xColumn": "triggered_by",
+              "yColumns": [
+                "changes"
+              ],
+              "leftYColumn": "changes",
+              "defaultType": "bar",
+              "groupByColumns": [
+                "trigger_type"
+              ],
+              "groupByColumn": "trigger_type"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:deployment_stage_execution\" d\n| filter d.start_ts >= cast(${start_time} as timestamp) and d.start_ts <= cast(${end_time} as timestamp)\n| filter d.service_identifier is not null and d.service_identifier != \"\"\n| filter ${project_filter_predicate} and ${service_filter_predicate}\n| filter ${environment_filter_predicate} and ${env_type_filter_predicate}\n| join view \"cd:pipeline_execution_summary_cd\" pe on pe.planexecutionid = d.plan_execution_id\n| left join view \"cd:view:pipeline_execution_summary\" v on v.planexecutionid = d.plan_execution_id\n| aggregate {\n    case when v.triggered_by_name is null or v.triggered_by_name = \"\" or v.triggered_by_name = \"NA\"\n         then \"Unknown\" else v.triggered_by_name end as triggered_by,\n    pe.trigger_type as trigger_type,\n    distinct_count(d.stage_execution_id) as changes\n  }\n| group_by triggered_by, trigger_type\n| order_by changes desc\n| limit 20"
+              }
+            ]
+          },
+          "subtitle": "Who initiated deployments and how (manual, webhook, release orchestration)",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in",
+              "sourceFilterField": "service_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.service_name",
+              "filterOperator": "in"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in",
+              "sourceFilterField": "env_name",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_name",
+              "filterOperator": "in"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in",
+              "sourceFilterField": "env_type",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "d.env_type",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 6,
+        "y": 29,
+        "w": 6,
+        "h": 7,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Most-Used Runtime Inputs",
+          "options": {
+            "seriesType": "bar",
+            "stacking": false,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [],
+            "seriesMapping": {
+              "xColumn": "runtime_input",
+              "yColumns": [
+                "executions"
+              ],
+              "leftYColumn": "executions",
+              "defaultType": "bar"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"cd:view:runtime_inputs_info\" r\n| filter r.row_created_at >= cast(${start_time} as timestamp) and r.row_created_at <= cast(${end_time} as timestamp)\n| filter ${project_filter_predicate}\n| aggregate {\n    r.display_name as runtime_input,\n    distinct_count(r.plan_execution_id) as executions\n  }\n| group_by runtime_input\n| order_by executions desc\n| limit 15"
+              }
+            ]
+          },
+          "subtitle": "Runtime inputs supplied at execution time, by number of executions",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "service_filter_predicate": "true",
+            "service_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "environment_filter_predicate": "true",
+            "environment_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "env_type_filter_predicate": "true",
+            "env_type_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "r.project_identifier",
+              "filterOperator": "in",
+              "sourceFilterField": "project_identifier",
+              "sourceFilterDatasourceId": "cd:deployment_stage_execution"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "r.project_identifier",
+              "filterOperator": "in"
+            },
+            "service_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "service_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "environment_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_predicate": {
+              "type": "filter",
+              "behavior": "ignore"
+            },
+            "env_type_filter_value": {
+              "type": "filter",
+              "behavior": "ignore"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "schemaVersion": "1.15.0",
+  "dashboardFilters": [
+    {
+      "name": "Project",
+      "variableName": "project_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "cd:deployment_stage_execution",
+        "type": "view"
+      },
+      "valueField": "project_identifier",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "project_filter"
+    },
+    {
+      "name": "Service",
+      "variableName": "service_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "cd:deployment_stage_execution",
+        "type": "view"
+      },
+      "valueField": "service_name",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "service_filter"
+    },
+    {
+      "name": "Environment",
+      "variableName": "environment_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "cd:deployment_stage_execution",
+        "type": "view"
+      },
+      "valueField": "env_name",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "environment_filter"
+    },
+    {
+      "name": "Environment Type",
+      "variableName": "env_type_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "cd:deployment_stage_execution",
+        "type": "view"
+      },
+      "valueField": "env_type",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "env_type_filter"
+    }
+  ]
+}

@@ -1,0 +1,1565 @@
+{
+  "$schema": "https://schemas.harness.io/dashboard/v1.15.0/schema/dashboard.schema.json",
+  "type": "dashboard-container",
+  "title": "CI Executive Build Health",
+  "subtitle": "Leadership view of CI build volume, success rate, build speed and engineering time spent in CI, with period-over-period comparison.",
+  "showTimeRange": true,
+  "timeRangeV2": {
+    "kind": "relative",
+    "direction": "last",
+    "amount": 3,
+    "unit": "month"
+  },
+  "layout": {
+    "type": "grid-container-layout",
+    "items": [
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 1,
+        "widget": {
+          "type": "text-widget-model",
+          "text": "## Build Health at a Glance",
+          "options": {
+            "fontSize": "lg",
+            "bold": true
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 1,
+        "w": 3,
+        "h": 6,
+        "widget": {
+          "type": "gauge-widget-model",
+          "title": "Build Success Rate",
+          "options": {
+            "maxValue": 100,
+            "variant": "segmented",
+            "valueFormatOptions": {
+              "valueType": "percentage",
+              "decimalPlaces": 1
+            },
+            "thresholds": [
+              {
+                "label": "At risk",
+                "start": 0,
+                "end": 70,
+                "color": "red"
+              },
+              {
+                "label": "Needs attention",
+                "start": 70,
+                "end": 90,
+                "color": "yellow"
+              },
+              {
+                "label": "Healthy",
+                "start": 90,
+                "end": 100,
+                "color": "green"
+              }
+            ]
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n| aggregate { round(100.0 * count(case when pe.status = \"SUCCESS\" then 1 end) / nullif(count(), 0), 1) as success_rate }"
+              }
+            ]
+          },
+          "subtitle": "Share of CI executions that finished SUCCESS",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 3,
+        "y": 1,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Total Builds",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n| aggregate { count() as total_builds }"
+              }
+            ]
+          },
+          "subtitle": "CI pipeline executions vs previous period",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 6,
+        "y": 1,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Builds per Day",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "decimal"
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "with daily as (\n  find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n  | aggregate { date_trunc(\"day\", pe.startts) as day, count() as builds }\n  | group_by day\n)\nfind daily | aggregate { round(avg(builds), 1) as builds_per_day }"
+              }
+            ]
+          },
+          "subtitle": "Average builds on days with CI activity",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 9,
+        "y": 1,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Median Build Duration",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "duration",
+                "options": {
+                  "display": "humanized_short"
+                }
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": true
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n| filter pe.build_duration > 0\n| aggregate { median(pe.build_duration) / 1000.0 as median_duration_s }"
+              }
+            ]
+          },
+          "subtitle": "Typical end-to-end build time (lower is better)",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 3,
+        "y": 4,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Active Pipelines",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n| aggregate { distinct_count(pe.pipelineidentifier) as active_pipelines }"
+              }
+            ]
+          },
+          "subtitle": "Distinct CI pipelines that ran",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 6,
+        "y": 4,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Active Repositories",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "integer"
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": false
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n| filter pe.moduleinfo_repository is not null and pe.moduleinfo_repository != 'NA' and pe.moduleinfo_repository != ''\n| aggregate { distinct_count(pe.moduleinfo_repository) as active_repos }"
+              }
+            ]
+          },
+          "subtitle": "Distinct Git repositories built",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 9,
+        "y": 4,
+        "w": 3,
+        "h": 3,
+        "widget": {
+          "type": "metric-widget-model",
+          "title": "Engineering Hours in CI",
+          "align": "left",
+          "justify": "center",
+          "options": {
+            "unifiedFormatting": {
+              "value": {
+                "valueType": "decimal"
+              }
+            },
+            "delta": {
+              "enabled": true,
+              "displayMode": "percentage",
+              "invertColors": true
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n| aggregate { round(sum(pe.build_duration) / 3600000.0, 1) as ci_hours }"
+              }
+            ]
+          },
+          "subtitle": "Total wall-clock build hours across all executions",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 7,
+        "w": 12,
+        "h": 1,
+        "widget": {
+          "type": "text-widget-model",
+          "text": "## Trends",
+          "options": {
+            "fontSize": "lg",
+            "bold": true
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 8,
+        "w": 8,
+        "h": 7,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Weekly Builds by Outcome",
+          "options": {
+            "seriesType": "column",
+            "stacking": true,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true,
+                "unifiedFormat": {
+                  "valueType": "date",
+                  "options": {
+                    "dateDisplayFormat": "date-only"
+                  }
+                }
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [
+              {
+                "name": "Success",
+                "color": "green"
+              },
+              {
+                "name": "Failed",
+                "color": "red"
+              },
+              {
+                "name": "Aborted",
+                "color": "orange"
+              },
+              {
+                "name": "Expired",
+                "color": "gray"
+              }
+            ],
+            "seriesMapping": {
+              "xColumn": "week",
+              "yColumns": [
+                "builds"
+              ],
+              "leftYColumn": "builds",
+              "defaultType": "column",
+              "groupByColumns": [
+                "outcome"
+              ],
+              "groupByColumn": "outcome"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n| aggregate { date_trunc(\"week\", pe.startts) as week, case when pe.status = \"SUCCESS\" then \"Success\" when pe.status = \"FAILED\" then \"Failed\" when pe.status = \"ABORTED\" then \"Aborted\" when pe.status = \"EXPIRED\" then \"Expired\" else \"Other\" end as outcome, count() as builds }\n| group_by week, outcome\n| order_by week asc"
+              }
+            ]
+          },
+          "subtitle": "Build volume per week, stacked by final status",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 8,
+        "y": 8,
+        "w": 4,
+        "h": 7,
+        "widget": {
+          "type": "donut-widget-model",
+          "title": "Build Status Mix",
+          "options": {
+            "legendPosition": "bottom",
+            "legendFontSize": "extra-small",
+            "alignment": "center-alignment",
+            "showTooltip": true,
+            "displayLegendCounts": true,
+            "formatLegendValue": true,
+            "applyDefaultSorting": true,
+            "showCenterTotal": true,
+            "centerTitle": "Builds",
+            "centerValueType": "auto",
+            "seriesMapping": {
+              "nameColumn": "outcome",
+              "valueColumn": "builds"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n| aggregate { case when pe.status = \"SUCCESS\" then \"Success\" when pe.status = \"FAILED\" then \"Failed\" when pe.status = \"ABORTED\" then \"Aborted\" when pe.status = \"EXPIRED\" then \"Expired\" else \"Other\" end as outcome, count() as builds }\n| group_by outcome\n| order_by builds desc"
+              }
+            ]
+          },
+          "subtitle": "Distribution of final build statuses",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 15,
+        "w": 6,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Weekly Success Rate",
+          "options": {
+            "seriesType": "line",
+            "stacking": false,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true,
+                "unifiedFormat": {
+                  "valueType": "date",
+                  "options": {
+                    "dateDisplayFormat": "date-only"
+                  }
+                }
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false,
+                "unifiedFormat": {
+                  "valueType": "percentage"
+                }
+              }
+            ],
+            "seriesOverrides": [],
+            "seriesMapping": {
+              "xColumn": "week",
+              "yColumns": [
+                "success_rate_pct"
+              ],
+              "leftYColumn": "success_rate_pct",
+              "defaultType": "line"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n| aggregate { date_trunc(\"week\", pe.startts) as week, round(100.0 * count(case when pe.status = \"SUCCESS\" then 1 end) / nullif(count(), 0), 1) as success_rate_pct }\n| group_by week\n| order_by week asc"
+              }
+            ]
+          },
+          "subtitle": "Percent of builds succeeding each week",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 6,
+        "y": 15,
+        "w": 6,
+        "h": 6,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Weekly Engineering Hours in CI",
+          "options": {
+            "seriesType": "area",
+            "stacking": false,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true,
+                "unifiedFormat": {
+                  "valueType": "date",
+                  "options": {
+                    "dateDisplayFormat": "date-only"
+                  }
+                }
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [],
+            "seriesMapping": {
+              "xColumn": "week",
+              "yColumns": [
+                "ci_hours"
+              ],
+              "leftYColumn": "ci_hours",
+              "defaultType": "area"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n| aggregate { date_trunc(\"week\", pe.startts) as week, round(sum(pe.build_duration) / 3600000.0, 2) as ci_hours }\n| group_by week\n| order_by week asc"
+              }
+            ]
+          },
+          "subtitle": "Wall-clock hours spent building per week",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 21,
+        "w": 12,
+        "h": 1,
+        "widget": {
+          "type": "text-widget-model",
+          "text": "## Where Builds Happen",
+          "options": {
+            "fontSize": "lg",
+            "bold": true
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 0,
+        "y": 22,
+        "w": 5,
+        "h": 8,
+        "widget": {
+          "type": "cartesian-widget-model",
+          "title": "Top Projects by Build Volume",
+          "options": {
+            "seriesType": "bar",
+            "stacking": false,
+            "showXAxis": true,
+            "showYAxis": true,
+            "legend": {
+              "visible": true,
+              "position": "top-right"
+            },
+            "rangeSelectionEnabled": false,
+            "selectableInterval": false,
+            "xAxis": [
+              {
+                "name": "x1",
+                "location": 3,
+                "visible": true,
+                "showGridLines": true
+              }
+            ],
+            "yAxis": [
+              {
+                "name": "y-left",
+                "location": 0,
+                "visible": true,
+                "showGridLines": false
+              }
+            ],
+            "seriesOverrides": [],
+            "seriesMapping": {
+              "xColumn": "project",
+              "yColumns": [
+                "builds"
+              ],
+              "leftYColumn": "builds",
+              "defaultType": "bar"
+            }
+          },
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n| aggregate { pe.projectidentifier as project, count() as builds }\n| group_by project\n| order_by builds desc\n| limit 10"
+              }
+            ]
+          },
+          "subtitle": "Projects running the most CI builds",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      },
+      {
+        "type": "grid-item-layout",
+        "x": 5,
+        "y": 22,
+        "w": 7,
+        "h": 8,
+        "widget": {
+          "type": "table-widget-model",
+          "title": "Project Build Scorecard",
+          "data": {
+            "type": "uql-api-datasource",
+            "queries": [
+              {
+                "query": "find view \"ci:pipeline_execution_summary_ci\" pe | filter pe.startts >= cast(${start_time} as timestamp) and pe.startts <= cast(${end_time} as timestamp) | filter ${project_filter_predicate} and ${pipeline_filter_predicate} and ${repository_filter_predicate}\n| aggregate {\n    pe.orgidentifier as organization,\n    pe.projectidentifier as project,\n    count() as builds,\n    round(100.0 * count(case when pe.status = \"SUCCESS\" then 1 end) / nullif(count(), 0), 1) as success_rate_pct,\n    distinct_count(pe.pipelineidentifier) as pipelines,\n    round(median(pe.build_duration) / 60000.0, 1) as median_minutes,\n    round(sum(pe.build_duration) / 3600000.0, 1) as ci_hours\n  }\n| group_by organization, project\n| order_by builds desc\n| limit 25"
+              }
+            ]
+          },
+          "options": {
+            "formatting": {
+              "columns": {
+                "success_rate_pct": {
+                  "unifiedFormat": {
+                    "valueType": "percentage"
+                  }
+                }
+              }
+            }
+          },
+          "subtitle": "Volume, reliability, speed and CI time per project",
+          "variables": {
+            "start_time": "",
+            "end_time": "",
+            "project_filter_predicate": "true",
+            "project_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "pipeline_filter_predicate": "true",
+            "pipeline_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            },
+            "repository_filter_predicate": "true",
+            "repository_filter_value": {
+              "type": "FIELD_TYPE_STR",
+              "value": []
+            }
+          },
+          "variableConfig": {
+            "__dashboard_time_range__": {
+              "type": "filter",
+              "behavior": "inherit"
+            },
+            "project_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "projectidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "project_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.projectidentifier",
+              "filterOperator": "in"
+            },
+            "pipeline_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in",
+              "sourceFilterField": "pipelineidentifier",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "pipeline_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.pipelineidentifier",
+              "filterOperator": "in"
+            },
+            "repository_filter_predicate": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in",
+              "sourceFilterField": "moduleinfo_repository",
+              "sourceFilterDatasourceId": "ci:pipeline_execution_summary_ci"
+            },
+            "repository_filter_value": {
+              "type": "filter",
+              "behavior": "inherit",
+              "filterField": "pe.moduleinfo_repository",
+              "filterOperator": "in"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "schemaVersion": "1.15.0",
+  "dashboardFilters": [
+    {
+      "name": "Project",
+      "variableName": "project_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "ci:pipeline_execution_summary_ci",
+        "type": "view"
+      },
+      "valueField": "projectidentifier",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "project_filter"
+    },
+    {
+      "name": "Pipeline",
+      "variableName": "pipeline_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "ci:pipeline_execution_summary_ci",
+        "type": "view"
+      },
+      "valueField": "pipelineidentifier",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "pipeline_filter"
+    },
+    {
+      "name": "Repository",
+      "variableName": "repository_filter",
+      "type": "multiselect",
+      "valueDatasource": {
+        "id": "ci:pipeline_execution_summary_ci",
+        "type": "view"
+      },
+      "valueField": "moduleinfo_repository",
+      "valueType": "FIELD_TYPE_STR",
+      "id": "repository_filter"
+    }
+  ]
+}
