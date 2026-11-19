@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.11.0] - 2026-11-19
+
+- ADD: Dashboards 3.0 examples with importable dashboards.json and README for CI, CD, STO, IaCM, AR, and SCS modules
+- ADD: Cross-module Dashboards 3.0 examples Harness Business Value Realization and Artifact Lifecycle 360
+- ADD: Dashboards 3.0 try-import.json minimal example for validating dashboard import
+
 ## [v2.10.0] - 2026-10-23
 
 - ADD: Template ccm-azure-member-connectors with Azure CCM member account connector management and HSF Hub support
